@@ -1,0 +1,96 @@
+﻿<Window x:Class="gClothTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:gClothTool"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="900">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" />
+                <MenuItem Name="RenameBtn" Header="_Rename" IsEnabled="False" />
+                <Separator />
+                <MenuItem Header="_Open (YMT)"/>
+                <MenuItem Header="_Save (YMT)" />
+                <Separator />
+                <MenuItem Header="_Open (XML)"/>
+                <MenuItem Header="_Save (XML)" />
+                <Separator />
+                <MenuItem Name="CreatureGen" Header="_Generate CreatureMetadata" IsEnabled="False" />
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Name="logBar" Foreground="Red" FontWeight="Bold" Text="" FontSize="12" Height="18" VerticalAlignment="Center" Padding="8,0,0,0"></TextBlock>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1" HorizontalAlignment="Right" Padding="5,0,10,2">
+                <Hyperlink NavigateUri="https://discord.gg/xUXbrupFhN" RequestNavigate="Hyperlink_RequestNavigate" >Official Discord</Hyperlink>
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" Padding="5,0,10,2">
+                <Hyperlink NavigateUri="https://github.com/grzybeek/YMTEditor" RequestNavigate="Hyperlink_RequestNavigate" >Source code</Hyperlink>
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid Margin="5,5,5,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+            <GroupBox Grid.Column="0" Header="Drawables">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5,5,5,5">
+                        <Button Height="20" Width="50" BorderThickness="0" Foreground="DarkSlateGray" Click="Add_Female" >Female</Button>
+                        <Button Height="20" Width="50" BorderThickness="0" Foreground="DarkSlateGray" Click="Add_Male" >Male</Button>
+                        <Button Height="20" Width="100" BorderThickness="0" Foreground="DarkSlateGray" FontFamily="Segoe UI">Remove selected</Button>
+                    </StackPanel>
+                    <StackPanel>
+                        <Expander Header="Female addon" IsEnabled="true" HorizontalAlignment="Stretch">
+                            <ItemsControl Name="FemaleItemsControl">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Expander Header="{Binding compTypeHeader}">
+                                            <ListBox ItemsSource="{Binding compDrawables}">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Name}"></TextBlock>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </Expander>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            
+                        </Expander>
+                        <Expander Header="Male addon" IsEnabled="false"></Expander>
+                    </StackPanel>
+
+                    
+                </Grid>
+                
+            </GroupBox>
+            <GroupBox Grid.Column="1" Header="Selected drawable options">
+
+            </GroupBox>
+        </Grid>
+        
+    </DockPanel>
+</Window>
