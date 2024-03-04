@@ -27,12 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="CodeWalker">
+      <HintPath>..\packages\CodeWalker.dll</HintPath>
+    </Reference>
     <Reference Include="CodeWalker.Core">
       <HintPath>..\packages\CodeWalker.Core.dll</HintPath>
     </Reference>
-	<Reference Include="CodeWalker">
-		<HintPath>..\packages\CodeWalker.dll</HintPath>
-	</Reference>
   </ItemGroup>
 
   <ItemGroup>

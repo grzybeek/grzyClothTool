@@ -30,36 +30,6 @@ public class FileHelper
         ProjectPath = Directory.CreateDirectory(path);
     }
 
-    public Drawable CreateDrawable(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
-    {
-        FileInfo file = new(filePath);
-        var name = EnumHelper.GetName(typeNumber, isProp);
-
-        var matchingTextures = FindMatchingTextures(file, name, isProp);
-
-        var path = Path.Combine(name, countOfType.ToString("D3"));
-
-        var drawableFolder = ProjectPath.CreateSubdirectory(path);
-        var drawableName = Guid.NewGuid().ToString();
-        var drawableRaceSuffix = Path.GetFileNameWithoutExtension(file.Name)[^1..];
-        var drawableHasSkin = drawableRaceSuffix == "r";
-        var drawableFile = CopyFile(file, drawableFolder, drawableName);
-
-        //copy textures
-        var textures = matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).ToList();
-        foreach ( var texture in textures )
-        {
-            var txtFile = new FileInfo(path);
-            var txtInternalName = Guid.NewGuid().ToString();
-            var newTxtFile = CopyFile(texture.File, drawableFolder, txtInternalName);
-            texture.File = newTxtFile;
-            texture.InternalName = txtInternalName;
-        }
-        
-
-        return new Drawable(drawableFile, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures);
-    }
-
     public Task<Drawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
     {
         FileInfo file = new(filePath);

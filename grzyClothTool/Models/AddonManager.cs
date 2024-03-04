@@ -95,7 +95,7 @@ namespace grzyClothTool.Models
                 }
 
                 var countOfType = Drawables.Count(x => x.TypeNumeric == compType && x.IsProp == isProp && x.Sex == isMale);
-                var drawable = await Task.Run(() => _fileHelper.CreateDrawable(filePath, isMale, isProp, compType, countOfType));
+                var drawable = await Task.Run(() => _fileHelper.CreateDrawableAsync(filePath, isMale, isProp, compType, countOfType));
                 Drawables.Add(drawable);
             }
 
