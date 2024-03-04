@@ -146,7 +146,7 @@ namespace grzyClothTool.Views
             }
 
             Addon.SelectedDrawable = (Models.Drawable)args.AddedItems[0];
-            if (Addon.SelectedDrawable.Textures.Count == 0)
+            if (Addon.SelectedDrawable.Textures.Count > 0)
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
                 SelDrawable.SelectedIndex = 0;
