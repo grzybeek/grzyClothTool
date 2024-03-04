@@ -108,16 +108,20 @@ namespace grzyClothTool.Views
                 CWHelper.CWForm.FormClosed += CWForm_FormClosed;
             }
 
-            if (Addon.SelectedDrawable != null)
+            if (Addon.SelectedDrawable == null)
             {
-                var ydd = CreateYddFile(Addon.SelectedDrawable);
-                CWHelper.CWForm.LoadedDrawable = ydd.Drawables.First();
+                CWHelper.CWForm.Show();
+                Addon.IsPreviewEnabled = true;
+                return;
+            }
 
-                if (Addon.SelectedTexture != null)
-                {
-                    var ytd = CreateYtdFile(Addon.SelectedTexture);
-                    CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
-                }
+            var ydd = CreateYddFile(Addon.SelectedDrawable);
+            CWHelper.CWForm.LoadedDrawable = ydd.Drawables.First();
+
+            if (Addon.SelectedTexture != null)
+            {
+                var ytd = CreateYtdFile(Addon.SelectedTexture);
+                CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
             CWHelper.CWForm.Show();
@@ -132,54 +136,59 @@ namespace grzyClothTool.Views
         private void SelectedDrawable_Changed(object sender, EventArgs e)
         {
             var args = e as SelectionChangedEventArgs;
+            if (args == null) return;
             args.Handled = true;
 
-            if(args.AddedItems.Count == 0)
+            if (args.AddedItems.Count == 0)
             {
                 Addon.SelectedDrawable = null;
                 return;
             }
 
-
-
             Addon.SelectedDrawable = (Models.Drawable)args.AddedItems[0];
-            if(Addon.SelectedDrawable.Textures.Count > 0)
+            if (Addon.SelectedDrawable.Textures.Any())
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
                 SelDrawable.SelectedIndex = 0;
             }
-            
-            if (Addon.IsPreviewEnabled)
+
+            if (!Addon.IsPreviewEnabled) return;
+
+            var ydd = CreateYddFile(Addon.SelectedDrawable);
+            YtdFile ytd = null;
+            if (Addon.SelectedTexture != null)
             {
-                var ydd = CreateYddFile(Addon.SelectedDrawable);
-                var ytd = CreateYtdFile(Addon.SelectedTexture);
-
-                CWHelper.CWForm.LoadedDrawable = ydd.Drawables.First();
+                ytd = CreateYtdFile(Addon.SelectedTexture);
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
-                CWHelper.CWForm.Refresh();
-
-
-                if(Addon.SelectedDrawable.EnableHairScale)
-                {
-                    CWHelper.CWForm.UpdateSelectedDrawable(ydd.Drawables.First(), ytd.TextureDict, "HairScale", Addon.SelectedDrawable.HairScaleValue);
-                } 
-                else if(Addon.SelectedDrawable.EnableHighHeels)
-                {
-                    CWHelper.CWForm.UpdateSelectedDrawable(ydd.Drawables.First(), ytd.TextureDict, "HighHeels", Addon.SelectedDrawable.HighHeelsValue);
-                }
-                else
-                {
-                    CWHelper.CWForm.UpdateSelectedDrawable(ydd.Drawables.First(), ytd.TextureDict, "", "");
-                }
             }
+
+            var firstDrawable = ydd.Drawables.First();
+            CWHelper.CWForm.LoadedDrawable = firstDrawable;
+            CWHelper.CWForm.Refresh();
+
+            string updateName = "";
+            string value = "";
+
+            if (Addon.SelectedDrawable.EnableHairScale)
+            {
+                updateName = "HairScale";
+                value = Addon.SelectedDrawable.HairScaleValue.ToString();
+            }
+            else if (Addon.SelectedDrawable.EnableHighHeels)
+            {
+                updateName = "HighHeels";
+                value = Addon.SelectedDrawable.HighHeelsValue.ToString();
+            }
+
+            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateName, value);
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
         {
-            if (!Addon.TriggerSelectedDrawableUpdatedEvent) return;
-            if (!Addon.IsPreviewEnabled) { return; }
-            if (Addon.SelectedDrawable is null) { return; }
-            if (Addon.SelectedDrawable.Textures.Count == 0) { return; }
+            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !Addon.IsPreviewEnabled || Addon.SelectedDrawable is null || !Addon.SelectedDrawable.Textures.Any())
+            {
+                return;
+            }
 
             Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
             SelDrawable.SelectedIndex = 0;
@@ -187,30 +196,27 @@ namespace grzyClothTool.Views
             var ydd = CreateYddFile(Addon.SelectedDrawable);
             var ytd = CreateYtdFile(Addon.SelectedTexture);
 
-
-            CWHelper.CWForm.UpdateSelectedDrawable(ydd.Drawables.First(), ytd.TextureDict, e.UpdatedName, e.Value);
+            var firstDrawable = ydd.Drawables.First();
+            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd.TextureDict, e.UpdatedName, e.Value);
         }
 
         private void SelectedDrawable_TextureChanged(object sender, EventArgs e)
         {
             var args = e as SelectionChangedEventArgs;
-            args.Handled = true;
-
-            if (args.AddedItems.Count == 0)
+            if (args == null || args.AddedItems.Count == 0)
             {
                 Addon.SelectedTexture = null;
                 return;
             }
 
+            args.Handled = true;
             Addon.SelectedTexture = (Models.GTexture)args.AddedItems[0];
 
-            if (Addon.IsPreviewEnabled)
-            {
-                var ytd = CreateYtdFile(Addon.SelectedTexture);
+            if (!Addon.IsPreviewEnabled) return;
 
-                CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
-                CWHelper.CWForm.Refresh();
-            }
+            var ytd = CreateYtdFile(Addon.SelectedTexture);
+            CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
+            CWHelper.CWForm.Refresh();
         }
 
         private static YtdFile CreateYtdFile(Models.GTexture t)

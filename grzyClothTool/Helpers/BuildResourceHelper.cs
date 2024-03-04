@@ -220,7 +220,6 @@ public class BuildResourceHelper
         var ymtPath = Path.Combine(_buildPath, "stream", pedName + "_" + _projectName + ".ymt");
         File.WriteAllBytes(ymtPath, ymtBytes);
 
-
         var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
         foreach (var d in drawables)
         {
@@ -233,20 +232,27 @@ public class BuildResourceHelper
 
             pedName = d.IsProp ? pedName + "_p" : pedName;
             var prefix = pedName + "_" + _projectName + "^";
+            prefix = RemoveInvalidChars(prefix);
 
             var finalPath = Path.Combine(folderPath, prefix + d.Name + d.File.Extension);
             File.Copy(d.File.FullName, finalPath, true);
 
-            foreach(var t in d.Textures)
+            foreach (var t in d.Textures)
             {
                 var texFile = t.File;
-                var finalTexPath = Path.Combine(folderPath, prefix + t.DisplayName + texFile.Extension);
+                var displayName = RemoveInvalidChars(t.DisplayName);
+                var finalTexPath = Path.Combine(folderPath, prefix + displayName + texFile.Extension);
 
                 File.Copy(texFile.FullName, finalTexPath, true);
             }
         }
 
         GenerateCreatureMetadata(drawables, isMale);
+    }
+
+    private string RemoveInvalidChars(string input)
+    {
+        return string.Concat(input.Split(Path.GetInvalidFileNameChars()));
     }
 
     public void BuildFxManifest(List<string> metaFiles)
