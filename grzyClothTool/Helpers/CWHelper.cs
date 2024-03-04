@@ -9,6 +9,8 @@ public static class CWHelper
     public static CustomPedsForm CWForm;
     public static string GTAVPath => GTAFolder.GetCurrentGTAFolderWithTrailingSlash();
 
+    private static readonly YtdFile _ytdFile = new();
+
     public static void Init()
     {
         var isFolderValid = GTAFolder.IsCurrentGTAFolderValid();
@@ -31,23 +33,8 @@ public static class CWHelper
 
     public static YtdFile GetYtdFile(string path)
     {
-        var ytd = new YtdFile();
-        ytd.Load(File.ReadAllBytes(path));
-        return ytd;
+        _ytdFile.Load(File.ReadAllBytes(path));
+        return _ytdFile;
     }
 
-    public static GTextureDetails GetTextureDetails(YtdFile ytd)
-    {
-        var details = new GTextureDetails();
-
-        //todo: i think it shouldn't assume there will be only one texture, but let's leave it for now
-        var txt = ytd.TextureDict.Textures[0];
-
-        details.Format = txt.Format.ToString();
-        details.MipMapCount = txt.Levels;
-        details.Width = txt.Width;
-        details.Height = txt.Height;
-
-        return details;
-    }
 }

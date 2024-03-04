@@ -1,4 +1,6 @@
-﻿using grzyClothTool.Models;
+﻿using CodeWalker.GameFiles;
+using grzyClothTool.Helpers;
+using grzyClothTool.Models;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -47,7 +49,7 @@ namespace grzyClothTool.Controls
         {
             get { return (Models.GTexture)GetValue(SelectedTextureProperty); }
             set { SetValue(SelectedTextureProperty, value); }
-        }
+            }
 
         public int SelectedIndex
         {
@@ -72,7 +74,7 @@ namespace grzyClothTool.Controls
             TextureListSelectedValueChanged?.Invoke(sender, e);
         }
 
-        
+
         private void TexturePreview_Click(object sender, RoutedEventArgs e)
         {
             if (SelectedTxt != null)
@@ -85,8 +87,8 @@ namespace grzyClothTool.Controls
                     textureListBox.SelectedIndex = gtxt.TxtNumber;
                 }
 
-
-                var txt = gtxt.GetCurrentTexture();
+                var ytd = CWHelper.GetYtdFile(gtxt.File.FullName);
+                var txt = ytd.TextureDict.Textures[0];
                 var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
 
                 var w = txt.Width;
@@ -97,17 +99,22 @@ namespace grzyClothTool.Controls
                 bitmap.UnlockBits(bitmapData);
 
                 System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
-                BitmapSource bitmapSource = Imaging.CreateBitmapSourceFromHBitmap(
-                    bitmap.GetHbitmap(),
-                    IntPtr.Zero,
-                    Int32Rect.Empty,
-                    BitmapSizeOptions.FromEmptyOptions());
+                BitmapSource bitmapSource = BitmapSource.Create(
+                    bitmap.Width,
+                    bitmap.Height,
+                    bitmap.HorizontalResolution,
+                    bitmap.VerticalResolution,
+                    PixelFormats.Bgra32,
+                    null,
+                    pixels,
+                    bitmap.Width * 4
+                );
 
                 imageControl.Source = bitmapSource;
 
                 TextBlock textBlock = new()
                 {
-                    Text = $"{gtxt.DisplayName}",
+                    Text = $"{gtxt.DisplayName} ({w}x{h})",
                     HorizontalAlignment = HorizontalAlignment.Center,
                     Margin = new Thickness(5)
                 };
@@ -140,6 +147,11 @@ namespace grzyClothTool.Controls
                 popup.MouseMove += (s, args) =>
                 {
                     popup.IsOpen = false;
+                };
+
+                popup.Closed += (s, args) =>
+                {
+                    bitmap.Dispose();
                 };
             }
         }

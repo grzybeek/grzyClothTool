@@ -6,14 +6,6 @@ using System.Runtime.CompilerServices;
 
 namespace grzyClothTool.Models;
 
-public class GTextureDetails
-{
-    public string Format { get; set; }
-    public int MipMapCount { get; set; }
-    public int Width { get; set; }
-    public int Height { get; set; }
-}
-
 public class GTexture : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
@@ -34,9 +26,6 @@ public class GTexture : INotifyPropertyChanged
     public bool IsProp;
     public bool HasSkin;
 
-    public GTextureDetails Details { get; set; }
-    public YtdFile Ytd { get; set; }
-
     public GTexture(string path, int compType, int drawableNumber, int txtNumber, bool hasSkin, bool isProp)
     {
         File = path.Length > 1 ? new FileInfo(path) : null;
@@ -45,10 +34,6 @@ public class GTexture : INotifyPropertyChanged
         TypeNumeric = compType;
         IsProp = isProp;
         HasSkin = hasSkin;
-
-        //todo: do it only for selected drawable
-        Ytd = CWHelper.GetYtdFile(path);
-        Details = CWHelper.GetTextureDetails(Ytd);
     }
 
     private string GetName(bool hasSkin)
@@ -61,10 +46,5 @@ public class GTexture : INotifyPropertyChanged
     protected void OnPropertyChanged([CallerMemberName] string name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
-
-    public Texture GetCurrentTexture()
-    {
-        return Ytd.TextureDict.Textures[0];
     }
 }

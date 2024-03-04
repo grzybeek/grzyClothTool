@@ -52,10 +52,8 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Grid.Column="0">
                                                         <TextBlock.Text>
-                                                            <MultiBinding StringFormat="{}{0} ({1}x{2})">
+                                                            <MultiBinding StringFormat="{}{0}">
                                                                 <Binding Path="DisplayName" />
-                                                                <Binding Path="Details.Width" />
-                                                                <Binding Path="Details.Height" />
                                                             </MultiBinding>
                                                         </TextBlock.Text>
                                                     </TextBlock>
