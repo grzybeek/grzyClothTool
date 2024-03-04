@@ -29,11 +29,11 @@ public static class CWHelper
         GTAFolder.SetGTAFolder(path);
     }
 
-    public static void GetYtdFile(string path)
+    public static YtdFile GetYtdFile(string path)
     {
-        //var ytd = new YtdFile();
-        //ytd.Load(File.ReadAllBytes(path));
-        //return ytd;
+        var ytd = new YtdFile();
+        ytd.Load(File.ReadAllBytes(path));
+        return ytd;
     }
 
     public static GTextureDetails GetTextureDetails(YtdFile ytd)

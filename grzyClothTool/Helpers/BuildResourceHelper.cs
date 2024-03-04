@@ -121,7 +121,7 @@ public class BuildResourceHelper
             }
 
             ePropRenderFlags renderFlag = 0;
-            if(System.Enum.TryParse(prop.RenderFlag, out ePropRenderFlags res)){
+            if(Enum.TryParse(prop.RenderFlag, out ePropRenderFlags res)){
                 renderFlag = res;
             }
 

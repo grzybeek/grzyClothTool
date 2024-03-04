@@ -75,73 +75,73 @@ namespace grzyClothTool.Controls
         
         private void TexturePreview_Click(object sender, RoutedEventArgs e)
         {
-            //if (SelectedTxt != null)
-            //{
-            //    Button btn = sender as Button;
-            //    GTexture gtxt = (GTexture)btn.DataContext;
+            if (SelectedTxt != null)
+            {
+                Button btn = sender as Button;
+                GTexture gtxt = (GTexture)btn.DataContext;
 
-            //    if(textureListBox != null)
-            //    {
-            //        textureListBox.SelectedIndex = gtxt.TxtNumber;
-            //    }
+                if (textureListBox != null)
+                {
+                    textureListBox.SelectedIndex = gtxt.TxtNumber;
+                }
 
 
-            //    var txt = gtxt.GetCurrentTexture();
-            //    var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
+                var txt = gtxt.GetCurrentTexture();
+                var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
 
-            //    var w = txt.Width;
-            //    var h = txt.Height;
-            //    Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            //    BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
-            //    Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
-            //    bitmap.UnlockBits(bitmapData);
+                var w = txt.Width;
+                var h = txt.Height;
+                Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+                bitmap.UnlockBits(bitmapData);
 
-            //    System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
-            //    BitmapSource bitmapSource = Imaging.CreateBitmapSourceFromHBitmap(
-            //        bitmap.GetHbitmap(),
-            //        IntPtr.Zero,
-            //        Int32Rect.Empty,
-            //        BitmapSizeOptions.FromEmptyOptions());
+                System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
+                BitmapSource bitmapSource = Imaging.CreateBitmapSourceFromHBitmap(
+                    bitmap.GetHbitmap(),
+                    IntPtr.Zero,
+                    Int32Rect.Empty,
+                    BitmapSizeOptions.FromEmptyOptions());
 
-            //    imageControl.Source = bitmapSource;
+                imageControl.Source = bitmapSource;
 
-            //    TextBlock textBlock = new()
-            //    {
-            //        Text = $"{gtxt.DisplayName}",
-            //        HorizontalAlignment = HorizontalAlignment.Center,
-            //        Margin = new Thickness(5)
-            //    };
+                TextBlock textBlock = new()
+                {
+                    Text = $"{gtxt.DisplayName}",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(5)
+                };
 
-            //    StackPanel stackPanel = new();
-            //    stackPanel.Children.Add(textBlock);
-            //    stackPanel.Children.Add(imageControl);
+                StackPanel stackPanel = new();
+                stackPanel.Children.Add(textBlock);
+                stackPanel.Children.Add(imageControl);
 
-            //    Border border = new()
-            //    {
-            //        CornerRadius = new CornerRadius(15),
-            //        BorderThickness = new Thickness(2),
-            //        BorderBrush = System.Windows.Media.Brushes.Black, 
-                    
-            //        Background = System.Windows.Media.Brushes.White,
-            //        Child = stackPanel
-            //    };
+                Border border = new()
+                {
+                    CornerRadius = new CornerRadius(15),
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = System.Windows.Media.Brushes.Black,
 
-            //    Popup popup = new()
-            //    {
-            //        Width = 400,
-            //        Height = 350,
-            //        Placement = PlacementMode.Mouse,
-            //        StaysOpen = false,
-            //        Child = border,
-            //        AllowsTransparency = true,
+                    Background = System.Windows.Media.Brushes.White,
+                    Child = stackPanel
+                };
 
-            //        IsOpen = true
-            //    };
-            //    popup.MouseMove += (s, args) =>
-            //    {
-            //        popup.IsOpen = false;
-            //    };
-            //}
+                Popup popup = new()
+                {
+                    Width = 400,
+                    Height = 350,
+                    Placement = PlacementMode.Mouse,
+                    StaysOpen = false,
+                    Child = border,
+                    AllowsTransparency = true,
+
+                    IsOpen = true
+                };
+                popup.MouseMove += (s, args) =>
+                {
+                    popup.IsOpen = false;
+                };
+            }
         }
 
         private void TextureRemove_Click(object sender, RoutedEventArgs e)

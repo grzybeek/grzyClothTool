@@ -46,8 +46,9 @@ public class GTexture : INotifyPropertyChanged
         IsProp = isProp;
         HasSkin = hasSkin;
 
-        // Ytd = CWHelper.GetYtdFile(path);
-        // Details = CWHelper.GetTextureDetails(Ytd);
+        //todo: do it only for selected drawable
+        Ytd = CWHelper.GetYtdFile(path);
+        Details = CWHelper.GetTextureDetails(Ytd);
     }
 
     private string GetName(bool hasSkin)
