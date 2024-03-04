@@ -82,7 +82,7 @@ namespace grzyClothTool.Views
                 timer.Start();
                 foreach (var fldr in folder.FolderNames)
                 {
-                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.TopDirectoryOnly);
+                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories);
                     await Addon.AddDrawables(files, isMaleBtn);
                 }
 
@@ -146,7 +146,7 @@ namespace grzyClothTool.Views
             }
 
             Addon.SelectedDrawable = (Models.Drawable)args.AddedItems[0];
-            if (Addon.SelectedDrawable.Textures.Any())
+            if (Addon.SelectedDrawable.Textures.Count == 0)
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
                 SelDrawable.SelectedIndex = 0;
@@ -185,7 +185,7 @@ namespace grzyClothTool.Views
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
         {
-            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !Addon.IsPreviewEnabled || Addon.SelectedDrawable is null || !Addon.SelectedDrawable.Textures.Any())
+            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !Addon.IsPreviewEnabled || Addon.SelectedDrawable is null || Addon.SelectedDrawable.Textures.Count == 0)
             {
                 return;
             }
