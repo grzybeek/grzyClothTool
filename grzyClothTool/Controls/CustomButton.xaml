@@ -1,0 +1,82 @@
+﻿<UserControl x:Class="grzyClothTool.Controls.CustomButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
+             x:Name="MyCustomButton"
+             d:Height="40" d:Width="280"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <Style TargetType="Button" x:Key="RoundedButton">
+            <Setter Property="TextBlock.TextAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource Brush200}" />
+            <Setter Property="Foreground" Value="{StaticResource ButtonFocus}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="{Binding CornerRadius, ElementName=MyCustomButton}" />
+                </Style>
+            </Style.Resources>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush300}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ToggleButtonVisibility" TargetType="ToggleButton">
+            <Setter Property="Visibility" Value="Hidden" />
+            <Setter Property="TextBlock.TextAlignment" Value="Center" />
+            <Setter Property="Background" Value="{StaticResource Brush200}" />
+            <Setter Property="Foreground" Value="{StaticResource ButtonFocus}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DropdownEnabled, ElementName=MyCustomButton}" Value="true">
+                    <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush300}" />
+                </Trigger>
+            </Style.Triggers>
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="{Binding CornerRadius, ElementName=MyCustomButton}" />
+                </Style>
+            </Style.Resources>
+        </Style>
+    </UserControl.Resources>
+
+
+    <Grid>
+        <Border x:Name="btn" BorderBrush="{StaticResource ButtonBorder}" BorderThickness="0" CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}">
+            <Button Style="{StaticResource RoundedButton}" Content="{Binding Label, ElementName=MyCustomButton}" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Click="Button_Click" />
+        </Border>
+
+        <ToggleButton Style="{StaticResource ToggleButtonVisibility}" x:Name="DropdownToggle" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="{Binding ActualHeight, ElementName=btn}" >
+            <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource ButtonFocus}" Width="12" Height="8" Stretch="Fill" />
+        </ToggleButton>
+
+        <Popup Width="{Binding ActualWidth, ElementName=btn}" PlacementTarget="{Binding ElementName=btn}" Placement="Bottom" StaysOpen="False" IsOpen="{Binding IsChecked, ElementName=DropdownToggle}" AllowsTransparency="True">
+            <Border CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}" Background="{StaticResource Brush400}" Padding="1" BorderThickness="1">
+                <ContentPresenter x:Name="DropdownContentPresenter" Content="{Binding Content, ElementName=MyCustomButton}" />
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>

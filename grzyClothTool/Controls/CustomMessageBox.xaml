@@ -1,0 +1,87 @@
+﻿<Window x:Class="grzyClothTool.Controls.CustomMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:grzyClothTool.Controls"
+        mc:Ignorable="d"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        MinHeight="150"
+        MinWidth="300"
+        Background="Transparent"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Title="CustomMessageBox" Height="450" Width="800">
+    <Grid Margin="5" Background="White">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="32"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="28"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <!-- Border for our custom message box -->
+        <Border Grid.ColumnSpan="3" 
+                Grid.RowSpan="3" 
+                BorderBrush="Gray" 
+                BorderThickness="1" 
+                HorizontalAlignment="Stretch" 
+                VerticalAlignment="Stretch">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="4" 
+                                  ShadowDepth="0"
+                                  Direction="270" 
+                                  Color="Black" 
+                                  RenderingBias="Performance"/>
+            </Border.Effect>
+        </Border>
+        <!-- Header of our message box to keep Caption and to be used for window move -->
+        <TextBlock x:Name="CMBCaption" 
+                   HorizontalAlignment="Stretch" 
+                   Grid.Row="0" 
+                   Text="Custom Message Box Caption"
+                   Grid.ColumnSpan="2" 
+                   Background="Gainsboro"
+                   Foreground="Black"
+                   FontWeight="SemiBold"
+                   Margin="1,1,1,0"
+                   Padding="5,2,0,0" 
+                   MouseLeftButtonDown="OnCaptionPress"/>
+        <!-- Icon for our custom message box -->
+        <Image x:Name="CMBIcon" 
+               Grid.Column="0" 
+               Grid.Row="1" 
+               HorizontalAlignment="Stretch" 
+               VerticalAlignment="Stretch"
+               Width="24" 
+               Height="24"/>
+        <!-- TextBlock for message content. Wrapped into Label because of alignment needs -->
+        <Label Grid.Column="1" 
+               Grid.Row="1" 
+               VerticalContentAlignment="Center" 
+               Margin="2,24,4,24">
+            <TextBlock x:Name="CMBMessage" 
+                       TextWrapping="Wrap"
+                       Text="Custom Message Box Message"/>
+        </Label>
+        <!-- Background for button block -->
+        <Rectangle Grid.Row="2" 
+                   Grid.ColumnSpan="2" 
+                   Fill="{StaticResource Brush100}"
+                   Margin="1,0,1,1"/>
+        <!-- Buttons block -->
+        <StackPanel x:Name="CMBButtons"                    
+                    Grid.Row="2"
+                    Grid.ColumnSpan="2" 
+                    Orientation="Horizontal"
+                    FlowDirection="RightToLeft" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Stretch" 
+                    Margin="0,0,6,0"/>
+    </Grid>
+</Window>

@@ -1,0 +1,206 @@
+﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelComboBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
+             ClipToBounds="False"
+             x:Name="MyModernLabelComboBox">
+
+    <UserControl.Resources>
+        <ControlTemplate x:Key="ToggleButtonTemplate" TargetType="ToggleButton">
+            <Border
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="0"
+                Background="{StaticResource ButtonBackground}"
+                CornerRadius="5">
+                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+        </ControlTemplate>
+    </UserControl.Resources>
+
+    <ComboBox Name="MyComboBox"
+              Width="auto"
+              Height="40"
+              Margin="5"
+              VerticalContentAlignment="Center"
+              SelectedItem="{Binding SelectedItem, ElementName=MyModernLabelComboBox}"
+              ItemsSource="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"
+              HorizontalContentAlignment="Center">
+        <ComboBox.Template>
+            <ControlTemplate TargetType="ComboBox">
+                <Border BorderThickness="1"
+                        CornerRadius="5"
+                        BorderBrush="{StaticResource ButtonBorder}"
+                        Name="border">
+                    <Grid>
+                        <ToggleButton Name="toggleButton" 
+                                      Width="auto"
+                                      Height="auto"
+                                      Template="{StaticResource ToggleButtonTemplate}"
+                                      VerticalContentAlignment="Center"
+                                      HorizontalContentAlignment="Center"
+                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                            <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" />
+                        </ToggleButton>
+
+                        <TextBlock x:Name="placeholder"
+                                   Text="{Binding Label, ElementName=MyModernLabelComboBox}"
+                                   Foreground="{StaticResource ButtonFocus}"
+                                   VerticalAlignment="Center"
+                                   IsHitTestVisible="False"
+                                   FontSize="14" 
+                                   Padding="5,0,0,0" />
+                        <Popup Name="PART_Popup"
+                               IsOpen="{Binding IsChecked, ElementName=toggleButton}"
+                               Placement="Bottom"
+                               StaysOpen="true"
+                               AllowsTransparency="True"
+                               MaxHeight="200"
+                               HorizontalOffset="-1"
+                               PopupAnimation="Slide">
+                            <Border x:Name="dropDownBorder"
+                                    Width="{Binding ElementName=MyComboBox, Path=ActualWidth}"
+                                    BorderBrush="{StaticResource Brush400}"
+                                    BorderThickness="1"
+                                    CornerRadius="5"
+                                    Background="{StaticResource ButtonBackground}">
+                                <ScrollViewer>
+                                    <ScrollViewer.Resources>
+                                        <Style x:Key="ScrollBarThumb" TargetType="Thumb">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Thumb">
+                                                        <Border x:Name="borderThumb" Background="{StaticResource ButtonFocus}" CornerRadius="5"/>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+
+                                        <Style x:Key="ScrollBarRepeatButton" TargetType="RepeatButton">
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="RepeatButton">
+                                                        <Border Background="Transparent" />
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+
+                                        <Style TargetType="ScrollBar">
+                                            <Setter Property="Width" Value="10"/>
+
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ScrollBar">
+                                                        <Grid>
+                                                            <Track IsDirectionReversed="True" Name="PART_Track" Orientation="Vertical" Width="10">
+                                                                <Track.Thumb>
+                                                                    <Thumb Style="{StaticResource ScrollBarThumb}" />
+                                                                </Track.Thumb>
+                                                            </Track>
+                                                        </Grid>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ScrollViewer.Resources>
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsDropDownOpen" Value="False" />
+                            <Condition Property="Text" Value="" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                        </MultiTrigger.Setters>
+                        <MultiTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                        <SplineDoubleKeyFrame KeyTime="00:00:00" Value="11" />
+                                        <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="14" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,25" />
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,0" />
+                                    </ThicknessAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.EnterActions>
+                        <MultiTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                        <SplineDoubleKeyFrame KeyTime="00:00:00" Value="14" />
+                                        <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="11" />
+                                    </DoubleAnimationUsingKeyFrames>
+                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,5" />
+                                        <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,25" />
+                                    </ThicknessAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.ExitActions>
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsEnabled" Value="False" />
+                            <Condition Property="IsDropDownOpen" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter TargetName="border" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                            <Setter TargetName="placeholder" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsEnabled" Value="true" />
+                            <Condition Property="IsDropDownOpen" Value="False" />
+                        </MultiTrigger.Conditions>
+                        <MultiTrigger.Setters>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                        </MultiTrigger.Setters>
+                    </MultiTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Trigger.Setters>
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                        </Trigger.Setters>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </ComboBox.Template>
+        <ComboBox.ItemContainerStyle>
+            <Style TargetType="ComboBoxItem">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBoxItem">
+                            <Border x:Name="Bd" 
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    CornerRadius="5"
+                                    Padding="4"
+                                    BorderThickness="{TemplateBinding BorderThickness}">
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush200}" />
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush300}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ComboBox.ItemContainerStyle>
+    </ComboBox>
+</UserControl>

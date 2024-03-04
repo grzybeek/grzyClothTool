@@ -1,0 +1,107 @@
+﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelTextBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
+             mc:Ignorable="d" 
+             x:Name="MyModernLabelTextBox"
+             d:Width="200" d:Height="40">
+    
+    <TextBox x:Name="MyText" 
+             Padding="2" 
+             Height="40" 
+             Width="auto"
+             PreviewMouseDown="MyText_MouseDown"
+             VerticalContentAlignment="Bottom" 
+             HorizontalContentAlignment="{Binding HorizontalAlignment, ElementName=MyModernLabelTextBox}" 
+             Text="{Binding Text, ElementName=MyModernLabelTextBox}" 
+             FontSize="{Binding FontSize, ElementName=MyModernLabelTextBox}">
+        <TextBox.Style>
+            <Style>
+                <Setter Property="ItemsControl.Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border BorderThickness="{TemplateBinding Border.BorderThickness}" 
+                                    BorderBrush="{StaticResource ButtonFocus}"
+                                    Background="{StaticResource ButtonBackground}"
+                                    Name="border"
+                                    CornerRadius="5"
+                                    SnapsToDevicePixels="True">
+                                <Grid>
+                                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Name="PART_ContentHost" Focusable="False" />
+                                    <TextBlock Name="placeholder" Text="{Binding Label, ElementName=MyModernLabelTextBox}" Foreground="{StaticResource ButtonFocus}" Background="Transparent" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14" Padding="2" />
+                                    <TextBlock Name="dots" Text="..." Background="Transparent" Visibility="Hidden" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="bottom" FontSize="44" Margin="10,5" />
+                                </Grid>
+                            </Border>
+                            
+                            <ControlTemplate.Triggers>
+                                <MultiTrigger>
+                                    <MultiTrigger.Conditions>
+                                        <Condition Property="IsFocused" Value="False" />
+                                        <Condition Property="Text" Value="" />
+                                    </MultiTrigger.Conditions>
+                                    <MultiTrigger.Setters>
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                                    </MultiTrigger.Setters>
+                                    <MultiTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                                    <SplineDoubleKeyFrame KeyTime="00:00:00" Value="11" />
+                                                    <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="14" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                                    <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,25" />
+                                                    <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,0" />
+                                                </ThicknessAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </MultiTrigger.EnterActions>
+                                    <MultiTrigger.ExitActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                                    <SplineDoubleKeyFrame KeyTime="00:00:00" Value="14" />
+                                                    <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="11" />
+                                                </DoubleAnimationUsingKeyFrames>
+                                                <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                                    <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,5" />
+                                                    <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,25" />
+                                                </ThicknessAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </MultiTrigger.ExitActions>
+                                </MultiTrigger>
+                                <Trigger Property="IsFocused" Value="False">
+                                    <Trigger.Setters>
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                                    </Trigger.Setters>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Trigger.Setters>
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                                    </Trigger.Setters>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True">
+                                    <DataTrigger.Setters>
+                                        <Setter TargetName="dots" Property="Visibility" Value="Visible" />
+                                    </DataTrigger.Setters>
+                                </DataTrigger>
+                                <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                        <Condition Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                </MultiDataTrigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </TextBox.Style>
+    </TextBox>
+</UserControl>

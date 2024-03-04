@@ -1,0 +1,391 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="BasicPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicPS_Deferred" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicPS_Deferred.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_Box" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_Box.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_Capsule" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_Capsule.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_Cylinder" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_Cylinder.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCTTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCTTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PBBNCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PBBNCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCTTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCTTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCTTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCTTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCTTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCTTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCTTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCTTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_PNCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_PNCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BasicVS_Sphere" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BasicVS_Sphere.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BoundingBoxVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BoundingBoxVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BoundingSphereVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BoundingSphereVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="BoundsPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\BoundsPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CablePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CablePS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CablePS_Deferred" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CablePS_Deferred.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CableVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CableVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CloudsPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CloudsPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="CloudsVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\CloudsVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DirLightPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DirLightPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DirLightPS_MS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DirLightPS_MS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DirLightVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DirLightVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DistantLightsPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DistantLightsPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="DistantLightsVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\DistantLightsVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LightPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LightPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LightPS_MS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LightPS_MS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LightVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LightVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LodLightsPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LodLightsPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LodLightsPS_MS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LodLightsPS_MS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="LodLightsVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\LodLightsVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="MarkerPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MarkerPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="MarkerVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MarkerVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PathBoxPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PathBoxPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PathBoxVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PathBoxVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PathDynVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PathDynVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PathPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PathPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PathVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PathVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPBloomFilterBPHCS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPBloomFilterBPHCS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPBloomFilterVCS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPBloomFilterVCS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPCopyPixelsPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPCopyPixelsPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPFinalPassPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPFinalPassPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPFinalPassVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPFinalPassVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPLumBlendCS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPLumBlendCS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPReduceTo0DCS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPReduceTo0DCS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPReduceTo1DCS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPReduceTo1DCS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PPSSAAPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PPSSAAPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ShadowPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ShadowPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ShadowVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ShadowVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="ShadowVS_Skin" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ShadowVS_Skin.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkydomePS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkydomePS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkydomeVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkydomeVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkyMoonPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkyMoonPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkyMoonVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkyMoonVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkySunPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkySunPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="SkySunVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\SkySunVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainPS_Deferred" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainPS_Deferred.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCCTT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCCTT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCCTTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCCTTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCTTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCTTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TerrainVS_PNCTTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TerrainVS_PNCTTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TreesLodPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TreesLodPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TreesLodPS_Deferred" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TreesLodPS_Deferred.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="TreesLodVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\TreesLodVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterPS_Deferred" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterPS_Deferred.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterVS_PCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterVS_PCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterVS_PNCT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterVS_PNCT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterVS_PNCTX" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterVS_PNCTX.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WaterVS_PT" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WaterVS_PT.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WidgetPS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WidgetPS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="WidgetVS" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WidgetVS.cso;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

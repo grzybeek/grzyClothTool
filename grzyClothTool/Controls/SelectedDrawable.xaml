@@ -1,0 +1,167 @@
+﻿<UserControl x:Class="grzyClothTool.Controls.SelectedDrawable"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
+             xmlns:models="clr-namespace:grzyClothTool.Models"
+             d:DataContext="{d:DesignInstance Type=models:AddonManager}"
+             x:Name="Control"
+             mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <Style TargetType="StackPanel">
+            <Setter Property="Margin" Value="10" />
+        </Style>
+    </UserControl.Resources>
+    <ContentControl Content="{Binding SelectedDrawable}">
+        <ContentControl.Style>
+            <Style TargetType="ContentControl">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ContentControl">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="225" />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <StackPanel Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
+                                        <local:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
+                                        <local:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
+                                    </StackPanel>
+                                    <ListBox 
+                                        Grid.Row="1"
+                                            x:Name="TextureListBox"
+                                            SelectionChanged="TextureListBox_SelectionChanged"
+                                            SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
+                                            ItemsSource="{Binding SelectedDrawable.Textures}"
+                                            HorizontalContentAlignment="Stretch"
+                                            d:ItemsSource="{Binding SelectedDrawable.Textures}">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="25" />
+                                                        <ColumnDefinition Width="60" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0">
+                                                        <TextBlock.Text>
+                                                            <MultiBinding StringFormat="{}{0} ({1}x{2})">
+                                                                <Binding Path="DisplayName" />
+                                                                <Binding Path="Details.Width" />
+                                                                <Binding Path="Details.Height" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+
+                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+
+                                        <ListBox.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Click="TextureRemove_Click" IsEnabled="false" Header="Remove" />
+                                                <MenuItem Click="TextureRename_Click" IsEnabled="false" Header="Rename" />
+                                            </ContextMenu>
+                                        </ListBox.ContextMenu>
+                                    </ListBox>
+
+                                </Grid>
+                                <Grid Grid.Column="1">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="*" />
+                                    </Grid.RowDefinitions>
+                                    <GroupBox Header="Drawable Options" Grid.Row="0" BorderBrush="LightGray" BorderThickness="1">
+                                        <StackPanel Orientation="Vertical">
+                                            <local:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedDrawable.AvailableAudioList}"/>
+                                            <local:ModernLabelComboBox IsEnabled="{Binding SelectedDrawable.AdditionalOptions.RenderFlags}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
+
+                                            <local:ModernLabelCheckBox IsEnabled="{Binding SelectedDrawable.IsComponent}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedDrawable.HasSkin}" />
+                                        </StackPanel>
+                                    </GroupBox>
+                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Header="Preview Options" IsEnabled="{Binding IsPreviewEnabled}" BorderThickness="1">
+                                        <StackPanel Orientation="Vertical" Margin="0">
+                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <local:ModernLabelCheckBox Tag="EnableKeepPreview" Label="Keep preview" IsChecked="{Binding SelectedDrawable.EnableKeepPreview}" IsUpdated="SelectedDrawable_Updated" />
+                                            
+                                            
+                                            <StackPanel Orientation="Vertical" Margin="0">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding SelectedDrawable.IsProp}" Value="True" />
+                                                                    <Condition Binding="{Binding SelectedDrawable.TypeNumeric}" Value="0" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+
+                                                <local:ModernLabelCheckBox x:Name="EnableHairScale" Tag="EnableHairScale" Label="Enable Hair scale" IsChecked="{Binding SelectedDrawable.EnableHairScale}" IsUpdated="SelectedDrawable_Updated" />
+                                                <local:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" Tag="HairScale" Label="Hair scale" Value="{Binding SelectedDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.05" Maximum="1.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
+                                            </StackPanel>
+
+                                            <StackPanel Orientation="Vertical" Margin="0">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SelectedDrawable.TypeNumeric}" Value="6">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+
+                                                <local:ModernLabelCheckBox x:Name="EnableHighHeels" Tag="EnableHighHeels" Label="Enable High heels" IsChecked="{Binding SelectedDrawable.EnableHighHeels}" IsUpdated="SelectedDrawable_Updated" />
+                                                <local:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" Tag="HighHeels" Label="High heels amount" Value="{Binding SelectedDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.1" Maximum="3.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </GroupBox>
+                                </Grid>
+                                
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding SelectedDrawable}" Value="{x:Null}">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ContentControl">
+                                    <TextBlock Text="" />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ContentControl.Style>
+    </ContentControl>
+</UserControl>
