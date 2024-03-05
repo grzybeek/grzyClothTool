@@ -30,7 +30,7 @@ public class FileHelper
         ProjectPath = Directory.CreateDirectory(path);
     }
 
-    public Task<Drawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
+    public Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
     {
         FileInfo file = new(filePath);
         var name = EnumHelper.GetName(typeNumber, isProp);
@@ -56,7 +56,7 @@ public class FileHelper
             texture.InternalName = txtInternalName;
         }
 
-        return Task.FromResult(new Drawable(drawableFile, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
+        return Task.FromResult(new GDrawable(drawableFile, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
 
     private static FileInfo CopyFile(FileInfo file, DirectoryInfo directory, string newName)

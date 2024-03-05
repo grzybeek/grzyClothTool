@@ -31,7 +31,7 @@ namespace grzyClothTool.Controls
         public event EventHandler<DrawableUpdatedArgs> SelectedDrawableUpdated;
 
         public static readonly DependencyProperty SelectedDrawableProperty =
-        DependencyProperty.RegisterAttached("SelectedDraw", typeof(Models.Drawable), typeof(SelectedDrawable), new PropertyMetadata(default(Models.Drawable)));
+        DependencyProperty.RegisterAttached("SelectedDraw", typeof(Models.GDrawable), typeof(SelectedDrawable), new PropertyMetadata(default(Models.GDrawable)));
 
         public static readonly DependencyProperty SelectedTextureProperty =
         DependencyProperty.RegisterAttached("SelectedTxt", typeof(Models.GTexture), typeof(SelectedDrawable), new PropertyMetadata(default(Models.GTexture)));
@@ -39,9 +39,9 @@ namespace grzyClothTool.Controls
         public static readonly DependencyProperty SelectedIndexProperty =
         DependencyProperty.RegisterAttached("SelectedIndex", typeof(int), typeof(SelectedDrawable), new PropertyMetadata(default(int)));
 
-        public Models.Drawable SelectedDraw
+        public Models.GDrawable SelectedDraw
         {
-            get { return (Models.Drawable)GetValue(SelectedDrawableProperty);}
+            get { return (Models.GDrawable)GetValue(SelectedDrawableProperty);}
             set { SetValue(SelectedDrawableProperty, value); }
         }
 

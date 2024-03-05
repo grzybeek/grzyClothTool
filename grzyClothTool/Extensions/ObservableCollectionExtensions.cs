@@ -6,7 +6,7 @@ namespace grzyClothTool.Extensions;
 
 public static class ObservableCollectionExtensions
 {
-    public static void Sort(this ObservableCollection<Drawable> drawables, bool shouldReassignNumbers = false)
+    public static void Sort(this ObservableCollection<GDrawable> drawables, bool shouldReassignNumbers = false)
     {
         var sorted = drawables.OrderBy(x => x.Sex)
                               .ThenBy(x => x.Name)

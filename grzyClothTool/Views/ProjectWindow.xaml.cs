@@ -167,7 +167,7 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            Addon.SelectedDrawable = (Models.Drawable)args.AddedItems[0];
+            Addon.SelectedDrawable = (Models.GDrawable)args.AddedItems[0];
             if (Addon.SelectedDrawable.Textures.Count > 0)
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
@@ -253,7 +253,7 @@ namespace grzyClothTool.Views
             return ytd;
         }
 
-        private static YddFile CreateYddFile(Models.Drawable d)
+        private static YddFile CreateYddFile(Models.GDrawable d)
         {
             byte[] data = File.ReadAllBytes(d.File.FullName);
 

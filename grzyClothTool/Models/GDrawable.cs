@@ -11,7 +11,7 @@ public class DrawableAdditionalOptions
     public bool RenderFlags { get; set; } = false;
 }
 
-public class Drawable : INotifyPropertyChanged
+public class GDrawable : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -105,7 +105,7 @@ public class Drawable : INotifyPropertyChanged
 
     public List<GTexture> Textures { get; set; }
 
-    public Drawable(FileInfo drawableFile, bool isMale, bool isProp, int compType, int count, bool hasSkin, List<GTexture> textures)
+    public GDrawable(FileInfo drawableFile, bool isMale, bool isProp, int compType, int count, bool hasSkin, List<GTexture> textures)
     {
         File = drawableFile;
         Textures = textures;

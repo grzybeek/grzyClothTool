@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace grzyClothTool.Models
 {
 
-    public delegate void DrawableChangedHandler(Drawable drawable);
+    public delegate void DrawableChangedHandler(GDrawable drawable);
 
     public class AddonManager : INotifyPropertyChanged
     {
@@ -37,8 +37,8 @@ namespace grzyClothTool.Models
 
         public bool TriggerSelectedDrawableUpdatedEvent { get; set; }
 
-        private Drawable _selectedDrawable;
-        public Drawable SelectedDrawable 
+        private GDrawable _selectedDrawable;
+        public GDrawable SelectedDrawable 
         { 
             get { return _selectedDrawable; } 
             set {
@@ -60,7 +60,7 @@ namespace grzyClothTool.Models
             }
         }
 
-        public ObservableCollection<Drawable> Drawables { get; set; }
+        public ObservableCollection<GDrawable> Drawables { get; set; }
 
         private readonly FileHelper _fileHelper;
 
@@ -74,7 +74,7 @@ namespace grzyClothTool.Models
             {
                 for (int i = 1; i < 50; i++)
                 {
-                    Drawables.Add(new Drawable(new FileInfo("grzyClothTool/Assets/jbib_000_u.ydd"), i % 2 == 0, false, 11, i, false, [new ("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false)]));
+                    Drawables.Add(new GDrawable(new FileInfo("grzyClothTool/Assets/jbib_000_u.ydd"), i % 2 == 0, false, 11, i, false, [new ("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false)]));
                     SelectedDrawable = Drawables.First();
                 }
             }

@@ -278,7 +278,7 @@ public class BuildResourceHelper
         File.WriteAllText(finalPath, contentBuilder.ToString());
     }
 
-    private void GenerateCreatureMetadata(List<Models.Drawable> drawables, bool isMale)
+    private void GenerateCreatureMetadata(List<Models.GDrawable> drawables, bool isMale)
     {
         //taken from ymteditor because it works fine xd
 
