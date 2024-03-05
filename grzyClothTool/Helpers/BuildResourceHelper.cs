@@ -223,6 +223,7 @@ public class BuildResourceHelper
         var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
         foreach (var d in drawables)
         {
+            var drawablePedName = d.IsProp ? pedName + "_p" : pedName;
             var genderFolderName = isMale ? "[male]" : "[female]";
             var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
             if (!Directory.Exists(folderPath))
@@ -230,8 +231,7 @@ public class BuildResourceHelper
                 Directory.CreateDirectory(folderPath);
             }
 
-            pedName = d.IsProp ? pedName + "_p" : pedName;
-            var prefix = pedName + "_" + _projectName + "^";
+            var prefix = drawablePedName + "_" + _projectName + "^";
             prefix = RemoveInvalidChars(prefix);
 
             var finalPath = Path.Combine(folderPath, prefix + d.Name + d.File.Extension);
