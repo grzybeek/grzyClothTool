@@ -34,7 +34,7 @@
                                         </Style>
                                     </Rectangle.Style>
                                 </Rectangle>
-                                <TextBlock Grid.Column="1" Padding="10, 0, 0, 0" Text="{Binding Name}"></TextBlock>
+                                <TextBlock Grid.Column="1" Padding="10, 0, 0, 0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
                                 <Rectangle x:Name="SelectedDot" Width="10" Margin="4" HorizontalAlignment="Right" Grid.Column="2">
                                     <Rectangle.Clip>
                                         <RectangleGeometry Rect="0,0,8,8"  RadiusX="8" RadiusY="8"/>

@@ -105,7 +105,7 @@ namespace grzyClothTool.Views
             if(result == CustomMessageBox.CustomMessageBoxResult.Delete)
             {
                 Addon.Drawables.Remove(drawable);
-                Addon.Drawables.Sort();
+                Addon.Drawables.Sort(true);
             }
             else if(result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {

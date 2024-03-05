@@ -18,7 +18,14 @@ public class Drawable : INotifyPropertyChanged
     public FileInfo File { get; set; }
 
     private string _name;
-    public string Name { get => GetName(HasSkin); set { _name = value; } }
+    public string Name 
+    { 
+        get => _name; 
+        set {
+            _name = value;
+            OnPropertyChanged();
+        } 
+    }
     
     public int TypeNumeric { get; set; }
     public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);
@@ -30,7 +37,7 @@ public class Drawable : INotifyPropertyChanged
     public bool IsProp { get; set; }
     public bool IsComponent => !IsProp;
 
-    public int Number {get; set; }
+    public int Number { get; set; }
     public string DisplayNumber => Number.ToString("D3");
 
 
@@ -109,14 +116,22 @@ public class Drawable : INotifyPropertyChanged
         IsProp = isProp;
 
         Audio = "none";
-
         AdditionalOptions = new DrawableAdditionalOptions() { RenderFlags = isProp };
+
+        SetDrawableName();
     }
 
-    private string GetName(bool hasSkin)
+    public void SetDrawableName()
     {
         string name = $"{TypeName}_{DisplayNumber}";
-        return IsProp ? name : $"{name}_{(hasSkin ? "r" : "u")}";
+        var finalName = IsProp ? name : $"{name}_{(HasSkin ? "r" : "u")}";
+
+        Name = finalName;
+        //texture number needs to be updated too
+        foreach (var txt in Textures)
+        {
+            txt.Number = Number;
+        }
     }
 
     protected void OnPropertyChanged([CallerMemberName] string name = null)
