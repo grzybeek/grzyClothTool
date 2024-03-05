@@ -86,7 +86,7 @@ public class FileHelper
         return allYtds;
     }
 
-    public static async Task<List<string>> FindMatchingTexturesAsync(FileInfo file, string name, bool isProp)
+    public static Task<List<string>> FindMatchingTexturesAsync(FileInfo file, string name, bool isProp)
     {
         var folderPath = file.Directory.FullName;
         var fileName = file.Name;
@@ -103,7 +103,7 @@ public class FileHelper
                 Path.GetFileNameWithoutExtension(x).Contains(searchedNumber))
             .ToList();
 
-        return allYtds;
+        return Task.FromResult(allYtds);
     }
 
     public static (bool, int) IsValidComponent(string file)
