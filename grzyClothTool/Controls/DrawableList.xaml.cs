@@ -19,17 +19,10 @@ namespace grzyClothTool.Controls
         public DrawableList()
         {
             InitializeComponent();
-            MyListBox.SelectionChanged += ListBox_SelectionChanged;
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var item = MyListBox.SelectedItem as Drawable;
-            if (item != null)
-            {
-                //
-            }
-
              DrawableListSelectedValueChanged?.Invoke(sender, e);
         }
     }

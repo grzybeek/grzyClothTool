@@ -66,7 +66,30 @@
 
     <Grid>
         <Border x:Name="btn" BorderBrush="{StaticResource ButtonBorder}" BorderThickness="0" CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}">
-            <Button Style="{StaticResource RoundedButton}" Content="{Binding Label, ElementName=MyCustomButton}" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Click="Button_Click" />
+            <Button Content="{Binding Label, ElementName=MyCustomButton}" ToolTip="{Binding Tooltip, ElementName=MyCustomButton}" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Click="Button_Click">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource RoundedButton}">
+                        <Setter Property="ContentTemplate">
+                            <Setter.Value>
+                                <DataTemplate>
+                                    <Image Source="{Binding Image, ElementName=MyCustomButton}" />
+                                </DataTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Image, ElementName=MyCustomButton}" Value="{x:Null}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" />
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Border>
 
         <ToggleButton Style="{StaticResource ToggleButtonVisibility}" x:Name="DropdownToggle" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="{Binding ActualHeight, ElementName=btn}" >

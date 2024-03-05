@@ -19,6 +19,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\delete.png" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Content Include="grzyClothToolIcon.ico" />
 	</ItemGroup>
 
@@ -36,8 +40,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\delete.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Controls\CustomButton.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

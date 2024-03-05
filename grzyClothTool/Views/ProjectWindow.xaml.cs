@@ -1,6 +1,7 @@
 ﻿using CodeWalker;
 using CodeWalker.GameFiles;
 using grzyClothTool.Controls;
+using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models;
 using Microsoft.Win32;
@@ -88,6 +89,27 @@ namespace grzyClothTool.Views
 
                 timer.Stop();
                 CustomMessageBox.Show($"Added drawables in {timer.Elapsed}");
+            }
+        }
+
+        private void Delete_SelectedDrawable(object sender, RoutedEventArgs e)
+        {
+            var drawable = Addon.SelectedDrawable;
+            if (drawable == null)
+            {
+                CustomMessageBox.Show("No drawable selected", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.OKOnly);
+                return;
+            }
+
+            var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({drawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
+            if(result == CustomMessageBox.CustomMessageBoxResult.Delete)
+            {
+                Addon.Drawables.Remove(drawable);
+                Addon.Drawables.Sort();
+            }
+            else if(result == CustomMessageBox.CustomMessageBoxResult.Replace)
+            {
+                //todo
             }
         }
 

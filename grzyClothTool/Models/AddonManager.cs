@@ -1,4 +1,5 @@
 ﻿using grzyClothTool.Controls;
+using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using System;
 using System.Collections.Generic;
@@ -100,11 +101,7 @@ namespace grzyClothTool.Models
             }
 
             // Sort the ObservableCollection in place
-            var sorted = Drawables.OrderBy(x => x.Sex).ThenBy(x => x.Name).ToList();
-            for (int i = 0; i < sorted.Count; i++)
-            {
-                Drawables.Move(Drawables.IndexOf(sorted[i]), i);
-            }
+            Drawables.Sort();
 
             //set HasMale/HasFemale only once adding first drawable of this gender
             if (isMale && !HasMale) HasMale = true;

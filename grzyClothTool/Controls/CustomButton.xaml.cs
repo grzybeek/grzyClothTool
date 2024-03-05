@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace grzyClothTool.Controls
 {
@@ -12,13 +13,25 @@ namespace grzyClothTool.Controls
         .Register("Label",
                 typeof(string),
                 typeof(CustomButton),
-                new FrameworkPropertyMetadata("Label"));
+                new FrameworkPropertyMetadata(""));
 
         public static readonly DependencyProperty DropdownEnabledProperty = DependencyProperty
         .Register("DropdownEnabled",
                 typeof(bool),
                 typeof(CustomButton),
                 new FrameworkPropertyMetadata(false));
+
+        public static readonly DependencyProperty ImageProperty = DependencyProperty
+            .Register("Image",
+                typeof(ImageSource),
+                typeof(CustomButton),
+                new FrameworkPropertyMetadata(null));
+
+        public static readonly DependencyProperty TooltipProperty = DependencyProperty
+            .Register("Tooltip",
+                typeof(string),
+                typeof(CustomButton),
+                new FrameworkPropertyMetadata(null));
 
         public static readonly DependencyProperty CornerRadiusProperty = DependencyProperty
         .Register("CornerRadius",
@@ -49,6 +62,18 @@ namespace grzyClothTool.Controls
         {
             get { return (string)GetValue(LabelProperty); }
             set { SetValue(LabelProperty, value); }
+        }
+
+        public ImageSource Image
+        {
+            get { return (ImageSource)GetValue(ImageProperty); }
+            set { SetValue(ImageProperty, value); }
+        }
+
+        public string Tooltip
+        {
+            get { return (string)GetValue(TooltipProperty); }
+            set { SetValue(TooltipProperty, value); }
         }
 
         public CornerRadius CornerRadius

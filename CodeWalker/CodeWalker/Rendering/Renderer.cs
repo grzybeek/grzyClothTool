@@ -1835,6 +1835,7 @@ namespace CodeWalker.Rendering
 
                                 if (SelectedDrawableChanged)
                                 {
+                                    renderfloor = SelDrawable.IsHighHeelsEnabled;
                                     rndbl.ResetBoneTransforms();
                                     geom.Init(dgeom);
                                     SelectedDrawableChanged = false;

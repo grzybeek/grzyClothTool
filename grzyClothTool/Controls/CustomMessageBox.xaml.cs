@@ -1,6 +1,9 @@
 ﻿using System.Drawing;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -71,6 +74,28 @@ namespace grzyClothTool.Controls
                 return b;
             }
         }
+
+        private Button Delete
+        {
+            get
+            {
+                var b = GetDefaultButton();
+                b.Content = "Delete";
+                b.Click += delegate { result = CustomMessageBoxResult.Delete; Close(); };
+                return b;
+            }
+        }
+
+        private Button Replace
+        {
+            get
+            {
+                var b = GetDefaultButton();
+                b.Content = "Replace";
+                b.Click += delegate { result = CustomMessageBoxResult.Replace; Close(); };
+                return b;
+            }
+        }
         // Add another if you wish
 
 
@@ -120,6 +145,11 @@ namespace grzyClothTool.Controls
                     _ = CMBButtons.Children.Add(OK);
                     _ = CMBButtons.Children.Add(OpenFolder);
                     break;
+                case CustomMessageBoxButtons.DeleteReplaceCancel:
+                    _ = CMBButtons.Children.Add(Cancel);
+                    _ = CMBButtons.Children.Add(Replace);
+                    _ = CMBButtons.Children.Add(Delete);
+                    break;
                 // Add another if you wish                 
                 default:
                     _ = CMBButtons.Children.Add(OK);
@@ -148,7 +178,6 @@ namespace grzyClothTool.Controls
                     break;
             }
         }
-
 
         // Show methods create new instance of CustomMessageBox window and shows it as Dialog (blocking thread)
 
@@ -196,16 +225,13 @@ namespace grzyClothTool.Controls
         // Defines button(s), which should be displayed
         public enum CustomMessageBoxButtons
         {
-            // Displays only "OK" button
             OKOnly,
-            // Displays "OK" and "Cancel" buttons
             OKCancel,
-            // Displays "Yes" and "No" buttons
             YesNo,
-            // Displays "Yes", "No" and "Cancel" buttons
             YesNoCancel,
-            // Displays "Open Folder" button
-            OpenFolder
+            OpenFolder,
+            DeleteReplaceCancel
+
             // Add another if you wish
         }
 
@@ -226,7 +252,12 @@ namespace grzyClothTool.Controls
             Cancel,
             Yes,
             No,
-            OpenFolder
+            OpenFolder,
+            Delete,
+            Replace
+
+
+
             // Add another if you wish
         }
 
