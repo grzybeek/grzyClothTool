@@ -72,7 +72,7 @@
                                     </ListBox>
 
                                 </Grid>
-                                <Grid Grid.Column="1">
+                                <Grid IsEnabled="{Binding SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="*" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ public class FileHelper
 {
     private DirectoryInfo ProjectPath;
     private readonly string ProjectName;
+    public static string ReservedAssetsPath { get; private set; }
 
     public FileHelper(string projectName)
     {
@@ -28,6 +30,26 @@ public class FileHelper
 
         var path = Path.Combine(documentsPath, exeName, ProjectName);
         ProjectPath = Directory.CreateDirectory(path);
+
+        ReservedAssetsPath = Path.Combine(documentsPath, exeName, "reservedAssets");
+        Directory.CreateDirectory(ReservedAssetsPath);
+        CreateReservedAsset("reservedDrawable", ".ydd");
+        CreateReservedAsset("reservedTexture", ".ytd");
+    }
+
+    private static void CreateReservedAsset(string name, string extension)
+    {
+        var outputPath = Path.Combine(ReservedAssetsPath, name + extension);
+
+        if(!File.Exists(outputPath))
+        {
+            byte[] resourceData = (byte[])Properties.Resources.ResourceManager.GetObject(name, CultureInfo.InvariantCulture);
+            if (resourceData != null)
+            {
+                File.WriteAllBytes(outputPath, resourceData);
+                return;
+            }
+        }
     }
 
     public Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
@@ -84,26 +106,6 @@ public class FileHelper
 
 
         return allYtds;
-    }
-
-    public static Task<List<string>> FindMatchingTexturesAsync(FileInfo file, string name, bool isProp)
-    {
-        var folderPath = file.Directory.FullName;
-        var fileName = file.Name;
-        if (fileName.Contains('^'))
-        {
-            fileName = fileName.Split("^")[1];
-        }
-        string[] nameParts = Path.GetFileNameWithoutExtension(fileName).Split("_");
-        var searchedNumber = isProp ? nameParts[2] : nameParts[1];
-
-        var allYtds = Directory.EnumerateFiles(folderPath)
-            .Where(x => Path.GetExtension(x) == ".ytd" &&
-                Path.GetFileNameWithoutExtension(x).Contains(name) &&
-                Path.GetFileNameWithoutExtension(x).Contains(searchedNumber))
-            .ToList();
-
-        return Task.FromResult(allYtds);
     }
 
     public static (bool, int) IsValidComponent(string file)

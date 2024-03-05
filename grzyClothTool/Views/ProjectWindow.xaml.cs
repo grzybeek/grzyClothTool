@@ -109,7 +109,10 @@ namespace grzyClothTool.Views
             }
             else if(result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {
-                //todo
+                var reserved = new GReservedDrawable(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
+
+                //replace drawable with reserved in the same place
+                Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
             }
         }
 

@@ -11,6 +11,25 @@ public class DrawableAdditionalOptions
     public bool RenderFlags { get; set; } = false;
 }
 
+public class GReservedDrawable : GDrawable
+{
+    public override bool IsReserved => true;
+
+    public GReservedDrawable(bool isMale, bool isProp, int compType, int count) : base(isMale, isProp, compType, count)
+    {
+
+        File = new FileInfo(Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd"));
+        Textures = [new GTexture(Path.Combine(FileHelper.ReservedAssetsPath, "reservedTexture.ytd"), compType, count, 0, false, isProp)];
+        TypeNumeric = compType;
+        Number = count;
+        Sex = isMale;
+        IsProp = isProp;
+
+        SetDrawableName();
+    }
+}
+
+
 public class GDrawable : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
@@ -26,7 +45,9 @@ public class GDrawable : INotifyPropertyChanged
             OnPropertyChanged();
         } 
     }
-    
+
+    public virtual bool IsReserved => false;
+
     public int TypeNumeric { get; set; }
     public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);
 
@@ -120,6 +141,8 @@ public class GDrawable : INotifyPropertyChanged
 
         SetDrawableName();
     }
+
+    protected GDrawable(bool isMale, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
 
     public void SetDrawableName()
     {

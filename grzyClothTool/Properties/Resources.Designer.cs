@@ -69,5 +69,25 @@ namespace grzyClothTool.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] reservedDrawable {
+            get {
+                object obj = ResourceManager.GetObject("reservedDrawable", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] reservedTexture {
+            get {
+                object obj = ResourceManager.GetObject("reservedTexture", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

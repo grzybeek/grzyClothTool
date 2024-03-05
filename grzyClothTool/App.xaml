@@ -1,10 +1,13 @@
 ﻿<Application x:Class="grzyClothTool.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:grzyClothTool" xmlns:system="clr-namespace:System;assembly=netstandard"
+             xmlns:system="clr-namespace:System;assembly=netstandard"
+             xmlns:converters="clr-namespace:grzyClothTool.Converters"
              StartupUri="./Views/MainWindow.xaml">
 
     <Application.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        
         <Color x:Key="Color50">#f6f6f6</Color>
         <Color x:Key="Color100">#e7e7e7</Color>
         <Color x:Key="Color200">#d1d1d1</Color>
