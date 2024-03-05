@@ -42,8 +42,9 @@ public class BuildResourceHelper
         availComp.SetBytes(generatedAvailComp);
         CPed.availComp = availComp;
 
-        var allCompDrawablesArray = _addon.Drawables.Where(x => x.IsProp == false).ToArray();
-        var allPropDrawablesArray = _addon.Drawables.Where(x => x.IsProp == true).ToArray();
+        var allDrawables = _addon.Drawables.ToList();
+        var allCompDrawablesArray = allDrawables.Where(x => !x.IsProp).ToArray();
+        var allPropDrawablesArray = allDrawables.Where(x => x.IsProp).ToArray();
 
         var components = new Dictionary<byte, CPVComponentData>();
         for (byte i = 0; i < generatedAvailComp.Length; i++)
@@ -71,7 +72,7 @@ public class BuildResourceHelper
 
             components[i] = new CPVComponentData()
             {
-                numAvailTex = (byte)allCompDrawablesArray.Where(x => x.TypeNumeric == i).Sum(y => y.Textures.Count),
+                numAvailTex = (byte)drawablesArray.Sum(y => y.Textures.Count),
                 aDrawblData3 = mb.AddItemArrayPtr(MetaName.CPVDrawblData, drawables)
             };
         }
@@ -121,7 +122,8 @@ public class BuildResourceHelper
             }
 
             ePropRenderFlags renderFlag = 0;
-            if(Enum.TryParse(prop.RenderFlag, out ePropRenderFlags res)){
+            if (Enum.TryParse(prop.RenderFlag, out ePropRenderFlags res))
+            {
                 renderFlag = res;
             }
 
@@ -135,18 +137,14 @@ public class BuildResourceHelper
         }
         propInfo.aPropMetaData = mb.AddItemArrayPtr(MetaName.CPedPropMetaData, props);
 
-        var uniqueProps = allPropDrawablesArray.DistinctBy(x => x.TypeNumeric).ToArray();
+        var uniqueProps = allPropDrawablesArray.GroupBy(x => x.TypeNumeric).Select(g => g.First()).ToArray();
         var anchors = new CAnchorProps[uniqueProps.Length];
         for (int i = 0; i < anchors.Length; i++)
         {
             var propsOfType = allPropDrawablesArray.Where(x => x.TypeNumeric == uniqueProps[i].TypeNumeric);
-            List<byte> items = [];
-            foreach (var p in propsOfType)
-            {
-                items.Add((byte)p.Textures.Count);
-            }
+            List<byte> items = propsOfType.Select(p => (byte)p.Textures.Count).ToList();
 
-            anchors[i].props = mb.AddByteArrayPtr([.. items]);
+            anchors[i].props = mb.AddByteArrayPtr(items.ToArray());
             anchors[i].anchor = ((eAnchorPoints)propsOfType.First().TypeNumeric);
         }
         propInfo.aAnchors = mb.AddItemArrayPtr(MetaName.CAnchorProps, anchors);
@@ -155,7 +153,6 @@ public class BuildResourceHelper
         CPed.dlcName = JenkHash.GenHash(_projectName);
 
         mb.AddItem(MetaName.CPedVariationInfo, CPed);
-
 
         mb.AddStructureInfo(MetaName.CPedVariationInfo);
         mb.AddStructureInfo(MetaName.CPedPropInfo);
@@ -178,6 +175,7 @@ public class BuildResourceHelper
 
         return data;
     }
+
 
     public FileInfo BuildMeta(bool isMale)
     {
