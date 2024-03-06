@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Helpers;
+﻿using grzyClothTool.Controls;
+using grzyClothTool.Helpers;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
@@ -12,11 +13,17 @@ namespace grzyClothTool.Views
     public partial class SettingsWindow : UserControl
     {
         public static string GTAVPath => CWHelper.GTAVPath;
+        public static bool CacheStartupIsChecked => CWHelper.IsCacheStartupEnabled;
 
         public SettingsWindow()
         {
             InitializeComponent();
             DataContext = this;
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.NavigationHelper.Navigate("Project");
         }
 
         private void GTAVPath_Click(object sender, RoutedEventArgs e)
@@ -42,9 +49,10 @@ namespace grzyClothTool.Views
             }
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        private void SettingsLabelCheckBox_CheckBoxClick(object sender, RoutedEventArgs e)
         {
-            MainWindow.NavigationHelper.Navigate("Project");
+            CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
+            CWHelper.SetCacheStartup(c.IsChecked);
         }
     }
 }

@@ -56,7 +56,9 @@
             </GroupBox>
 
             <GroupBox Header="Program settings" Grid.Column="2">
-
+                <StackPanel>
+                    <c:SettingsLabelCheckBox Margin="5" Label="Load GTA5 file cache on tool startup" Text="This enabled will make 3D preview load faster, but tool will load longer on startup." CheckBoxClick="SettingsLabelCheckBox_CheckBoxClick" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
+                </StackPanel>
             </GroupBox>
         </Grid>
     </Grid>
