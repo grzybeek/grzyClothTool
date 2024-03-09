@@ -8,7 +8,7 @@
 	  <PublishReadyToRun>true</PublishReadyToRun>
 	  <PublishSingleFile>true</PublishSingleFile>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-	  <ApplicationIcon>grzyClothToolIcon.ico</ApplicationIcon>
+	  <ApplicationIcon>Resources\grzyClothToolIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -20,12 +20,19 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\delete.png" />
+	  <None Remove="Resources\grzyClothTool.png" />
+	  <None Remove="Resources\grzyClothToolIcon.jpg" />
 	  <None Remove="Resources\reservedDrawable.ydd" />
 	  <None Remove="Resources\reservedTexture.ytd" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="grzyClothToolIcon.ico" />
+	  <Content Include="Resources\grzyClothToolIcon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\grzyClothTool.png" />
+	  <Resource Include="Resources\grzyClothToolIcon.ico" />
 	</ItemGroup>
 
   <ItemGroup>

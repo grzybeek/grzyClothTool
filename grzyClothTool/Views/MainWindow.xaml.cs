@@ -1,11 +1,8 @@
-﻿using grzyClothTool.Controls;
-using grzyClothTool.Helpers;
+﻿using grzyClothTool.Helpers;
 using grzyClothTool.Models;
 using grzyClothTool.Views;
 using Microsoft.Win32;
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
@@ -27,6 +24,7 @@ namespace grzyClothTool
 
         public MainWindow()
         {
+            App.splashScreen.AddMessage("Loading");
             InitializeComponent();
             CWHelper.Init();
 
@@ -39,6 +37,8 @@ namespace grzyClothTool
 
             DataContext = _navigationHelper;
             _navigationHelper.Navigate("Project");
+
+            App.splashScreen.LoadComplete();
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
