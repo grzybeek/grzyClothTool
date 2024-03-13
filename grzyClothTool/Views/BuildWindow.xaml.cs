@@ -2,7 +2,6 @@
 using grzyClothTool.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using static grzyClothTool.Controls.CustomMessageBox;
@@ -40,24 +39,31 @@ namespace grzyClothTool.Views
             var timer = new Stopwatch();
             timer.Start();
 
-            var buildHelper = new BuildResourceHelper(MainWindow.Addon, ProjectName, BuildPath);
-
+            int counter = 1;
             var metaFiles = new List<string>();
-            if (MainWindow.Addon.HasMale)
+            var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, MainWindow.AddonManager.Addons.Count);
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
             {
-                var bytes = buildHelper.BuildYMT();
-                buildHelper.BuildFiles(true, bytes);
+                buildHelper.SetAddon(selectedAddon);
+                buildHelper.SetNumber(counter);
 
-                var meta = buildHelper.BuildMeta(true);
-                metaFiles.Add(meta.Name);
-            }
-            if (MainWindow.Addon.HasFemale)
-            {
-                var bytes = buildHelper.BuildYMT();
-                buildHelper.BuildFiles(false, bytes);
+                if (selectedAddon.HasMale)
+                {
+                    var bytes = buildHelper.BuildYMT();
+                    buildHelper.BuildFiles(true, bytes);
 
-                var meta = buildHelper.BuildMeta(false);
-                metaFiles.Add(meta.Name);
+                    var meta = buildHelper.BuildMeta(true);
+                    metaFiles.Add(meta.Name);
+                }
+                if (selectedAddon.HasFemale)
+                {
+                    var bytes = buildHelper.BuildYMT();
+                    buildHelper.BuildFiles(false, bytes);
+
+                    var meta = buildHelper.BuildMeta(false);
+                    metaFiles.Add(meta.Name);
+                }
+                counter++;
             }
 
             buildHelper.BuildFxManifest(metaFiles);

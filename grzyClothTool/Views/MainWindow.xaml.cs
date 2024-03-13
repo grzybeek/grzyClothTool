@@ -19,8 +19,8 @@ namespace grzyClothTool
         private static NavigationHelper _navigationHelper;
         public static NavigationHelper NavigationHelper => _navigationHelper;
 
-        private static AddonManager _addon;
-        public static AddonManager Addon => _addon;
+        private static AddonManager _addonManager;
+        public static AddonManager AddonManager => _addonManager;
 
         public MainWindow()
         {
@@ -29,7 +29,8 @@ namespace grzyClothTool
             CWHelper.Init();
 
             _instance = this;
-            _addon = new AddonManager("name");
+            _addonManager = new AddonManager();
+            _addonManager.CreateAddon();
 
             _navigationHelper = new NavigationHelper();
             _navigationHelper.RegisterPage("Project", () => new ProjectWindow());
@@ -80,10 +81,10 @@ namespace grzyClothTool
                 //    }
                 //}
 
-                foreach (var dir in metaFiles.FileNames)
-                {
-                    _addon.LoadAddon(dir);
-                }
+                //foreach (var dir in metaFiles.FileNames)
+                //{
+                //    _addon.LoadAddon(dir);  //todo: fix this
+                //}
             }
         }
 

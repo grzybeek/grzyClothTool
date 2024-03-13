@@ -12,17 +12,32 @@ namespace grzyClothTool.Helpers;
 
 public class BuildResourceHelper
 {
-    private readonly AddonManager _addon;
+    private Addon _addon;
+    private int _number;
     private readonly string _projectName;
     private readonly string _buildPath;
 
-    public BuildResourceHelper(AddonManager addon, string name, string path)
+    private readonly bool shouldUseNumber = false;
+    private string ProjectName => shouldUseNumber ? $"{_projectName}_{_number:D2}" : _projectName;
+
+    public BuildResourceHelper(string name, string path, int totalCount)
     {
-        _addon = addon;
         _projectName = name;
         _buildPath = path;
 
+        shouldUseNumber = totalCount > 1;
+
         Directory.CreateDirectory(Path.Combine(_buildPath, "stream"));
+    }
+
+    public void SetAddon(Addon addon)
+    {
+        _addon = addon;
+    }
+
+    public void SetNumber(int number)
+    {
+        _number = number;
     }
 
     public byte[] BuildYMT()
@@ -150,7 +165,7 @@ public class BuildResourceHelper
         propInfo.aAnchors = mb.AddItemArrayPtr(MetaName.CAnchorProps, anchors);
 
         CPed.propInfo = propInfo;
-        CPed.dlcName = JenkHash.GenHash(_projectName);
+        CPed.dlcName = JenkHash.GenHash(ProjectName);
 
         mb.AddItem(MetaName.CPedVariationInfo, CPed);
 
@@ -169,7 +184,7 @@ public class BuildResourceHelper
         mb.AddEnumInfo(MetaName.ePropRenderFlags);
 
         Meta meta = mb.GetMeta();
-        meta.Name = _projectName;
+        meta.Name = ProjectName;
 
         byte[] data = ResourceBuilder.Build(meta, 2);
 
@@ -188,10 +203,10 @@ public class BuildResourceHelper
 
         MetaXmlBase.OpenTag(sb, 0, "ShopPedApparel");
         MetaXmlBase.StringTag(sb, 4, "pedName", pedName);
-        MetaXmlBase.StringTag(sb, 4, "dlcName", _projectName);
-        MetaXmlBase.StringTag(sb, 4, "fullDlcName", pedName + "_" + _projectName);
+        MetaXmlBase.StringTag(sb, 4, "dlcName", ProjectName);
+        MetaXmlBase.StringTag(sb, 4, "fullDlcName", pedName + "_" + ProjectName);
         MetaXmlBase.StringTag(sb, 4, "eCharacter", eCharacter);
-        MetaXmlBase.StringTag(sb, 4, "creatureMetaData", "mp_creaturemetadata_" + genderLetter + "_" + _projectName);
+        MetaXmlBase.StringTag(sb, 4, "creatureMetaData", "mp_creaturemetadata_" + genderLetter + "_" + ProjectName);
 
         MetaXmlBase.OpenTag(sb, 4, "pedOutfits");
         MetaXmlBase.CloseTag(sb, 4, "pedOutfits");
@@ -205,7 +220,7 @@ public class BuildResourceHelper
         var xml = sb.ToString();
 
 
-        var finalPath = Path.Combine(_buildPath, pedName + "_" + _projectName + ".meta");
+        var finalPath = Path.Combine(_buildPath, pedName + "_" + ProjectName + ".meta");
         File.WriteAllText(finalPath, xml);
 
         return new FileInfo(finalPath);
@@ -215,38 +230,47 @@ public class BuildResourceHelper
     {
         var pedName = GetPedName(isMale);
 
-        var ymtPath = Path.Combine(_buildPath, "stream", pedName + "_" + _projectName + ".ymt");
-        File.WriteAllBytes(ymtPath, ymtBytes);
-
         var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
-        foreach (var d in drawables)
+        var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
+                                      .GroupBy(x => x.Value.Number / 128)
+                                      .Select(x => x.Select(v => v.Value).ToList())
+                                      .ToList();
+
+        for (int i = 0; i < drawableGroups.Count; i++)
         {
-            var drawablePedName = d.IsProp ? pedName + "_p" : pedName;
-            var genderFolderName = isMale ? "[male]" : "[female]";
-            var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
-            if (!Directory.Exists(folderPath))
+            var ymtPath = Path.Combine(_buildPath, "stream", pedName + "_" + ProjectName + ".ymt");
+            File.WriteAllBytes(ymtPath, ymtBytes);
+
+            foreach (var d in drawableGroups[i])
             {
-                Directory.CreateDirectory(folderPath);
-            }
+                var drawablePedName = d.IsProp ? pedName + "_p" : pedName;
+                var genderFolderName = isMale ? "[male]" : "[female]";
+                var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
 
-            var prefix = drawablePedName + "_" + _projectName + "^";
-            prefix = RemoveInvalidChars(prefix);
+                var prefix = drawablePedName + "_" + ProjectName + "^";
+                prefix = RemoveInvalidChars(prefix);
 
-            var finalPath = Path.Combine(folderPath, prefix + d.Name + d.File.Extension);
-            File.Copy(d.File.FullName, finalPath, true);
+                var finalPath = Path.Combine(folderPath, prefix + d.Name + d.File.Extension);
+                File.Copy(d.File.FullName, finalPath, true);
 
-            foreach (var t in d.Textures)
-            {
-                var texFile = t.File;
-                var displayName = RemoveInvalidChars(t.DisplayName);
-                var finalTexPath = Path.Combine(folderPath, prefix + displayName + texFile.Extension);
+                foreach (var t in d.Textures)
+                {
+                    var texFile = t.File;
+                    var displayName = RemoveInvalidChars(t.DisplayName);
+                    var finalTexPath = Path.Combine(folderPath, prefix + displayName + texFile.Extension);
 
-                File.Copy(texFile.FullName, finalTexPath, true);
+                    File.Copy(texFile.FullName, finalTexPath, true);
+                }
             }
         }
 
         GenerateCreatureMetadata(drawables, isMale);
     }
+
 
     private string RemoveInvalidChars(string input)
     {
@@ -278,7 +302,7 @@ public class BuildResourceHelper
         File.WriteAllText(finalPath, contentBuilder.ToString());
     }
 
-    private void GenerateCreatureMetadata(List<Models.GDrawable> drawables, bool isMale)
+    private void GenerateCreatureMetadata(List<GDrawable> drawables, bool isMale)
     {
         //taken from ymteditor because it works fine xd
 
@@ -340,7 +364,7 @@ public class BuildResourceHelper
         xmldoc.Load(xml.CreateReader());
 
         RbfFile rbf = XmlRbf.GetRbf(xmldoc);
-        rbf.Save(_buildPath + "/stream/mp_creaturemetadata_" + GetGenderLetter(isMale) + "_" + _projectName + ".ymt");
+        rbf.Save(_buildPath + "/stream/mp_creaturemetadata_" + GetGenderLetter(isMale) + "_" + ProjectName + ".ymt");
     }
 
     private static string GetGenderLetter(bool isMale)

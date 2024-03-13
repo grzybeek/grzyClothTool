@@ -3,6 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:models="clr-namespace:grzyClothTool.Models"
+             d:DataContext="{d:DesignInstance Type=models:AddonDesign, IsDesignTimeCreatable=True}"
+             x:Name="MyDrawableList"
              mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -75,7 +78,10 @@
         SelectionChanged="ListBox_SelectionChanged"
         HorizontalContentAlignment="Stretch" 
         ItemContainerStyle="{StaticResource ListBoxItemTemplate}" 
-        ItemsSource="{Binding Drawables}"
+        ItemsSource="{Binding ItemsSource, ElementName=MyDrawableList, UpdateSourceTrigger=PropertyChanged}"
+        d:ItemsSource="{Binding Drawables}"
         BorderThickness="0" 
+        d:SelectedIndex="1"
+        d:Width="300"
     />
 </UserControl>

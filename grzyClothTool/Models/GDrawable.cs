@@ -59,7 +59,7 @@ public class GDrawable : INotifyPropertyChanged
     public bool IsComponent => !IsProp;
 
     public int Number { get; set; }
-    public string DisplayNumber => Number.ToString("D3");
+    public string DisplayNumber => (Number % 128).ToString("D3");
 
 
     private bool _hasSkin;

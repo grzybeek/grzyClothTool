@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,9 +24,23 @@ namespace grzyClothTool.Views
     /// <summary>
     /// Interaction logic for Project.xaml
     /// </summary>
-    public partial class ProjectWindow : UserControl
+    public partial class ProjectWindow : UserControl, INotifyPropertyChanged
     {
-        private readonly AddonManager Addon;
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private Addon _addon;
+        public Addon Addon
+        {
+            get { return _addon; }
+            set
+            {
+                if (_addon != value)
+                {
+                    _addon = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public ProjectWindow()
         {
@@ -33,13 +48,13 @@ namespace grzyClothTool.Views
 
             if(DesignerProperties.GetIsInDesignMode(this))
             {
-                Addon = new AddonManager("design");
-                DataContext = Addon;
+                Addon = new Addon("design");
+                DataContext = this;
                 return;
             }
 
-            Addon = MainWindow.Addon;
-            DataContext = Addon;
+            Addon = MainWindow.AddonManager.Addons.First();
+            DataContext = MainWindow.AddonManager;
         }
 
         private async void Add_DrawableFile(object sender, RoutedEventArgs e)
@@ -113,6 +128,18 @@ namespace grzyClothTool.Views
 
                 //replace drawable with reserved in the same place
                 Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
+            }
+        }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (e.AddedItems.Count > 0)
+            {
+                var addon = e.AddedItems[0] as Addon;
+                int index = int.Parse(addon.Name.ToString().Split(' ')[1]) - 1;
+                Addon = MainWindow.AddonManager.Addons.ElementAt(index);
+
+                MainWindow.AddonManager.SelectedAddon = Addon;
             }
         }
 
@@ -270,6 +297,11 @@ namespace grzyClothTool.Views
 
 
             return ydd;
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

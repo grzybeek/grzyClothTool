@@ -1,5 +1,7 @@
 ﻿using grzyClothTool.Models;
 using System;
+using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace grzyClothTool.Controls
@@ -10,6 +12,16 @@ namespace grzyClothTool.Controls
     public partial class DrawableList : UserControl
     {
         public event EventHandler DrawableListSelectedValueChanged;
+
+        public static readonly DependencyProperty ItemsSourceProperty =
+            DependencyProperty.RegisterAttached("ItemsSource", typeof(ObservableCollection<GDrawable>), typeof(DrawableList), new PropertyMetadata(default(ObservableCollection<GDrawable>)));
+
+        public ObservableCollection<GDrawable> ItemsSource
+        {
+            get { return (ObservableCollection<GDrawable>)GetValue(ItemsSourceProperty); }
+            set { SetValue(ItemsSourceProperty, value); }
+        }
+
 
         public object DrawableListSelectedValue
         {
