@@ -65,8 +65,9 @@ namespace grzyClothTool.Views
 
             OpenFileDialog files = new()
             {
-                Multiselect = true,
-                Filter = "Drawable files (*.ydd)|*.ydd"
+                Title = $"Select drawable files ({btn.Label})",
+                Filter = "Drawable files (*.ydd)|*.ydd",
+                Multiselect = true
             };
 
             if (files.ShowDialog() == true)
@@ -89,7 +90,7 @@ namespace grzyClothTool.Views
 
             OpenFolderDialog folder = new()
             {
-                Title = "Select a folder containing drawable files",
+                Title = $"Select a folder containing drawable files ({btn.Tag})",
             };
 
             if (folder.ShowDialog() == true)

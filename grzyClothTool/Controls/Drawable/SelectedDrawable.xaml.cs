@@ -1,6 +1,8 @@
 ﻿using CodeWalker.GameFiles;
+using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models;
+using Microsoft.Win32;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -31,23 +33,23 @@ namespace grzyClothTool.Controls
         public event EventHandler<DrawableUpdatedArgs> SelectedDrawableUpdated;
 
         public static readonly DependencyProperty SelectedDrawableProperty =
-        DependencyProperty.RegisterAttached("SelectedDraw", typeof(Models.GDrawable), typeof(SelectedDrawable), new PropertyMetadata(default(Models.GDrawable)));
+        DependencyProperty.RegisterAttached("SelectedDraw", typeof(GDrawable), typeof(SelectedDrawable), new PropertyMetadata(default(GDrawable)));
 
         public static readonly DependencyProperty SelectedTextureProperty =
-        DependencyProperty.RegisterAttached("SelectedTxt", typeof(Models.GTexture), typeof(SelectedDrawable), new PropertyMetadata(default(Models.GTexture)));
+        DependencyProperty.RegisterAttached("SelectedTxt", typeof(GTexture), typeof(SelectedDrawable), new PropertyMetadata(default(GTexture)));
 
         public static readonly DependencyProperty SelectedIndexProperty =
         DependencyProperty.RegisterAttached("SelectedIndex", typeof(int), typeof(SelectedDrawable), new PropertyMetadata(default(int)));
 
-        public Models.GDrawable SelectedDraw
+        public GDrawable SelectedDraw
         {
-            get { return (Models.GDrawable)GetValue(SelectedDrawableProperty);}
+            get { return (GDrawable)GetValue(SelectedDrawableProperty);}
             set { SetValue(SelectedDrawableProperty, value); }
         }
 
-        public Models.GTexture SelectedTxt
+        public GTexture SelectedTxt
         {
-            get { return (Models.GTexture)GetValue(SelectedTextureProperty); }
+            get { return (GTexture)GetValue(SelectedTextureProperty); }
             set { SetValue(SelectedTextureProperty, value); }
             }
 
@@ -156,20 +158,6 @@ namespace grzyClothTool.Controls
             }
         }
 
-        private void TextureRemove_Click(object sender, RoutedEventArgs e)
-        {
-            if(SelectedTxt != null)
-            {
-                //todo: handle removing of texture
-            }
-        }
-
-        private void TextureRename_Click(object sender, RoutedEventArgs e)
-        {
-            //todo: handle renaming of texture
-        }
-
-
         // Used to notify CW ped viewer of changes to selected drawable
         private void SelectedDrawable_Updated(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -202,6 +190,34 @@ namespace grzyClothTool.Controls
             }
 
             return null;
+        }
+
+        private void DeleteTexture_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedTxt != null)
+            {
+                SelectedDraw.Textures.Remove(SelectedTxt);
+                SelectedDraw.Textures.ReassignNumbers();
+            }
+        }
+
+        private void AddTexture_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog files = new()
+            {
+                Title = $"Select textures",
+                Filter = "Texture files (*.ytd)|*.ytd",
+                Multiselect = true
+            };
+
+            if (files.ShowDialog() == true)
+            {
+                foreach(var file in files.FileNames)
+                {
+                    var gtxt = new GTexture(file, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedDraw.Textures.Count, SelectedDraw.HasSkin, SelectedDraw.IsProp);
+                    SelectedDraw.Textures.Add(gtxt);
+                }
+            }
         }
     }
 }

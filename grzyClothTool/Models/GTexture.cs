@@ -18,7 +18,16 @@ public class GTexture : INotifyPropertyChanged
 
     public string InternalName { get; set; }
     public int Number;
-    public int TxtNumber;
+    private int _txtNumber;
+    public int TxtNumber
+    {
+        get => _txtNumber;
+        set
+        {
+            _txtNumber = value;
+            OnPropertyChanged("DisplayName");
+        }
+    }
     public char TxtLetter;
     public int TypeNumeric { get; set; }
     public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);

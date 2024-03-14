@@ -11,14 +11,6 @@ using System.Threading.Tasks;
 
 namespace grzyClothTool.Models;
 
-
-public class AddonDesign : Addon
-{
-    public AddonDesign() : base("design")
-    {
-    }
-}
-
 public class Addon : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
@@ -92,7 +84,13 @@ public class Addon : INotifyPropertyChanged
         {
             for (int i = 1; i < 50; i++)
             {
-                Drawables.Add(new GDrawable(new FileInfo("grzyClothTool/Assets/jbib_000_u.ydd"), i % 2 == 0, false, 11, i, false, [new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false)]));
+                Drawables.Add(
+                    new GDrawable(new FileInfo("grzyClothTool/Assets/jbib_000_u.ydd"), i % 2 == 0, false, 11, i, false,
+                    [
+                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false), 
+                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 1, false, false)
+                    ]
+                ));
             }
 
             SelectedDrawable = Drawables.First();

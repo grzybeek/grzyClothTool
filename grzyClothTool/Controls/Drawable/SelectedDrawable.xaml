@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:models="clr-namespace:grzyClothTool.Models"
-             d:DataContext="{d:DesignInstance Type=models:AddonManager, IsDesignTimeCreatable=True}"
+             d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="Control"
              d:Width="900"
              d:Height="600"
@@ -70,21 +70,11 @@
                                                 </Grid>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
-
-                                        <ListBox.ContextMenu>
-                                            <ContextMenu>
-                                                <MenuItem Click="TextureRemove_Click" IsEnabled="false" Header="Remove" />
-                                                <MenuItem Click="TextureRename_Click" IsEnabled="false" Header="Rename" />
-                                            </ContextMenu>
-                                        </ListBox.ContextMenu>
                                     </ListBox>
-                                    <StackPanel Grid.Row="2" Margin="0" VerticalAlignment="Bottom" Orientation="Horizontal">
-
-                                        <c:CustomButton Width="150" Label="Add texture" Padding="2" CornerRadius="5" DropdownEnabled="True" />
-                                        <c:CustomButton Image="/grzyClothTool;component/Resources/delete.png" Width="25" Tooltip="Delete selected drawable" Padding="2" CornerRadius="5"/>
+                                    <StackPanel Grid.Row="2" Margin="0" VerticalAlignment="Stretch" Orientation="Horizontal">
+                                        <c:CustomButton Width="150" Label="ADD TEXTURES" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
+                                        <c:CustomButton Image="/grzyClothTool;component/Resources/delete.png" Width="25" Tooltip="Delete selected drawable" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
                                     </StackPanel>
-
-
                                 </Grid>
                                 <Grid IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Column="1">
                                     <Grid.RowDefinitions>
@@ -95,29 +85,7 @@
                                         <StackPanel Orientation="Vertical">
                                             <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}"/>
                                             <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.AdditionalOptions.RenderFlags}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
-
                                             <c:ModernLabelCheckBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" />
-                                        </StackPanel>
-                                    </GroupBox>
-                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" BorderThickness="1">
-                                        <StackPanel Orientation="Vertical" Margin="0">
-                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <c:ModernLabelCheckBox Tag="EnableKeepPreview" Label="Keep preview" IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableKeepPreview}" IsUpdated="SelectedDrawable_Updated" />
-                                            
-                                            
                                             <StackPanel Orientation="Vertical" Margin="0">
                                                 <StackPanel.Style>
                                                     <Style TargetType="StackPanel">
@@ -155,8 +123,26 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>
+                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" BorderThickness="1">
+                                        <StackPanel Orientation="Vertical" Margin="0">
+                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="True">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <c:ModernLabelCheckBox Tag="EnableKeepPreview" Label="Keep preview" IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableKeepPreview}" IsUpdated="SelectedDrawable_Updated" />
+                                        </StackPanel>
+                                    </GroupBox>
                                 </Grid>
-                                
                             </Grid>
                         </ControlTemplate>
                     </Setter.Value>

@@ -1,5 +1,6 @@
 ﻿using grzyClothTool.Helpers;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -124,9 +125,9 @@ public class GDrawable : INotifyPropertyChanged
     public string RenderFlag { get; set; } = ""; // "" is the default value
     public static List<string> AvailableRenderFlagList => ["","PRF_ALPHA","PRF_DECAL", "PRF_CUTOUT"];
 
-    public List<GTexture> Textures { get; set; }
+    public ObservableCollection<GTexture> Textures { get; set; }
 
-    public GDrawable(FileInfo drawableFile, bool isMale, bool isProp, int compType, int count, bool hasSkin, List<GTexture> textures)
+    public GDrawable(FileInfo drawableFile, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         File = drawableFile;
         Textures = textures;

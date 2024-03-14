@@ -23,5 +23,11 @@ public static class ObservableCollectionExtensions
         }
     }
 
-
+    public static void ReassignNumbers(this ObservableCollection<GTexture> textures)
+    {
+        for (int i = 0; i < textures.Count; i++)
+        {
+            textures[i].TxtNumber = i;
+        }
+    }
 }

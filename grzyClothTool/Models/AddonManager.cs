@@ -1,11 +1,21 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace grzyClothTool.Models
 {
 
-    public delegate void DrawableChangedHandler(GDrawable drawable);
+    public class AddonManagerDesign : AddonManager
+    {
+        public AddonManagerDesign()
+        {
+            Addons = [];
+
+            Addons.Add(new Addon("design"));
+            SelectedAddon = Addons.First();
+        }
+    }
 
     public class AddonManager : INotifyPropertyChanged
     {
