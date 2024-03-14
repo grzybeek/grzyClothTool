@@ -76,11 +76,11 @@ namespace CodeWalker.Rendering
 
         public bool renderfloor = false;
         public bool SelectedDrawableChanged = true;
-        public float hairscalevalue = 0.5f;
+        public float hairscalevalue = 0.0f;
 
         public bool usehighheels = false;
         public bool usehighheelschanged = false;
-        public float highheelvalue = 1.0f;
+        public float highheelvalue = 0.0f;
 
 
         public bool MapViewEnabled = false;
@@ -90,14 +90,7 @@ namespace CodeWalker.Rendering
         private UnitQuad markerquad = null;
         public bool markerdepthclip = Settings.Default.MarkerDepthClip;
 
-
-        private RenderLodManager LodManager = new RenderLodManager();
-
         private List<YmapEntityDef> renderworldentities = new List<YmapEntityDef>(); //used when rendering world view.
-        private List<RenderableEntity> renderworldrenderables = new List<RenderableEntity>();
-        private Dictionary<Archetype, Renderable> ArchetypeRenderables = new Dictionary<Archetype, Renderable>();
-        private Dictionary<YmapEntityDef, Renderable> RequiredParents = new Dictionary<YmapEntityDef, Renderable>();
-        private List<YmapEntityDef> RenderEntities = new List<YmapEntityDef>();
 
         public Dictionary<uint, YmapEntityDef> HideEntities = new Dictionary<uint, YmapEntityDef>();//dictionary of entities to hide, for cutscenes to use 
 
@@ -152,9 +145,6 @@ namespace CodeWalker.Rendering
         public List<VertexTypePC> SelectionLineVerts = new List<VertexTypePC>();
         public List<VertexTypePC> SelectionTriVerts = new List<VertexTypePC>();
 
-
-        private YmapEntityDef SelectedCarGenEntity = new YmapEntityDef(); //placeholder entity object for drawing cars
-
         public DrawableBase SelectedDrawable = null;
         public Drawable SelDrawable = null;
         public Drawable PreviousSelDrawable = null;
@@ -162,8 +152,6 @@ namespace CodeWalker.Rendering
         public Dictionary<DrawableModel, bool> SelectionModelDrawFlags = new Dictionary<DrawableModel, bool>();
         public Dictionary<DrawableGeometry, bool> SelectionGeometryDrawFlags = new Dictionary<DrawableGeometry, bool>();
         public bool SelectionFlagsTestAll = false; //to test all renderables for draw flags; for model form
-
-
 
 
         public List<RenderedDrawable> RenderedDrawables = new List<RenderedDrawable>(); //queued here for later hit tests...
@@ -174,9 +162,6 @@ namespace CodeWalker.Rendering
 
         private List<YtdFile> tryGetRenderableSDtxds = new List<YtdFile>();
         private List<YtdFile> tryGetRenderableHDtxds = new List<YtdFile>();
-
-
-
 
 
 
