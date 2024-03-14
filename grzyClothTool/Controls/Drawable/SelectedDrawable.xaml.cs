@@ -89,7 +89,7 @@ namespace grzyClothTool.Controls
                     textureListBox.SelectedIndex = gtxt.TxtNumber;
                 }
 
-                var ytd = CWHelper.GetYtdFile(gtxt.File.FullName);
+                var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
                 var txt = ytd.TextureDict.Textures[0];
                 var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
 

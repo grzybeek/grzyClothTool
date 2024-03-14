@@ -25,7 +25,6 @@ public class FileHelper
 
     private void GenerateProjectFolder()
     {
-        //todo: specify path where to save files in settings + on first launch of program?
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         var exeName = Assembly.GetExecutingAssembly().GetName().Name;
 
@@ -55,43 +54,25 @@ public class FileHelper
 
     public Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
     {
-        FileInfo file = new(filePath);
         var name = EnumHelper.GetName(typeNumber, isProp);
 
-        var matchingTextures = FindMatchingTextures(file, name, isProp);
+        var matchingTextures = FindMatchingTextures(filePath, name, isProp);
 
-        var path = Path.Combine(name, countOfType.ToString("D3"));
-
-        var drawableFolder = ProjectPath.CreateSubdirectory(path);
         var drawableName = Guid.NewGuid().ToString();
-        var drawableRaceSuffix = Path.GetFileNameWithoutExtension(file.Name)[^1..];
+        var drawableRaceSuffix = Path.GetFileNameWithoutExtension(filePath)[^1..];
         var drawableHasSkin = drawableRaceSuffix == "r";
-        var drawableFile = CopyFile(file, drawableFolder, drawableName);
 
-        //copy textures
         var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)));
-        foreach (var texture in textures)
-        {
-            var txtFile = new FileInfo(path);
-            var txtInternalName = Guid.NewGuid().ToString();
-            var newTxtFile = CopyFile(texture.File, drawableFolder, txtInternalName);
-            texture.File = newTxtFile;
-            texture.InternalName = txtInternalName;
-        }
 
-        return Task.FromResult(new GDrawable(drawableFile, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
+        return Task.FromResult(new GDrawable(filePath, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
 
-    private static FileInfo CopyFile(FileInfo file, DirectoryInfo directory, string newName)
+    public static List<string> FindMatchingTextures(string filePath, string name, bool isProp)
     {
-        var newPath = Path.Combine(directory.FullName, $"{newName}{file.Extension}");
-        return file.CopyTo(newPath);
-    }
+        //get directory from filepath
 
-    public static List<string> FindMatchingTextures(FileInfo file, string name, bool isProp)
-    {
-        var folderPath = file.Directory.FullName;
-        var fileName = file.Name;
+        var folderPath = Path.GetDirectoryName(filePath);
+        var fileName = Path.GetFileName(filePath);
         if (fileName.Contains('^'))
         {
             fileName = fileName.Split("^")[1];
@@ -102,7 +83,7 @@ public class FileHelper
         var allYtds = Directory.EnumerateFiles(folderPath)
             .Where(x => Path.GetExtension(x) == ".ytd" &&
                 Path.GetFileNameWithoutExtension(x).Contains(name) &&
-                Path.GetFileNameWithoutExtension(x).Contains(searchedNumber))
+                Path.GetFileNameWithoutExtension(x).Contains("_" + searchedNumber + "_"))
             .ToList();
 
 

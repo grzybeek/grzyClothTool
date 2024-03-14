@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -198,7 +197,7 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            Addon.SelectedDrawable = (Models.GDrawable)args.AddedItems[0];
+            Addon.SelectedDrawable = (GDrawable)args.AddedItems[0];
             if (Addon.SelectedDrawable.Textures.Count > 0)
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
@@ -263,7 +262,7 @@ namespace grzyClothTool.Views
             }
 
             args.Handled = true;
-            Addon.SelectedTexture = (Models.GTexture)args.AddedItems[0];
+            Addon.SelectedTexture = (GTexture)args.AddedItems[0];
 
             if (!Addon.IsPreviewEnabled) return;
 
@@ -272,9 +271,9 @@ namespace grzyClothTool.Views
             CWHelper.CWForm.Refresh();
         }
 
-        private static YtdFile CreateYtdFile(Models.GTexture t)
+        private static YtdFile CreateYtdFile(GTexture t)
         {
-            byte[] data = File.ReadAllBytes(t.File.FullName);
+            byte[] data = File.ReadAllBytes(t.FilePath);
 
             RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
             var decompressedData = ResourceBuilder.Decompress(data);
@@ -284,9 +283,9 @@ namespace grzyClothTool.Views
             return ytd;
         }
 
-        private static YddFile CreateYddFile(Models.GDrawable d)
+        private static YddFile CreateYddFile(GDrawable d)
         {
-            byte[] data = File.ReadAllBytes(d.File.FullName);
+            byte[] data = File.ReadAllBytes(d.FilePath);
 
             RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
             var decompressedData = ResourceBuilder.Decompress(data);

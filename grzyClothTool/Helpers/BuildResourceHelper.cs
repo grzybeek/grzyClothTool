@@ -254,16 +254,15 @@ public class BuildResourceHelper
                 var prefix = drawablePedName + "_" + ProjectName + "^";
                 prefix = RemoveInvalidChars(prefix);
 
-                var finalPath = Path.Combine(folderPath, prefix + d.Name + d.File.Extension);
-                File.Copy(d.File.FullName, finalPath, true);
+                var finalPath = Path.Combine(folderPath, prefix + d.Name + Path.GetExtension(d.FilePath));
+                File.Copy(d.FilePath, finalPath, true);
 
                 foreach (var t in d.Textures)
                 {
-                    var texFile = t.File;
                     var displayName = RemoveInvalidChars(t.DisplayName);
-                    var finalTexPath = Path.Combine(folderPath, prefix + displayName + texFile.Extension);
+                    var finalTexPath = Path.Combine(folderPath, prefix + displayName + Path.GetExtension(t.FilePath));
 
-                    File.Copy(texFile.FullName, finalTexPath, true);
+                    File.Copy(t.FilePath, finalTexPath, true);
                 }
             }
         }

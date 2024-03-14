@@ -19,7 +19,7 @@ public class GReservedDrawable : GDrawable
     public GReservedDrawable(bool isMale, bool isProp, int compType, int count) : base(isMale, isProp, compType, count)
     {
 
-        File = new FileInfo(Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd"));
+        FilePath = Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd");
         Textures = [new GTexture(Path.Combine(FileHelper.ReservedAssetsPath, "reservedTexture.ytd"), compType, count, 0, false, isProp)];
         TypeNumeric = compType;
         Number = count;
@@ -35,7 +35,7 @@ public class GDrawable : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
 
-    public FileInfo File { get; set; }
+    public string FilePath { get; set; }
 
     private string _name;
     public string Name 
@@ -127,9 +127,9 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<GTexture> Textures { get; set; }
 
-    public GDrawable(FileInfo drawableFile, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
+    public GDrawable(string drawablePath, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
-        File = drawableFile;
+        FilePath = drawablePath;
         Textures = textures;
         TypeNumeric = compType;
         Number = count;
