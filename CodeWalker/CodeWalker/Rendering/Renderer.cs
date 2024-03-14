@@ -76,7 +76,7 @@ namespace CodeWalker.Rendering
 
         public bool renderfloor = false;
         public bool SelectedDrawableChanged = true;
-        public float hairscalevalue = 0.0f;
+        public float hairscalevalue = 1.0f;
 
         public bool usehighheels = false;
         public bool usehighheelschanged = false;
@@ -1812,6 +1812,8 @@ namespace CodeWalker.Rendering
                                 scaleBones[0] = rndbl.Skeleton.Bones.Items[100];
                                 scaleBones[1] = rndbl.Skeleton.Bones.Items[101];
 
+                                //reverse value
+                                hairscalevalue = 1.0f - hairscalevalue;
 
                                 foreach (var b in scaleBones)
                                 {
