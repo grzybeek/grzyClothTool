@@ -26,6 +26,7 @@ Now you can do *almost* everything you could do before with *other available too
 
 # Mentions
   - **[dexyfex](https://github.com/dexyfex/CodeWalker)** - 3D Previewer wouldn't be possible without him and CodeWalker! [Support dexyfex on patreon](https://www.patreon.com/dexyfex)
+  - [JagodaMods](https://discord.gg/jagoda) - A lot of motivation and ideas 💕
   - [ook](https://github.com/ook3d) - Fixes and contribution
 
 # Support
