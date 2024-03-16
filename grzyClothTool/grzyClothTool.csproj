@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-	<UseWPF>true</UseWPF>
-	<UseWindowsForms>true</UseWindowsForms>
+	  <UseWPF>true</UseWPF>
+	  <UseWindowsForms>true</UseWindowsForms>
 	  <PublishReadyToRun>true</PublishReadyToRun>
 	  <PublishSingleFile>true</PublishSingleFile>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -18,21 +18,14 @@
 		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	</PropertyGroup>
 
-	<ItemGroup>
-	  <None Remove="Resources\delete.png" />
-	  <None Remove="Resources\grzyClothTool.png" />
-	  <None Remove="Resources\grzyClothToolIcon.jpg" />
-	  <None Remove="Resources\reservedDrawable.ydd" />
-	  <None Remove="Resources\reservedTexture.ytd" />
-	</ItemGroup>
 
-	<ItemGroup>
-	  <Content Include="Resources\grzyClothToolIcon.ico" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <Resource Include="Resources\grzyClothTool.png" />
 	  <Resource Include="Resources\grzyClothToolIcon.ico" />
+    <Resource Include="Resources\delete.png" />
+    <Resource Include="Resources\reservedDrawable.ydd" />
+    <Resource Include="Resources\reservedTexture.ytd" />
 	</ItemGroup>
 
   <ItemGroup>
@@ -48,11 +41,6 @@
     </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="Resources\delete.png" />
-    <Resource Include="Resources\reservedDrawable.ydd" />
-    <Resource Include="Resources\reservedTexture.ytd" />
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Controls\Custom\CustomButton.xaml.cs">

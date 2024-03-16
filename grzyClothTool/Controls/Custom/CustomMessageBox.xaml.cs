@@ -108,6 +108,7 @@ namespace grzyClothTool.Controls
                                  string path = "")
         {
             InitializeComponent();
+            Owner = Application.Current.MainWindow;
 
             // Handle Ctrl+C press to copy message from CustomMessageBox
             KeyDown += (sender, args) =>
