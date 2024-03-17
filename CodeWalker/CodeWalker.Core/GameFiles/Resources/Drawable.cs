@@ -5225,6 +5225,15 @@ namespace CodeWalker.GameFiles
                         var geom = model.Geometries[i];
                         var sid = geom.ShaderID;
                         geom.Shader = (sid < shaders.Length) ? shaders[sid] : null;
+
+                        if (this is Drawable && sid == 0 && geom.Shader.ParametersList.Parameters[0].Data is null)
+                        {
+                            var fix = new TextureBase
+                            {
+                                Name = "fix_broken_model"
+                            };
+                            geom.Shader.ParametersList.Parameters[0].Data = fix;
+                        }
                     }
                 }
             }
