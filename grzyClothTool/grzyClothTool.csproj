@@ -9,6 +9,7 @@
 	  <PublishSingleFile>true</PublishSingleFile>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	  <ApplicationIcon>Resources\grzyClothToolIcon.ico</ApplicationIcon>
+	  <FileVersion>0.0.2</FileVersion>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
