@@ -205,7 +205,11 @@ namespace grzyClothTool.Views
             }
 
             if (!Addon.IsPreviewEnabled) return;
+            SendDrawableUpdateToCodewalkerPreview();
+        }
 
+        private void SendDrawableUpdateToCodewalkerPreview()
+        {
             var ydd = CreateYddFile(Addon.SelectedDrawable);
             YtdFile ytd = null;
             if (Addon.SelectedTexture != null)
@@ -245,11 +249,7 @@ namespace grzyClothTool.Views
             Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
             SelDrawable.SelectedIndex = 0;
 
-            var ydd = CreateYddFile(Addon.SelectedDrawable);
-            var ytd = CreateYtdFile(Addon.SelectedTexture);
-
-            var firstDrawable = ydd.Drawables.First();
-            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd.TextureDict, e.UpdatedName, e.Value);
+            SendDrawableUpdateToCodewalkerPreview();
         }
 
         private void SelectedDrawable_TextureChanged(object sender, EventArgs e)

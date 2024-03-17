@@ -305,7 +305,7 @@ namespace CodeWalker
         {
             if(Renderer.renderfloor)
             {
-                if (Renderer.usehighheels)
+                if (Renderer.SelDrawable.IsHighHeelsEnabled)
                 {
                     List<VertexTypePC> newFloorVerticesList = new List<VertexTypePC>();
 
@@ -316,7 +316,7 @@ namespace CodeWalker
                         for (int i = 0; i < floorVerticesList.Count; i++)
                         {
                             var ver = floorVerticesList[i];
-                            var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - highheelvalue);
+                            var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - Renderer.highheelvalue);
                             ver.Position = newPosition;
 
                             newFloorVerticesList.Add(ver);
@@ -825,6 +825,7 @@ namespace CodeWalker
                     break;
                 case "HighHeels":
                     Renderer.highheelvalue = Convert.ToSingle(value) / 10;
+                    highheelvaluechanged = true;
                     break;
                 default:
                     break;
