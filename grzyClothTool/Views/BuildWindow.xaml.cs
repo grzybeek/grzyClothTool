@@ -49,7 +49,7 @@ namespace grzyClothTool.Views
 
                 if (selectedAddon.HasMale)
                 {
-                    var bytes = buildHelper.BuildYMT();
+                    var bytes = buildHelper.BuildYMT(true);
                     buildHelper.BuildFiles(true, bytes);
 
                     var meta = buildHelper.BuildMeta(true);
@@ -57,7 +57,7 @@ namespace grzyClothTool.Views
                 }
                 if (selectedAddon.HasFemale)
                 {
-                    var bytes = buildHelper.BuildYMT();
+                    var bytes = buildHelper.BuildYMT(false);
                     buildHelper.BuildFiles(false, bytes);
 
                     var meta = buildHelper.BuildMeta(false);

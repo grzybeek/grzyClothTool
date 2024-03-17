@@ -40,7 +40,7 @@ public class BuildResourceHelper
         _number = number;
     }
 
-    public byte[] BuildYMT()
+    public byte[] BuildYMT(bool isMale)
     {
         var mb = new MetaBuilder();
         var mdb = mb.EnsureBlock(MetaName.CPedVariationInfo);
@@ -57,7 +57,7 @@ public class BuildResourceHelper
         availComp.SetBytes(generatedAvailComp);
         CPed.availComp = availComp;
 
-        var allDrawables = _addon.Drawables.ToList();
+        var allDrawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
         var allCompDrawablesArray = allDrawables.Where(x => !x.IsProp).ToArray();
         var allPropDrawablesArray = allDrawables.Where(x => x.IsProp).ToArray();
 

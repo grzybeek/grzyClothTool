@@ -1449,6 +1449,5 @@ namespace CodeWalker
 
             Settings.Default.Save();
         }
-
     }
 }
