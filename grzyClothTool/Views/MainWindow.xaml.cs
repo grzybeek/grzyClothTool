@@ -2,7 +2,9 @@
 using grzyClothTool.Models;
 using grzyClothTool.Views;
 using Microsoft.Win32;
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Navigation;
@@ -24,8 +26,8 @@ namespace grzyClothTool
 
         public MainWindow()
         {
-            App.splashScreen.AddMessage("Loading");
             InitializeComponent();
+            this.Visibility = Visibility.Hidden;
             CWHelper.Init();
 
             _instance = this;
@@ -38,8 +40,26 @@ namespace grzyClothTool
 
             DataContext = _navigationHelper;
             _navigationHelper.Navigate("Project");
+            version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
-            App.splashScreen.LoadComplete();
+
+
+            Dispatcher.BeginInvoke((Action)(async () =>
+            {
+#if !DEBUG
+                App.splashScreen.AddMessage("Checking for updates...");
+                await UpdateHelper.CheckForUpdates();
+#endif
+                App.splashScreen.AddMessage("Starting app");
+
+                // Wait until the SplashScreen's message queue is empty
+                while (App.splashScreen.MessageQueueCount > 0)
+                {
+                    await Task.Delay(2000);
+                }
+
+                await App.splashScreen.LoadComplete();
+            }));
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

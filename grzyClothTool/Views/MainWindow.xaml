@@ -14,10 +14,17 @@
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
+            <Menu.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch" />
+                </ItemsPanelTemplate>
+            </Menu.ItemsPanel>
+            
             <MenuItem Header="_Project">
                 <MenuItem Header="_Open" Click="OpenProject_Click" />
             </MenuItem>
             <MenuItem Header="_Settings" Tag="Settings" Click="Navigation_Click" />
+            <MenuItem x:Name="version" Header="Version" HorizontalAlignment="Right" IsEnabled="False" />
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">
