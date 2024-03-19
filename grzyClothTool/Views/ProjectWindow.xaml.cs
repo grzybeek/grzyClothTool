@@ -99,7 +99,7 @@ namespace grzyClothTool.Views
                 timer.Start();
                 foreach (var fldr in folder.FolderNames)
                 {
-                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories);
+                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories).OrderBy(f => Path.GetFileName(f)).ToArray();
                     await Addon.AddDrawables(files, isMaleBtn);
                 }
 
