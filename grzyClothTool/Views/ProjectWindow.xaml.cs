@@ -90,6 +90,7 @@ namespace grzyClothTool.Views
             OpenFolderDialog folder = new()
             {
                 Title = $"Select a folder containing drawable files ({btn.Tag})",
+                Multiselect = true
             };
 
             if (folder.ShowDialog() == true)

@@ -1,6 +1,7 @@
 ﻿using CodeWalker.GameFiles;
 using CodeWalker.Properties;
 using CodeWalker.Rendering;
+using CodeWalker.Utils;
 using CodeWalker.World;
 using SharpDX;
 using SharpDX.Direct3D11;
@@ -8,6 +9,7 @@ using SharpDX.XInput;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,6 +69,10 @@ namespace CodeWalker
         public Dictionary<string, Drawable> LoadedDrawables = new Dictionary<string, Drawable>();
         public Dictionary<Drawable, TextureDictionary> LoadedTextures = new Dictionary<Drawable, TextureDictionary>();
 
+        string liveTexturePath = null;
+        DateTime liveTextureLastWriteTime;
+        Texture LiveTexture = new Texture();
+
         List<List<ComponentComboItem>> ComponentComboBoxes;
         private List<VertexTypePC> floorVerticesList = new List<VertexTypePC>();
         private readonly Vector3[] floorVertices = new Vector3[]
@@ -88,7 +94,6 @@ namespace CodeWalker
             new Vector3(-1.0f, -1.0f, -1.0f)
         };
 
-        private float highheelvalue = 0.0f;
         private bool highheelvaluechanged = false;
 
         public class ComponentComboItem
@@ -298,7 +303,28 @@ namespace CodeWalker
             d.Owner = SelectedPed;
             d.Skeleton = SelectedPed.Skeleton;
 
-            Renderer.RenderDrawable(d, null, SelectedPed.RenderEntity, 0, t, t.Textures.data_items[0], SelectedPed.AnimClip, null, null, isProp);
+            if(liveTexturePath != null)
+            {
+                var files = Directory.GetFiles(liveTexturePath, "*.dds");
+                if(files.Length > 0)
+                {
+                    var file = files[0];
+                    var fileinfo = new FileInfo(file);
+                    var lastwritetime = fileinfo.LastWriteTime;
+                    
+                    if (lastwritetime > liveTextureLastWriteTime)
+                    {
+                        liveTextureLastWriteTime = lastwritetime;
+
+                        LiveTexture = DDSIO.GetTexture(File.ReadAllBytes(file));
+
+                    }
+                    Renderer.RenderDrawable(d, null, SelectedPed.RenderEntity, 0, null, LiveTexture, SelectedPed.AnimClip, null, null, isProp, true);
+                }
+                return;
+            }
+
+            Renderer.RenderDrawable(d, null, SelectedPed.RenderEntity, 0, t, t.Textures.data_items[0], SelectedPed.AnimClip, null, null, isProp, true);
         }
 
         private void RenderFloor()
@@ -1449,6 +1475,51 @@ namespace CodeWalker
 
 
             Settings.Default.Save();
+        }
+
+        private void LiveTexturePreview_Click(object sender, EventArgs e)
+        {
+            if (liveTexturePath != null)
+            {
+                liveTexturePath = null;
+                Renderer.LiveTextureEnabled = false;
+            }
+            else
+            {
+                using (var fbd = new FolderBrowserDialog())
+                {
+                    if (fbd.ShowDialog() == DialogResult.OK)
+                    {
+                        liveTexturePath = fbd.SelectedPath;
+                        Renderer.LiveTextureEnabled = true;
+                    }
+                }
+            }
+
+            liveTxtButton.Text = Renderer.LiveTextureEnabled ? "Disable" : "Enable";
+            diffuseRadio.Enabled = !Renderer.LiveTextureEnabled;
+            normalRadio.Enabled = !Renderer.LiveTextureEnabled;
+            specularRadio.Enabled = !Renderer.LiveTextureEnabled;
+        }
+
+        private void liveTexture_CheckedChanged(object sender, EventArgs e)
+        {
+            RadioButton radioButton = sender as RadioButton;
+            if (radioButton.Checked == true)
+            {
+                switch (radioButton.Text)
+                {
+                    case "Diffuse":
+                        Renderer.LiveTextureSelectedMode = LiveTextureMode.Diffuse;
+                        break;
+                    case "Normal":
+                        Renderer.LiveTextureSelectedMode = LiveTextureMode.Normal;
+                        break;
+                    case "Specular":
+                        Renderer.LiveTextureSelectedMode = LiveTextureMode.Specular;
+                        break;
+                }
+            }
         }
     }
 }

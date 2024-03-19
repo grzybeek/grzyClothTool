@@ -6,10 +6,6 @@ using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms.DataVisualization.Charting;
 
 namespace CodeWalker.Rendering
 {
@@ -82,6 +78,9 @@ namespace CodeWalker.Rendering
         public bool usehighheelschanged = false;
         public float highheelvalue = 0.0f;
 
+        public LiveTextureMode LiveTextureSelectedMode = LiveTextureMode.Diffuse;
+        public bool LiveTextureEnabled = false;
+        private Texture savedTexture = null;
 
         public bool MapViewEnabled = false;
         public float MapViewDetail = 1.0f;
@@ -1570,14 +1569,14 @@ namespace CodeWalker.Rendering
             return res;
         }
 
-        public bool RenderDrawable(DrawableBase drawable, Archetype arche, YmapEntityDef entity, uint txdHash = 0, TextureDictionary txdExtra = null, Texture diffOverride = null, ClipMapEntry animClip = null, ClothInstance cloth = null, Expression expr = null, bool isProp = false)
+        public bool RenderDrawable(DrawableBase drawable, Archetype arche, YmapEntityDef entity, uint txdHash = 0, TextureDictionary txdExtra = null, Texture diffOverride = null, ClipMapEntry animClip = null, ClothInstance cloth = null, Expression expr = null, bool isProp = false, bool shouldOverride = false)
         {
             //enqueue a single drawable for rendering.
 
             if (drawable == null)
                 return false;
 
-            Renderable rndbl = TryGetRenderable(arche, drawable, txdHash, txdExtra, diffOverride);
+            Renderable rndbl = TryGetRenderable(arche, drawable, txdHash, txdExtra, diffOverride, shouldOverride);
             if (rndbl == null)
                 return false;
 
@@ -1996,7 +1995,7 @@ namespace CodeWalker.Rendering
 
         }
 
-        private Renderable TryGetRenderable(Archetype arche, DrawableBase drawable, uint txdHash = 0, TextureDictionary txdExtra = null, Texture diffOverride = null)
+        private Renderable TryGetRenderable(Archetype arche, DrawableBase drawable, uint txdHash = 0, TextureDictionary txdExtra = null, Texture diffOverride = null, bool shouldOverride = false)
         {
             if (drawable == null) return null;
             //BUG: only last texdict used!! needs to cache textures per archetype........
@@ -2150,7 +2149,43 @@ namespace CodeWalker.Rendering
                             if (diffOverride != null)
                             {
                                 var texParamHash = (i < geom.TextureParamHashes?.Length) ? geom.TextureParamHashes[i] : 0;
-                                if (texParamHash == ShaderParamNames.DiffuseSampler)
+
+                                if (shouldOverride)
+                                {
+                                    LiveTextureMode liveTextureMode = LiveTextureMode.Diffuse;
+                                    switch (texParamHash)
+                                    {
+                                        case ShaderParamNames.DiffuseSampler:
+                                            liveTextureMode = LiveTextureMode.Diffuse;
+                                            break;
+                                        case ShaderParamNames.SpecSampler:
+                                            liveTextureMode = LiveTextureMode.Specular;
+                                            break;
+                                        case ShaderParamNames.BumpSampler:
+                                            liveTextureMode = LiveTextureMode.Normal;
+                                            break;
+                                    }
+
+                                    if (LiveTextureSelectedMode == liveTextureMode)
+                                    {
+                                        if (LiveTextureEnabled)
+                                        {
+                                            savedTexture = savedTexture ?? (geom.Textures[i] as Texture);
+                                            geom.Textures[i] = diffOverride;
+                                        }
+                                        else if (savedTexture != null)
+                                        {
+                                            geom.Textures[i] = savedTexture;
+                                            savedTexture = null;
+                                        }
+                                    }
+
+                                    if (!LiveTextureEnabled && texParamHash == ShaderParamNames.DiffuseSampler)
+                                    {
+                                        geom.Textures[i] = diffOverride;
+                                    }
+                                }
+                                else if (texParamHash == ShaderParamNames.DiffuseSampler)
                                 {
                                     geom.Textures[i] = diffOverride;
                                 }
@@ -2330,6 +2365,12 @@ namespace CodeWalker.Rendering
         TextureCoord = 5,
     }
 
+    public enum LiveTextureMode
+    {
+        Diffuse = 0,
+        Normal = 1,
+        Specular = 2
+    }
 
     public class RenderLodManager
     {

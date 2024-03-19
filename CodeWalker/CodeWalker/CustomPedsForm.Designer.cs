@@ -60,8 +60,17 @@ namespace CodeWalker
             this.ToolsModelsTabPage = new System.Windows.Forms.TabPage();
             this.ModelsTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ToolsTexturesTabPage = new System.Windows.Forms.TabPage();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.diffuseRadio = new System.Windows.Forms.RadioButton();
+            this.liveTxtButton = new System.Windows.Forms.Button();
+            this.specularRadio = new System.Windows.Forms.RadioButton();
+            this.normalRadio = new System.Windows.Forms.RadioButton();
             this.TexturesTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ToolsOptionsTabPage = new System.Windows.Forms.TabPage();
+            this.label7 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.ShowFloorCheckBox = new System.Windows.Forms.CheckBox();
             this.WireframeCheckBox = new System.Windows.Forms.CheckBox();
@@ -93,10 +102,6 @@ namespace CodeWalker
             this.head_updown = new System.Windows.Forms.NumericUpDown();
             this.StatusBarCheckBox = new System.Windows.Forms.CheckBox();
             this.ErrorConsoleCheckBox = new System.Windows.Forms.CheckBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
             this.ConsolePanel.SuspendLayout();
             this.StatusStrip.SuspendLayout();
             this.ToolsPanel.SuspendLayout();
@@ -105,6 +110,7 @@ namespace CodeWalker
             ((System.ComponentModel.ISupportInitialize)(this.PlaybackSpeedTrackBar)).BeginInit();
             this.ToolsModelsTabPage.SuspendLayout();
             this.ToolsTexturesTabPage.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.ToolsOptionsTabPage.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TimeOfDayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.feet_updown)).BeginInit();
@@ -424,6 +430,7 @@ namespace CodeWalker
             // 
             // ToolsTexturesTabPage
             // 
+            this.ToolsTexturesTabPage.Controls.Add(this.groupBox1);
             this.ToolsTexturesTabPage.Controls.Add(this.TexturesTreeView);
             this.ToolsTexturesTabPage.Location = new System.Drawing.Point(4, 22);
             this.ToolsTexturesTabPage.Name = "ToolsTexturesTabPage";
@@ -433,6 +440,64 @@ namespace CodeWalker
             this.ToolsTexturesTabPage.Text = "Textures";
             this.ToolsTexturesTabPage.UseVisualStyleBackColor = true;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.diffuseRadio);
+            this.groupBox1.Controls.Add(this.liveTxtButton);
+            this.groupBox1.Controls.Add(this.specularRadio);
+            this.groupBox1.Controls.Add(this.normalRadio);
+            this.groupBox1.Location = new System.Drawing.Point(6, 460);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(227, 141);
+            this.groupBox1.TabIndex = 75;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Live texture preview";
+            // 
+            // diffuseRadio
+            // 
+            this.diffuseRadio.AutoSize = true;
+            this.diffuseRadio.Checked = true;
+            this.diffuseRadio.Location = new System.Drawing.Point(6, 19);
+            this.diffuseRadio.Name = "diffuseRadio";
+            this.diffuseRadio.Size = new System.Drawing.Size(58, 17);
+            this.diffuseRadio.TabIndex = 71;
+            this.diffuseRadio.TabStop = true;
+            this.diffuseRadio.Text = "Diffuse";
+            this.diffuseRadio.UseVisualStyleBackColor = true;
+            this.diffuseRadio.CheckedChanged += new System.EventHandler(this.liveTexture_CheckedChanged);
+            // 
+            // liveTxtButton
+            // 
+            this.liveTxtButton.Location = new System.Drawing.Point(6, 109);
+            this.liveTxtButton.Name = "liveTxtButton";
+            this.liveTxtButton.Size = new System.Drawing.Size(94, 26);
+            this.liveTxtButton.TabIndex = 69;
+            this.liveTxtButton.Text = "Enable";
+            this.liveTxtButton.UseVisualStyleBackColor = true;
+            this.liveTxtButton.Click += new System.EventHandler(this.LiveTexturePreview_Click);
+            // 
+            // specularRadio
+            // 
+            this.specularRadio.AutoSize = true;
+            this.specularRadio.Location = new System.Drawing.Point(6, 65);
+            this.specularRadio.Name = "specularRadio";
+            this.specularRadio.Size = new System.Drawing.Size(67, 17);
+            this.specularRadio.TabIndex = 73;
+            this.specularRadio.Text = "Specular";
+            this.specularRadio.UseVisualStyleBackColor = true;
+            this.specularRadio.CheckedChanged += new System.EventHandler(this.liveTexture_CheckedChanged);
+            // 
+            // normalRadio
+            // 
+            this.normalRadio.AutoSize = true;
+            this.normalRadio.Location = new System.Drawing.Point(6, 42);
+            this.normalRadio.Name = "normalRadio";
+            this.normalRadio.Size = new System.Drawing.Size(58, 17);
+            this.normalRadio.TabIndex = 72;
+            this.normalRadio.Text = "Normal";
+            this.normalRadio.UseVisualStyleBackColor = true;
+            this.normalRadio.CheckedChanged += new System.EventHandler(this.liveTexture_CheckedChanged);
+            // 
             // TexturesTreeView
             // 
             this.TexturesTreeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -441,7 +506,7 @@ namespace CodeWalker
             this.TexturesTreeView.Location = new System.Drawing.Point(0, 3);
             this.TexturesTreeView.Name = "TexturesTreeView";
             this.TexturesTreeView.ShowRootLines = false;
-            this.TexturesTreeView.Size = new System.Drawing.Size(239, 604);
+            this.TexturesTreeView.Size = new System.Drawing.Size(239, 451);
             this.TexturesTreeView.TabIndex = 1;
             // 
             // ToolsOptionsTabPage
@@ -487,6 +552,46 @@ namespace CodeWalker
             this.ToolsOptionsTabPage.TabIndex = 3;
             this.ToolsOptionsTabPage.Text = "Options";
             this.ToolsOptionsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.ForeColor = System.Drawing.Color.DimGray;
+            this.label7.Location = new System.Drawing.Point(116, 53);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(96, 13);
+            this.label7.TabIndex = 66;
+            this.label7.Text = "(0 for empty model)";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.ForeColor = System.Drawing.Color.DimGray;
+            this.label6.Location = new System.Drawing.Point(116, 82);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(96, 13);
+            this.label6.TabIndex = 65;
+            this.label6.Text = "(0 for empty model)";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.ForeColor = System.Drawing.Color.DimGray;
+            this.label5.Location = new System.Drawing.Point(116, 110);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(102, 13);
+            this.label5.TabIndex = 64;
+            this.label5.Text = "(13 for empty model)";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.ForeColor = System.Drawing.Color.DimGray;
+            this.label4.Location = new System.Drawing.Point(116, 137);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(102, 13);
+            this.label4.TabIndex = 63;
+            this.label4.Text = "(13 for empty model)";
             // 
             // label1
             // 
@@ -826,46 +931,6 @@ namespace CodeWalker
             this.ErrorConsoleCheckBox.UseVisualStyleBackColor = true;
             this.ErrorConsoleCheckBox.CheckedChanged += new System.EventHandler(this.ErrorConsoleCheckBox_CheckedChanged);
             // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.ForeColor = System.Drawing.Color.DimGray;
-            this.label4.Location = new System.Drawing.Point(116, 137);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(102, 13);
-            this.label4.TabIndex = 63;
-            this.label4.Text = "(13 for empty model)";
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.ForeColor = System.Drawing.Color.DimGray;
-            this.label5.Location = new System.Drawing.Point(116, 110);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(102, 13);
-            this.label5.TabIndex = 64;
-            this.label5.Text = "(13 for empty model)";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.ForeColor = System.Drawing.Color.DimGray;
-            this.label6.Location = new System.Drawing.Point(116, 82);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(96, 13);
-            this.label6.TabIndex = 65;
-            this.label6.Text = "(0 for empty model)";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.ForeColor = System.Drawing.Color.DimGray;
-            this.label7.Location = new System.Drawing.Point(116, 53);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(96, 13);
-            this.label7.TabIndex = 66;
-            this.label7.Text = "(0 for empty model)";
-            // 
             // CustomPedsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -898,6 +963,8 @@ namespace CodeWalker
             ((System.ComponentModel.ISupportInitialize)(this.PlaybackSpeedTrackBar)).EndInit();
             this.ToolsModelsTabPage.ResumeLayout(false);
             this.ToolsTexturesTabPage.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ToolsOptionsTabPage.ResumeLayout(false);
             this.ToolsOptionsTabPage.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.TimeOfDayTrackBar)).EndInit();
@@ -979,5 +1046,10 @@ namespace CodeWalker
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.RadioButton specularRadio;
+        private System.Windows.Forms.RadioButton normalRadio;
+        private System.Windows.Forms.RadioButton diffuseRadio;
+        private System.Windows.Forms.Button liveTxtButton;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
