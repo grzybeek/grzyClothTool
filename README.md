@@ -29,8 +29,13 @@ Now you can do *almost* everything you could do before with *other available too
   - [JagodaMods](https://discord.gg/jagoda) - A lot of motivation and ideas 💖
   - [ook](https://github.com/ook3d) - Fixes and contribution
 
-# Support
-  You can join [Discord](https://discord.gg/HCQutNhxWt), but because tool is still WIP, currently support is only for people that are supporting me on [ko-fi](https://ko-fi.com/grzybeek)
+# Want to say thanks?
+  -  Click the **⭐ Star ⭐** button
+  -  Spread information about this tool everywhere!
+  -  If you're interested in making a financial donation, please visit [ko-fi](https://ko-fi.com/grzybeek)
+
+# Need support?
+  - Join [Discord](https://discord.gg/HCQutNhxWt), but because tool is still WIP, currently support is only for people that are supporting me on [ko-fi](https://ko-fi.com/grzybeek)
 
 # Screenshots
 ![image](https://github.com/grzybeek/grzyClothTool/assets/40837847/5f568406-84cf-4050-aa4f-9dbd94066fca)
