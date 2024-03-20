@@ -26,10 +26,10 @@
                             <ColumnDefinition Width="Auto" MinWidth="5"/>
                             <ColumnDefinition Width="*" MinWidth="35"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Name="placeholder" 
+                        <TextBlock Name="placeholder"
                                     Grid.Column="0"
                                     Text="{Binding Label, ElementName=MyModernLabelCheckBox}"
-                                    Foreground="{StaticResource ButtonFocus}" 
+                                    Foreground="{StaticResource BMainTxtColor}" 
                                     Background="{StaticResource ButtonBackground}" 
                                     VerticalAlignment="Center" 
                                     IsHitTestVisible="False" 
@@ -40,16 +40,16 @@
                         <Border x:Name="line" Grid.Column="1" Background="{StaticResource ButtonBorder}" Width="1" VerticalAlignment="Stretch" Margin="0"/>
                         <Border x:Name="toggleHandle"
                                 Grid.Column="2"
-                                Background="{StaticResource White}"
+                                Background="{StaticResource BMainBGColor}"
                                 Width="24" Height="24"
                                 CornerRadius="5"
                                 VerticalAlignment="Center"
-                                BorderBrush="{StaticResource ButtonFocus}"
+                                BorderBrush="{StaticResource BAltBGColor}"
                                 BorderThickness="1">
                             <Path x:Name="CheckMark"
                                     Width="16" Height="14"
                                     Stretch="Fill" 
-                                    Stroke="{StaticResource ButtonFocus}" 
+                                    Stroke="{StaticResource BMainTxtColor}" 
                                     StrokeThickness="3"
                                     StrokeLineJoin="Bevel"
                                     Data="M 2,6 L 6,10 L 12,2"
@@ -72,7 +72,7 @@
                     </Trigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BMainTxtColor}" />
                         </Trigger.Setters>
                     </Trigger>
                 </ControlTemplate.Triggers>

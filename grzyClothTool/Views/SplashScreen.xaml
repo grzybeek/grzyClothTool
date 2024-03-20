@@ -20,7 +20,7 @@
     </Window.Resources>
     
 
-    <Border Background="{StaticResource Brush700}" CornerRadius="50" BorderThickness="2" BorderBrush="{StaticResource Brush100}">
+    <Border Background="{StaticResource BMainBGColor}" CornerRadius="50" BorderThickness="2" BorderBrush="{StaticResource BAltBGColor}">
         <Grid>
             <Grid.RowDefinitions >
                 <RowDefinition Height="*" />
@@ -28,12 +28,12 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0">
-                <TextBlock x:Name="x" Padding="5" HorizontalAlignment="Center" FontSize="42" FontWeight="SemiBold" VerticalAlignment="Bottom" Foreground="{StaticResource Brush100}" Text="grzyClothTool" />
+                <TextBlock x:Name="x" Padding="5" HorizontalAlignment="Center" FontSize="42" FontWeight="SemiBold" VerticalAlignment="Bottom" Foreground="{StaticResource BAltTxtColor}" Text="grzyClothTool" />
                 <Image Width="350" Source="pack://application:,,,/grzyClothTool;component/Resources/grzyClothTool.png" />
             </StackPanel>
             <StackPanel Grid.Row="1" >
-                <TextBlock x:Name="updateTextBox" Padding="5" HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Bottom" Foreground="{StaticResource Brush100}" Text="Loading..." />
-                <ProgressBar Background="{StaticResource Brush900}" Foreground="{StaticResource Brush100}" BorderThickness="0" x:Name="progressBar" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="15" IsIndeterminate="True">
+                <TextBlock x:Name="updateTextBox" Padding="5" HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Bottom" Foreground="{StaticResource BAltTxtColor}" Text="Loading..." />
+                <ProgressBar Background="{StaticResource BMainBGColor}" Foreground="{StaticResource BAltBGColor}" BorderThickness="0" x:Name="progressBar" HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="15" IsIndeterminate="True">
                     <ProgressBar.Clip>
                         <RectangleGeometry RadiusX="5" RadiusY="5" Rect="0,0,300,10"/>
                     </ProgressBar.Clip>

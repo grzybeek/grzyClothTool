@@ -13,7 +13,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Border" BorderBrush="{StaticResource Brush800}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
+                        <Border x:Name="Border" BorderBrush="{StaticResource BAltBGColor}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
@@ -55,9 +55,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource Brush200 }" TargetName="Border"/>
+                                <Setter Property="Background" Value="{StaticResource BAltBGColor}" TargetName="Border"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{StaticResource BAltBGColor}" TargetName="Border"/>
                                 <Setter Property="FontWeight" Value="Bold" />
                                 <Setter Property="Fill" Value="LimeGreen" TargetName="SelectedDot" />
                             </Trigger>
@@ -73,7 +74,8 @@
     </UserControl.Resources>
 
     <ListBox 
-        Background="{StaticResource Brush50}"
+        Background="{StaticResource BMainBGColor}"
+        Foreground="{StaticResource BMainTxtColor}"
         x:Name="MyListBox" 
         SelectionChanged="ListBox_SelectionChanged"
         HorizontalContentAlignment="Stretch" 
@@ -82,6 +84,7 @@
         d:ItemsSource="{Binding Drawables}"
         BorderThickness="0" 
         d:SelectedIndex="1"
-        d:Width="300"
-    />
+        d:Width="300">
+    </ListBox>
+    
 </UserControl>

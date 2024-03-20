@@ -10,7 +10,7 @@
             <Border
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="0"
-                Background="{StaticResource ButtonBackground}"
+                Background="{StaticResource BMainBGColor}"
                 CornerRadius="5">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
@@ -36,18 +36,20 @@
                                       Width="auto"
                                       Height="auto"
                                       Template="{StaticResource ToggleButtonTemplate}"
+                                      Foreground="{StaticResource BAltTxtColor}"
                                       VerticalContentAlignment="Center"
                                       HorizontalContentAlignment="Center"
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                             <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" />
+
                         </ToggleButton>
 
                         <TextBlock x:Name="placeholder"
                                    Text="{Binding Label, ElementName=MyModernLabelComboBox}"
-                                   Foreground="{StaticResource ButtonFocus}"
+                                   Foreground="{StaticResource BMainTxtColor}"
                                    VerticalAlignment="Center"
                                    IsHitTestVisible="False"
-                                   FontSize="14" 
+                                   FontSize="14"
                                    Padding="5,0,0,0" />
                         <Popup Name="PART_Popup"
                                IsOpen="{Binding IsChecked, ElementName=toggleButton}"
@@ -59,13 +61,14 @@
                                PopupAnimation="Slide">
                             <Border x:Name="dropDownBorder"
                                     Width="{Binding ElementName=MyComboBox, Path=ActualWidth}"
-                                    BorderBrush="{StaticResource Brush400}"
+                                    BorderBrush="{StaticResource ButtonBorder}"
                                     BorderThickness="1"
                                     CornerRadius="5"
                                     Background="{StaticResource ButtonBackground}">
                                 <ScrollViewer>
                                     <ScrollViewer.Resources>
                                         <Style x:Key="ScrollBarThumb" TargetType="Thumb">
+                                            
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="Thumb">
@@ -86,7 +89,9 @@
                                         </Style>
 
                                         <Style TargetType="ScrollBar">
+                                            
                                             <Setter Property="Width" Value="10"/>
+
 
                                             <Setter Property="Template">
                                                 <Setter.Value>
@@ -117,7 +122,7 @@
                         </MultiTrigger.Conditions>
                         <MultiTrigger.Setters>
                             <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource BAltTxtColor}" />
                         </MultiTrigger.Setters>
                         <MultiTrigger.EnterActions>
                             <BeginStoryboard>
@@ -178,6 +183,9 @@
         </ComboBox.Template>
         <ComboBox.ItemContainerStyle>
             <Style TargetType="ComboBoxItem">
+                <Setter Property="Foreground" Value="{StaticResource BMainTxtColor}"/>
+                <Setter Property="Background" Value="{StaticResource BMainBGColor}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BAltBGColor}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">
@@ -191,10 +199,10 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush200}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource ButtonFocus}" />
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush300}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource ButtonFocus}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

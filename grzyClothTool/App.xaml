@@ -7,18 +7,32 @@
 
     <Application.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+
+        <Color x:Key="MainTxtColor">#fff</Color>
+        <Color x:Key="AltTxtColor">#969696</Color>
+        <Color x:Key="MainColTxt">#70ffb5</Color>
         
-        <Color x:Key="Color50">#f6f6f6</Color>
-        <Color x:Key="Color100">#e7e7e7</Color>
-        <Color x:Key="Color200">#d1d1d1</Color>
-        <Color x:Key="Color300">#b0b0b0</Color>
-        <Color x:Key="Color400">#888888</Color>
-        <Color x:Key="Color500">#787878</Color>
-        <Color x:Key="Color600">#5d5d5d</Color>
-        <Color x:Key="Color700">#4f4f4f</Color>
-        <Color x:Key="Color800">#454545</Color>
-        <Color x:Key="Color900">#3d3d3d</Color>
-        <Color x:Key="Color950">#262626</Color>
+        <Color x:Key="MainBGColor">#191919</Color>
+        <Color x:Key="AltBGColor">#2d2d2d</Color>
+
+        <SolidColorBrush x:Key="BMainTxtColor" Color="{StaticResource MainTxtColor}" />
+        <SolidColorBrush x:Key="BAltTxtColor" Color="{StaticResource AltTxtColor}" />
+        <SolidColorBrush x:Key="BMainColTxt" Color="{StaticResource MainColTxt}" />
+        
+        <SolidColorBrush x:Key="BMainBGColor" Color="{StaticResource MainBGColor}" />
+        <SolidColorBrush x:Key="BAltBGColor" Color="{StaticResource AltBGColor}" />
+
+        <Color x:Key="Color50">#191919</Color>
+        <Color x:Key="Color100">#2d2d2d</Color>
+        <Color x:Key="Color200">#2d2d2d</Color>
+        <Color x:Key="Color300">#fff</Color>
+        <Color x:Key="Color400">#969696</Color>
+        <Color x:Key="Color500">#969696</Color>
+        <Color x:Key="Color600">red</Color>
+        <Color x:Key="Color700">red</Color>
+        <Color x:Key="Color800">#2d2d2d</Color>
+        <Color x:Key="Color900">red</Color>
+        <Color x:Key="Color950">#fff</Color>
 
         <SolidColorBrush x:Key="Brush50" Color="{StaticResource Color50}" />
         <SolidColorBrush x:Key="Brush100" Color="{StaticResource Color100}" />
@@ -37,13 +51,13 @@
 
         <system:Double x:Key="DisabledOpacity">0.5</system:Double>
 
-        <SolidColorBrush x:Key="GroupBoxBorder" Color="{StaticResource Color300}" />
+        <SolidColorBrush x:Key="GroupBoxBorder" Color="{StaticResource AltBGColor}" />
 
 
-        <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource Color50}" />
-        <SolidColorBrush x:Key="ButtonHover" Color="{StaticResource Color800}" />
-        <SolidColorBrush x:Key="ButtonFocus" Color="{StaticResource Color950}" />
-        <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource Color400}" />
+        <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource MainBGColor}" />
+        <SolidColorBrush x:Key="ButtonHover" Color="{StaticResource AltBGColor}" />
+        <SolidColorBrush x:Key="ButtonFocus" Color="{StaticResource AltBGColor}" />
+        <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource AltBGColor}" />
 
     </Application.Resources>
 </Application>

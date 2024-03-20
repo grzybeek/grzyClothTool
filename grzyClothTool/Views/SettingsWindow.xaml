@@ -7,23 +7,40 @@
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
-             d:Background="{StaticResource Brush50}">
+             d:Background="{StaticResource BMainBGColor}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        
-        <Button Grid.Row="0" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Center" Background="Transparent" BorderThickness="0" Padding="5" Click="BackButton_Click">
+      
+        <Button Grid.Row="0" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Center" Background="{StaticResource BAltBGColor}" BorderThickness="0" Padding="5" Click="BackButton_Click">
+            <Button.Resources>
+                <Style TargetType="{x:Type Border}">
+                    <Setter Property="CornerRadius" Value="7"/>
+                </Style>
+                <Style TargetType="{x:Type Button}">
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Resources>
             <StackPanel Orientation="Horizontal">
-                <Grid Width="30" Height="30">
-                    <Ellipse Width="30" Height="30" Stroke="{StaticResource Brush950}" StrokeThickness="2">
+                <Grid Width="30" Height="30" Background="Transparent">
+                    <Ellipse Width="30" Height="30" Stroke="{StaticResource BAltTxtColor}" StrokeThickness="2">
                         <Ellipse.Fill>
-                            <SolidColorBrush Color="White"/>
+                            <SolidColorBrush Color="{StaticResource MainBGColor}"/>
                         </Ellipse.Fill>
                     </Ellipse>
-                    <Path Stroke="{StaticResource Brush950}" StrokeThickness="2" Fill="{StaticResource Brush950}">
+                    <Path Stroke="{StaticResource BMainTxtColor}" StrokeThickness="2" Fill="{StaticResource BMainBGColor}">
                         <Path.Data>
                             <PathGeometry>
                                 <PathFigure StartPoint="20,9" IsClosed="True">
@@ -34,28 +51,28 @@
                         </Path.Data>
                     </Path>
                 </Grid>
-                <TextBlock Foreground="{StaticResource Brush950}" Margin="5,0,5,2" VerticalAlignment="Center" FontSize="16" FontWeight="Normal">Back</TextBlock>
+                <TextBlock Foreground="{StaticResource BMainTxtColor}" Margin="5,0,5,2" VerticalAlignment="Center" FontSize="16" FontWeight="Normal">Back</TextBlock>
             </StackPanel>
         </Button>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
-            <GroupBox Header="Project settings" Grid.Column="0">
+            <GroupBox Header="Project settings" Grid.Column="0" Background="{StaticResource BMainBGColor}" Foreground="{StaticResource BAltTxtColor}">
 
             </GroupBox>
 
-            <GroupBox Header="Preview settings" Grid.Column="1">
+            <GroupBox Header="Preview settings" Grid.Column="1" Background="{StaticResource BMainBGColor}" Foreground="{StaticResource BAltTxtColor}">
                 <StackPanel>
                     <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="{Binding GTAVPath, Mode=OneWay}" Title="Select your GTA V Path" ButtonClick="GTAVPath_Click"/>
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Program settings" Grid.Column="2">
+            <GroupBox Header="Program settings" Grid.Column="2" Background="{StaticResource BMainBGColor}" Foreground="{StaticResource BAltTxtColor}">
                 <StackPanel>
                     <c:SettingsLabelCheckBox Margin="5" Label="Load GTA5 file cache on tool startup" Text="This enabled will make 3D preview load faster, but tool will load longer on startup." CheckBoxClick="SettingsLabelCheckBox_CheckBoxClick" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
                 </StackPanel>

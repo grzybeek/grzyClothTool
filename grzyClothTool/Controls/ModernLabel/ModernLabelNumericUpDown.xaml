@@ -50,7 +50,7 @@
                                     <TextBlock Name="placeholder" 
                                        Grid.Column="0"
                                        Text="{Binding Label, ElementName=MyModernLabelNumericUpDown}"
-                                       Foreground="{StaticResource ButtonFocus}" 
+                                       Foreground="{StaticResource BMainTxtColor}" 
                                        VerticalAlignment="Center" 
                                        IsHitTestVisible="False" 
                                        FontSize="14" 
@@ -58,14 +58,14 @@
                                        Padding="2" 
                                        />
                                     <Border Name="line" Grid.Column="1" Background="{StaticResource ButtonBorder}" Width="1" VerticalAlignment="Stretch" Margin="0"/>
-                                    <TextBox Name="number" Foreground="{StaticResource ButtonFocus}" Background="{StaticResource ButtonBackground}" Grid.Column="2" HorizontalAlignment="left" BorderThickness="0" Width="24" Text="{Binding Value, ElementName=MyModernLabelNumericUpDown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Name="number" Foreground="{StaticResource BMainTxtColor}" Background="{StaticResource ButtonBackground}" Grid.Column="2" HorizontalAlignment="left" BorderThickness="0" Width="24" Text="{Binding Value, ElementName=MyModernLabelNumericUpDown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                         VerticalContentAlignment="Center" Margin="0,5" />
                                     <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" Margin="0">
-                                        <Button Style="{StaticResource UpButton}" BorderThickness="0" Margin="0" Padding="0" Width="16" Height="19.5" Click="IncrementValue">
-                                            <Path Name="arrowup" Data="M 0 4 L 8 4 L 4 0 Z" Fill="{StaticResource ButtonFocus}" />
+                                        <Button Style="{StaticResource UpButton}" Background="{StaticResource BMainBGColor}" BorderThickness="0" Margin="0" Padding="0" Width="16" Height="19.5" Click="IncrementValue">
+                                            <Path Name="arrowup" Data="M 0 4 L 8 4 L 4 0 Z" Fill="{StaticResource BMainTxtColor}" />
                                         </Button>
-                                        <Button Style="{StaticResource DownButton}" BorderThickness="0" Margin="0" Padding="0" Width="16" Height="19.5" Click="DecrementValue">
-                                            <Path Name="arrowdown" Data="M 0 0 L 8 0 L 4 4 Z" Fill="{StaticResource ButtonFocus}" />
+                                        <Button Style="{StaticResource DownButton}" Background="{StaticResource BMainBGColor}" BorderThickness="0" Margin="0" Padding="0" Width="16" Height="19.5" Click="DecrementValue">
+                                            <Path Name="arrowdown" Data="M 0 0 L 8 0 L 4 4 Z" Fill="{StaticResource BMainTxtColor}" />
                                         </Button>
                                     </StackPanel>
                                 </Grid>

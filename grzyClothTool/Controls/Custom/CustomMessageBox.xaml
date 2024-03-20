@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Title="CustomMessageBox" Height="450" Width="800">
-    <Grid Margin="5" Background="White">
+    <Grid Margin="5" Background="{StaticResource BMainBGColor}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="32"/>
             <ColumnDefinition Width="*"/>
@@ -28,7 +28,7 @@
         <!-- Border for our custom message box -->
         <Border Grid.ColumnSpan="3" 
                 Grid.RowSpan="3" 
-                BorderBrush="Gray" 
+                BorderBrush="{StaticResource BMainBGColor}" 
                 BorderThickness="1" 
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch">
@@ -36,7 +36,7 @@
                 <DropShadowEffect BlurRadius="4" 
                                   ShadowDepth="0"
                                   Direction="270" 
-                                  Color="Black" 
+                                  Color="{StaticResource MainBGColor}" 
                                   RenderingBias="Performance"/>
             </Border.Effect>
         </Border>
@@ -46,8 +46,8 @@
                    Grid.Row="0" 
                    Text="Custom Message Box Caption"
                    Grid.ColumnSpan="2" 
-                   Background="Gainsboro"
-                   Foreground="Black"
+                   Background="{StaticResource BAltBGColor}"
+                   Foreground="{StaticResource BAltTxtColor}"
                    FontWeight="SemiBold"
                    Margin="1,1,1,0"
                    Padding="5,2,0,0" 
@@ -65,23 +65,30 @@
                Grid.Row="1" 
                VerticalContentAlignment="Center" 
                Margin="2,24,4,24">
-            <TextBlock x:Name="CMBMessage" 
+            <TextBlock x:Name="CMBMessage"
+                       Foreground="{StaticResource BMainTxtColor}"
                        TextWrapping="Wrap"
                        Text="Custom Message Box Message"/>
         </Label>
         <!-- Background for button block -->
         <Rectangle Grid.Row="2" 
                    Grid.ColumnSpan="2" 
-                   Fill="{StaticResource Brush100}"
+                   Fill="{StaticResource BAltBGColor}"
                    Margin="1,0,1,1"/>
         <!-- Buttons block -->
         <StackPanel x:Name="CMBButtons"                    
                     Grid.Row="2"
                     Grid.ColumnSpan="2" 
                     Orientation="Horizontal"
-                    FlowDirection="RightToLeft" 
+                    FlowDirection="RightToLeft"
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Stretch" 
-                    Margin="0,0,6,0"/>
+                    Margin="0,0,6,0">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Background" Value="red"/>
+                </Style>
+            </StackPanel.Resources>
+        </StackPanel>
     </Grid>
 </Window>

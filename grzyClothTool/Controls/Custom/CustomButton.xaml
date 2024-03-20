@@ -6,12 +6,13 @@
              xmlns:local="clr-namespace:grzyClothTool.Controls"
              x:Name="MyCustomButton"
              d:Height="40" d:Width="280"
+             Background="Transparent"
              mc:Ignorable="d">
     <UserControl.Resources>
         <Style TargetType="Button" x:Key="RoundedButton">
             <Setter Property="TextBlock.TextAlignment" Value="Center" />
-            <Setter Property="Background" Value="{StaticResource Brush200}" />
-            <Setter Property="Foreground" Value="{StaticResource ButtonFocus}" />
+            <Setter Property="Background" Value="{StaticResource BMainBGColor}" />
+            <Setter Property="Foreground" Value="{StaticResource BMainTxtColor}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
@@ -28,7 +29,12 @@
             </Style.Resources>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource Brush300}" />
+                    <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -36,8 +42,8 @@
         <Style x:Key="ToggleButtonVisibility" TargetType="ToggleButton">
             <Setter Property="Visibility" Value="Hidden" />
             <Setter Property="TextBlock.TextAlignment" Value="Center" />
-            <Setter Property="Background" Value="{StaticResource Brush200}" />
-            <Setter Property="Foreground" Value="{StaticResource ButtonFocus}" />
+            <Setter Property="Background" Value="{StaticResource BMainBGColor}" />
+            <Setter Property="Foreground" Value="{StaticResource BAltBGColor}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ToggleButton}">
@@ -52,7 +58,12 @@
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource Brush300}" />
+                    <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource BAltBGColor}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource BMainBGColor}" />
                 </Trigger>
             </Style.Triggers>
             <Style.Resources>
@@ -65,7 +76,7 @@
 
 
     <Grid>
-        <Border x:Name="btn" BorderBrush="{StaticResource ButtonBorder}" BorderThickness="0" CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}">
+        <Border x:Name="btn" BorderThickness="0" CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}">
             <Button Content="{Binding Label, ElementName=MyCustomButton}" ToolTip="{Binding Tooltip, ElementName=MyCustomButton}" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Click="Button_Click">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource RoundedButton}">
@@ -93,11 +104,11 @@
         </Border>
 
         <ToggleButton Style="{StaticResource ToggleButtonVisibility}" x:Name="DropdownToggle" HorizontalAlignment="Right" VerticalAlignment="Center" Width="30" Height="{Binding ActualHeight, ElementName=btn}" >
-            <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource ButtonFocus}" Width="12" Height="8" Stretch="Fill" />
+            <Path Data="M 0 0 L 4 4 L 8 0 Z" Fill="{StaticResource BMainTxtColor}" Width="12" Height="8" Stretch="Fill" />
         </ToggleButton>
 
         <Popup Width="{Binding ActualWidth, ElementName=btn}" PlacementTarget="{Binding ElementName=btn}" Placement="Bottom" StaysOpen="False" IsOpen="{Binding IsChecked, ElementName=DropdownToggle}" AllowsTransparency="True">
-            <Border CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}" Background="{StaticResource Brush400}" Padding="1" BorderThickness="1">
+            <Border CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}" Background="{StaticResource BAltBGColor}" Padding="1" BorderThickness="1">
                 <ContentPresenter x:Name="DropdownContentPresenter" Content="{Binding Content, ElementName=MyCustomButton}" />
             </Border>
         </Popup>

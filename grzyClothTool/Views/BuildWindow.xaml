@@ -11,6 +11,7 @@
         MouseDown="Window_MouseDown"
         Title="(WIP) grzyClothTool - Build FiveM resource"
         Height="400"
+        Background="{StaticResource BMainBGColor}"
         Width="500">
     <Grid>
         <Grid.RowDefinitions>
@@ -33,7 +34,7 @@
                 VerticalAlignment="Top"
                 HorizontalAlignment="Stretch"
                 IsFolderSelection="True"
-                Text="{Binding BuildPath}" />
+                Text="{Binding BuildPath}" Foreground="{StaticResource BAltTxtColor}"/>
         </StackPanel>
 
 

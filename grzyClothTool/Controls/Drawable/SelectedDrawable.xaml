@@ -49,6 +49,8 @@
                                         SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
                                         ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
                                         HorizontalContentAlignment="Stretch"
+                                        Background="{StaticResource BMainBGColor}"
+                                        Foreground="{StaticResource BMainTxtColor}"
                                         d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
@@ -65,8 +67,13 @@
                                                             </MultiBinding>
                                                         </TextBlock.Text>
                                                     </TextBlock>
-
-                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" />
+                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" Background="{StaticResource BAltBGColor}" Foreground="{StaticResource BMainTxtColor}" BorderBrush="{StaticResource BMainBGColor}">
+                                                        <Button.Resources>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="CornerRadius" Value="5"/>
+                                                            </Style>
+                                                        </Button.Resources>
+                                                    </Button>
                                                 </Grid>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
@@ -83,7 +90,7 @@
                                     </Grid.RowDefinitions>
                                     <GroupBox Header="Drawable Options" Grid.Row="0" BorderBrush="LightGray" BorderThickness="1">
                                         <StackPanel Orientation="Vertical">
-                                            <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}"/>
+                                            <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}" Foreground="{StaticResource BMainTxtColor}"/>
                                             <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.AdditionalOptions.RenderFlags}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelCheckBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" />
                                             <StackPanel Orientation="Vertical" Margin="0">
@@ -123,9 +130,9 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>
-                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" BorderThickness="1">
+                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Background="Transparent" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" BorderThickness="1">
                                         <StackPanel Orientation="Vertical" Margin="0">
-                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
+                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options" Foreground="{StaticResource BAltTxtColor}">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>

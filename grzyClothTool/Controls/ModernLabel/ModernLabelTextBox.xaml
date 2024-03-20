@@ -10,7 +10,8 @@
     
     <TextBox x:Name="MyText" 
              Padding="2" 
-             Height="40" 
+             Height="40"
+             Foreground="{StaticResource BMainTxtColor}"
              Width="auto"
              PreviewMouseDown="MyText_MouseDown"
              VerticalContentAlignment="Bottom" 
@@ -23,14 +24,14 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border BorderThickness="{TemplateBinding Border.BorderThickness}" 
-                                    BorderBrush="{StaticResource ButtonFocus}"
-                                    Background="{StaticResource ButtonBackground}"
+                                    BorderBrush="{StaticResource BMainTxtColor}"
+                                    Background="{StaticResource BMainBGColor}"
                                     Name="border"
                                     CornerRadius="5"
                                     SnapsToDevicePixels="True">
                                 <Grid>
-                                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Name="PART_ContentHost" Focusable="False" />
-                                    <TextBlock Name="placeholder" Text="{Binding Label, ElementName=MyModernLabelTextBox}" Foreground="{StaticResource ButtonFocus}" Background="Transparent" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14" Padding="2" />
+                                    <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" Name="PART_ContentHost" Focusable="False" Background="{StaticResource BAltBGColor}" Foreground="{StaticResource BMainTxtColor}"/>
+                                    <TextBlock Name="placeholder" Text="{Binding Label, ElementName=MyModernLabelTextBox}" Foreground="{StaticResource BAltTxtColor}" Background="Transparent" VerticalAlignment="Center" IsHitTestVisible="False" FontSize="14" Padding="2" />
                                     <TextBlock Name="dots" Text="..." Background="Transparent" Visibility="Hidden" IsHitTestVisible="False" HorizontalAlignment="Right" VerticalAlignment="bottom" FontSize="44" Margin="10,5" />
                                 </Grid>
                             </Border>
@@ -42,8 +43,8 @@
                                         <Condition Property="Text" Value="" />
                                     </MultiTrigger.Conditions>
                                     <MultiTrigger.Setters>
-                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BMainTxtColor}" />
+                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource BAltBGColor}" />
                                     </MultiTrigger.Setters>
                                     <MultiTrigger.EnterActions>
                                         <BeginStoryboard>
@@ -76,13 +77,13 @@
                                 </MultiTrigger>
                                 <Trigger Property="IsFocused" Value="False">
                                     <Trigger.Setters>
-                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BAltBGColor}" />
+                                        <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource BAltTxtColor}" />
                                     </Trigger.Setters>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Trigger.Setters>
-                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource BAltBGColor}" />
                                     </Trigger.Setters>
                                 </Trigger>
                                 <DataTrigger Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True">
