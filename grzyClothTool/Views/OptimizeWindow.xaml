@@ -1,0 +1,146 @@
+﻿<Window x:Class="grzyClothTool.Views.OptimizeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:local="clr-namespace:grzyClothTool.Views"
+        xmlns:c="clr-namespace:grzyClothTool.Controls"
+        mc:Ignorable="d"
+        Title="OptimizeWindow" MinHeight="420" MaxHeight="420" MinWidth="690" MaxWidth="690">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="330" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="330" />
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="130" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="70" />
+            </Grid.RowDefinitions>
+            <GroupBox Header="Current texture" Margin="5" Grid.Row="0"  >
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Name: " />
+                        <TextBlock Text="{Binding Texture.DisplayName}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Compression: " />
+                        <TextBlock Text="{Binding TextureDetails.Compression}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Width: " />
+                        <TextBlock Text="{Binding TextureDetails.Width}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Height: " />
+                        <TextBlock Text="{Binding TextureDetails.Height}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Mipmap amount: " />
+                        <TextBlock Text="{Binding TextureDetails.MipMapCount}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            <StackPanel Grid.Row="1" Margin="0,15,0,0">
+
+                <c:ModernLabelCheckBox
+                    Label="Downscale texture size"
+                    IsChecked="{Binding IsTextureDownsizeEnabled}"
+                    
+    
+                    />
+                <c:ModernLabelComboBox
+                    IsEnabled="{Binding IsTextureDownsizeEnabled}"
+                    Label="Select texture size"
+                    SelectedItem="{Binding SelectedTextureSize}"
+                    ItemsSource="{Binding AvailableTextureSizes}"
+                    />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsTextureDownsizeEnabled}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <icons:MaterialIcon Kind="WarningBoxOutline" Width="40" Height="40" />
+                <TextBlock Width="280" FontWeight="Medium" Text="Changing texture size here will make quality worse. To preserve texture quality this should be done with 3d programs and texture baking." TextWrapping="WrapWithOverflow" FontSize="12"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Column="2" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="130" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="70" />
+            </Grid.RowDefinitions>
+            <GroupBox Header="Output texture" Margin="5" Grid.Row="0"  >
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Name: " />
+                        <TextBlock Text="{Binding Texture.DisplayName}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Compression: " />
+                        <TextBlock Text="{Binding OutputTextureDetails.Compression}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Width: " />
+                        <TextBlock Text="{Binding OutputTextureDetails.Width}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Height: " />
+                        <TextBlock Text="{Binding OutputTextureDetails.Height}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Mipmap amount: " />
+                        <TextBlock Text="{Binding OutputTextureDetails.MipMapCount}" />
+                    </StackPanel>
+                </StackPanel>
+            </GroupBox>
+            <StackPanel Grid.Row="1" Margin="0,15,0,0">
+                <c:ModernLabelCheckBox
+                    IsChecked="{Binding IsTextureCompressionEnabled}"
+                    Label="Change texture compression"
+    
+                    />
+                 <c:ModernLabelComboBox
+                    IsEnabled="{Binding IsTextureCompressionEnabled}"
+                    Label="Select compression"
+                    ItemsSource="{Binding AvailableCompression}"
+                    SelectedItem="{Binding SelectedCompression}"
+                    />
+            </StackPanel>
+
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" Orientation="Horizontal">
+                <c:CustomButton 
+                    x:Name="cancel"
+                    Margin="5"
+                    CornerRadius="5"
+                    Height="40"
+                    Width="100"
+                    Label="Cancel"
+                />
+                <c:CustomButton 
+                    Margin="5"
+                    x:Name="build"
+                    CornerRadius="5"
+                    Height="40"
+                    Width="180"
+                    Label="Optimize"
+                    MyBtnClickEvent="OptimizeTexture_Click"
+                />
+            </StackPanel>
+        </Grid>
+        
+
+    </Grid>
+</Window>

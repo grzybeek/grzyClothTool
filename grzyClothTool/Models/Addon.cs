@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace grzyClothTool.Models;
@@ -72,8 +73,6 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-    private readonly FileHelper _fileHelper;
-
     public Addon(string projectName)
     {
         Name = projectName;
@@ -95,12 +94,11 @@ public class Addon : INotifyPropertyChanged
 
             SelectedDrawable = Drawables.First();
         }
-
-
-        _fileHelper = new FileHelper(Name);
     }
     public async Task AddDrawables(string[] filePaths, bool isMale)
     {
+
+        Regex alternateRegex = new(@"_\w_\d+\.ydd$");
         foreach (var filePath in filePaths)
         {
             var isProp = false;
@@ -111,13 +109,18 @@ public class Addon : INotifyPropertyChanged
                 isProp = true;
             }
 
+            if(alternateRegex.IsMatch(filePath))
+            {
+                continue;
+            }
+
             // Start from the first Addon
             var currentAddonIndex = 0;
             Addon currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
 
             // Calculate countOfType for the current Addon
             var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == compType && x.IsProp == isProp && x.Sex == isMale);
-            var drawable = await Task.Run(() => _fileHelper.CreateDrawableAsync(filePath, isMale, isProp, compType, countOfType));
+            var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, compType, countOfType));
 
             // Check if the number of drawables of this type has reached 128
             while (countOfType >= 128)

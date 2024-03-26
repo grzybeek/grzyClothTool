@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using grzyClothTool.Models;
 
@@ -52,7 +53,7 @@ public class FileHelper
         }
     }
 
-    public Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
+    public static Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
     {
         var name = EnumHelper.GetName(typeNumber, isProp);
 
@@ -67,23 +68,37 @@ public class FileHelper
         return Task.FromResult(new GDrawable(filePath, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
 
+    public static async Task CopyAsync(string sourcePath, string destinationPath)
+    {
+        using var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        using var destinationStream = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        await sourceStream.CopyToAsync(destinationStream);
+    }
+
     public static List<string> FindMatchingTextures(string filePath, string name, bool isProp)
     {
-        //get directory from filepath
-
         var folderPath = Path.GetDirectoryName(filePath);
         var fileName = Path.GetFileName(filePath);
+        var addonName = string.Empty;
+
         if (fileName.Contains('^'))
         {
-            fileName = fileName.Split("^")[1];
+            var split = fileName.Split("^");
+            addonName = split[0];
+            fileName = split[1];
         }
         string[] nameParts = Path.GetFileNameWithoutExtension(fileName).Split("_");
         var searchedNumber = isProp ? nameParts[2] : nameParts[1];
 
+        var regexToSearch = $"^{name}_diff_{searchedNumber}";
+        if (addonName != string.Empty)
+        {
+            regexToSearch = $"^{addonName}\\{regexToSearch}";
+        }
+
         var allYtds = Directory.EnumerateFiles(folderPath)
             .Where(x => Path.GetExtension(x) == ".ytd" &&
-                Path.GetFileNameWithoutExtension(x).Contains(name) &&
-                Path.GetFileNameWithoutExtension(x).Contains("_" + searchedNumber + "_"))
+                Regex.IsMatch(Path.GetFileNameWithoutExtension(x), regexToSearch))
             .ToList();
 
 

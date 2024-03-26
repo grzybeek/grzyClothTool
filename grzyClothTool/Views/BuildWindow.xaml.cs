@@ -2,6 +2,7 @@
 using grzyClothTool.Helpers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using static grzyClothTool.Controls.CustomMessageBox;
@@ -27,7 +28,7 @@ namespace grzyClothTool.Views
             FocusManager.SetFocusedElement(this, this);
         }
 
-        private void build_MyBtnClickEvent(object sender, RoutedEventArgs e)
+        private async void build_MyBtnClickEvent(object sender, RoutedEventArgs e)
         {
             if (ProjectName == null || BuildPath == null)
             {
@@ -41,6 +42,7 @@ namespace grzyClothTool.Views
 
             int counter = 1;
             var metaFiles = new List<string>();
+            var tasks = new List<Task>();
             var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, MainWindow.AddonManager.Addons.Count);
             foreach (var selectedAddon in MainWindow.AddonManager.Addons)
             {
@@ -50,7 +52,7 @@ namespace grzyClothTool.Views
                 if (selectedAddon.HasMale)
                 {
                     var bytes = buildHelper.BuildYMT(true);
-                    buildHelper.BuildFiles(true, bytes);
+                    tasks.Add(buildHelper.BuildFilesAsync(true, bytes, counter));
 
                     var meta = buildHelper.BuildMeta(true);
                     metaFiles.Add(meta.Name);
@@ -58,14 +60,14 @@ namespace grzyClothTool.Views
                 if (selectedAddon.HasFemale)
                 {
                     var bytes = buildHelper.BuildYMT(false);
-                    buildHelper.BuildFiles(false, bytes);
+                    tasks.Add(buildHelper.BuildFilesAsync(false, bytes, counter));
 
                     var meta = buildHelper.BuildMeta(false);
                     metaFiles.Add(meta.Name);
                 }
                 counter++;
             }
-
+            await Task.WhenAll(tasks);
             buildHelper.BuildFxManifest(metaFiles);
 
             Close();

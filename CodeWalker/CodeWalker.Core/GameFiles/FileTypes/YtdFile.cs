@@ -31,6 +31,14 @@ namespace CodeWalker.GameFiles
 
             Loaded = true;
         }
+        public async Task LoadAsync(byte[] data)
+        {
+            //direct load from a raw, compressed ytd file
+
+            await RpfFile.LoadResourceFileAsync(this, data, 13);
+
+            Loaded = true;
+        }
         public void Load(byte[] data, RpfFileEntry entry)
         {
             Name = entry.Name;

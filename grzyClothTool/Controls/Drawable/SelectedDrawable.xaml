@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:models="clr-namespace:grzyClothTool.Models"
+             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="Control"
              d:Width="900"
@@ -46,28 +47,75 @@
                                         Grid.Row="1"
                                         x:Name="TextureListBox"
                                         SelectionChanged="TextureListBox_SelectionChanged"
+                                        SelectionMode="Extended"
                                         SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
                                         ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
                                         HorizontalContentAlignment="Stretch"
                                         d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid>
+                                                <Grid Height="20" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*" />
                                                         <ColumnDefinition Width="25" />
                                                         <ColumnDefinition Width="60" />
                                                     </Grid.ColumnDefinitions>
-                                                    <TextBlock Grid.Column="0">
-                                                        <TextBlock.Text>
-                                                            <MultiBinding StringFormat="{}{0}">
-                                                                <Binding Path="DisplayName" />
-                                                            </MultiBinding>
-                                                        </TextBlock.Text>
-                                                    </TextBlock>
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" ToolTip="{Binding IsOptimizeNeededTooltip}" >
+                                                        <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,0,2">
+                                                            <icons:MaterialIcon.Style>
+                                                                <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="False">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </icons:MaterialIcon.Style>
+                                                        </icons:MaterialIcon>
+                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,5,2">
+                                                            <icons:MaterialIcon.Style>
+                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsOptimizeNeeded}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </icons:MaterialIcon.Style>
+                                                        </icons:MaterialIcon>
+
+                                                        <TextBlock>
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="{x:Type TextBlock}">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                            <TextBlock.Text>
+                                                                <MultiBinding StringFormat="{}{0}">
+                                                                    <Binding Path="DisplayName" />
+                                                                </MultiBinding>
+                                                            </TextBlock.Text>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                    
 
                                                     <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" />
+                                                    <Grid.ContextMenu>
+                                                        <ContextMenu>
+                                                            <MenuItem Header="Optimize texture" Click="OptimizeTexture_Click" />
+                                                        </ContextMenu>
+                                                    </Grid.ContextMenu>
                                                 </Grid>
+
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>

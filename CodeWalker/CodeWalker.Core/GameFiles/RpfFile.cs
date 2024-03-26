@@ -706,6 +706,34 @@ namespace CodeWalker.GameFiles
             file.Load(data, resentry);
 
         }
+
+        public static async Task LoadResourceFileAsync<T>(T file, byte[] data, uint ver) where T : class, PackedFile
+        {
+            // Direct load from a raw, compressed resource file (openIV-compatible format)
+            RpfResourceFileEntry resentry = CreateResourceFileEntry(ref data, ver);
+
+            if (file is GameFile gfile)
+            {
+                if (gfile.RpfFileEntry is RpfResourceFileEntry oldresentry)
+                {
+                    oldresentry.SystemFlags = resentry.SystemFlags;
+                    oldresentry.GraphicsFlags = resentry.GraphicsFlags;
+
+                    resentry.Name = oldresentry.Name;
+                    resentry.NameHash = oldresentry.NameHash;
+                    resentry.NameLower = oldresentry.NameLower;
+                    resentry.ShortNameHash = oldresentry.ShortNameHash;
+                }
+                else
+                {
+                    gfile.RpfFileEntry = resentry; // Just stick it in there for later...
+                }
+            }
+
+            byte[] decompressedData = await ResourceBuilder.DecompressAsync(data);
+
+            file.Load(decompressedData, resentry);
+        }
         public static RpfResourceFileEntry CreateResourceFileEntry(ref byte[] data, uint ver)
         {
             var resentry = new RpfResourceFileEntry();

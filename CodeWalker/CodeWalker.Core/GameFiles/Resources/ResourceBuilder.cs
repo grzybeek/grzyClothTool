@@ -481,5 +481,22 @@ namespace CodeWalker.GameFiles
             }
         }
 
+        public static async Task<byte[]> DecompressAsync(byte[] data)
+        {
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                using (DeflateStream ds = new DeflateStream(ms, CompressionMode.Decompress))
+                {
+                    using (MemoryStream outstr = new MemoryStream())
+                    {
+                        await ds.CopyToAsync(outstr);
+
+                        return outstr.ToArray();
+                    }
+                }
+            }
+        }
+
+
     }
 }

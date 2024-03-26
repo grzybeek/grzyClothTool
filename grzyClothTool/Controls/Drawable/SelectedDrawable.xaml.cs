@@ -1,11 +1,13 @@
-﻿using CodeWalker.GameFiles;
-using grzyClothTool.Extensions;
+﻿using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models;
+using grzyClothTool.Views;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -38,6 +40,10 @@ namespace grzyClothTool.Controls
         public static readonly DependencyProperty SelectedTextureProperty =
         DependencyProperty.RegisterAttached("SelectedTxt", typeof(GTexture), typeof(SelectedDrawable), new PropertyMetadata(default(GTexture)));
 
+        public static readonly DependencyProperty SelectedTexturesProperty =
+         DependencyProperty.RegisterAttached("SelectedTextures", typeof(List<GTexture>), typeof(SelectedDrawable), new PropertyMetadata(default(List<GTexture>)));
+
+
         public static readonly DependencyProperty SelectedIndexProperty =
         DependencyProperty.RegisterAttached("SelectedIndex", typeof(int), typeof(SelectedDrawable), new PropertyMetadata(default(int)));
 
@@ -51,7 +57,13 @@ namespace grzyClothTool.Controls
         {
             get { return (GTexture)GetValue(SelectedTextureProperty); }
             set { SetValue(SelectedTextureProperty, value); }
-            }
+        }
+
+        public List<GTexture> SelectedTextures
+        {
+            get { return (List<GTexture>)GetValue(SelectedTexturesProperty); }
+            set { SetValue(SelectedTexturesProperty, value); }
+        }
 
         public int SelectedIndex
         {
@@ -73,6 +85,9 @@ namespace grzyClothTool.Controls
 
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            ListBox listBox = sender as ListBox;
+            SelectedTxt = listBox.SelectedItem as GTexture;
+            SelectedTextures = listBox.SelectedItems.Cast<GTexture>().ToList();
             TextureListSelectedValueChanged?.Invoke(sender, e);
         }
 
@@ -92,6 +107,11 @@ namespace grzyClothTool.Controls
                 var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
                 var txt = ytd.TextureDict.Textures[0];
                 var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
+
+                if(pixels == null)
+                {
+                    return;
+                }
 
                 var w = txt.Width;
                 var h = txt.Height;
@@ -194,9 +214,12 @@ namespace grzyClothTool.Controls
 
         private void DeleteTexture_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedTxt != null)
+            if (SelectedTextures != null)
             {
-                SelectedDraw.Textures.Remove(SelectedTxt);
+                foreach (var texture in SelectedTextures)
+                {
+                    SelectedDraw.Textures.Remove(texture);
+                }
                 SelectedDraw.Textures.ReassignNumbers();
             }
         }
@@ -219,5 +242,16 @@ namespace grzyClothTool.Controls
                 }
             }
         }
+
+        private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedTxt != null)
+            {
+                var optimizeWindow = new OptimizeWindow(SelectedTxt);
+                optimizeWindow.ShowDialog();
+            }
+        }
+
+        
     }
 }
