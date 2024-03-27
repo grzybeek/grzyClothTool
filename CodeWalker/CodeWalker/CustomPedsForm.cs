@@ -14,6 +14,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using Color = SharpDX.Color;
 
 namespace CodeWalker
@@ -552,11 +553,24 @@ namespace CodeWalker
             dnode.Tag = drawable;
             dnode.Checked = check;
 
+            if(name.Contains("Selected"))
+            {
+                string drawableTypeName = name.Split(' ')[1].Trim('(', ')').Split('_')[0];
+                var sameName = ModelsTreeView.Nodes.Cast<TreeNode>().Where(n => n.Text.Contains(drawableTypeName) && !n.Text.Contains("Selected") && !n.Text.Contains("Saved")).ToList();
+                if (sameName.Count > 0)
+                {
+                    foreach (var node in sameName)
+                    {
+                        node.Checked = !node.Checked;
+                    }
+                }
+            }
+
+
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.High, "High Detail", true, dnode, tnode);
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.Med, "Medium Detail", false, dnode, tnode);
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.Low, "Low Detail", false, dnode, tnode);
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.VLow, "Very Low Detail", false, dnode, tnode);
-            //AddDrawableModelsTreeNodes(drawable.DrawableModels?.Extra, "X Detail", false, dnode, tnode);
 
         }
         private void AddDrawableModelsTreeNodes(DrawableModel[] models, string prefix, bool check, TreeNode parentDrawableNode = null, TreeNode parentTextureNode = null)
