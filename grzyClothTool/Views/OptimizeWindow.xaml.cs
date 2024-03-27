@@ -15,7 +15,7 @@ namespace grzyClothTool.Views
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public GTexture GTexture { get; set; }
+        public List<GTexture> GTextures { get; set; }
         public GTextureDetails TextureDetails { get; set; }
 
         private GTextureDetails _outputTextureDetails;
@@ -28,6 +28,9 @@ namespace grzyClothTool.Views
                 OnPropertyChanged();
             }
         }
+
+        public bool MultipleTexturesSelected { get; set; }
+        public int SelectedTextureCount { get; set; }
 
         public string[] AvailableTextureSizes { get; set; }
 
@@ -128,13 +131,13 @@ namespace grzyClothTool.Views
             }
         }
 
-        public OptimizeWindow(GTexture txt)
+        public OptimizeWindow(List<GTexture> txts, bool multipleTexturesSelected = false)
         {
             InitializeComponent();
             DataContext = this;
 
-            GTexture = txt;
-            TextureDetails = GetTextureDetails();
+            GTextures = txts;
+            TextureDetails = GetTextureDetails(GTextures[0]);
 
             OutputTextureDetails = new GTextureDetails
             {
@@ -153,11 +156,14 @@ namespace grzyClothTool.Views
                 sizes.Add($"{newWidth}x{newHeight}");
             }
             AvailableTextureSizes = [.. sizes];
+
+            MultipleTexturesSelected = multipleTexturesSelected;
+            SelectedTextureCount = txts.Count;
         }
 
-        public GTextureDetails GetTextureDetails()
+        public static GTextureDetails GetTextureDetails(GTexture gtxt)
         {
-            var ytd = CWHelper.GetYtdFile(GTexture.FilePath);
+            var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
             var txt = ytd.TextureDict.Textures[0];
 
             var (correctWidth, correctHeight) = ImgHelper.CheckPowerOfTwo(txt.Width, txt.Height);
@@ -172,37 +178,56 @@ namespace grzyClothTool.Views
             return details;
         }
 
+        public static string CheckTexturesHaveSameSize(List<GTexture> textures)
+        {
+            if (textures.Count < 2)
+                return null;
+
+            var firstTextureDetails = GetTextureDetails(textures[0]);
+
+            for (int i = 1; i < textures.Count; i++)
+            {
+                var currentTextureDetails = GetTextureDetails(textures[i]);
+
+                if (firstTextureDetails.Width != currentTextureDetails.Width ||
+                    firstTextureDetails.Height != currentTextureDetails.Height)
+                {
+                    return textures[i].DisplayName; // return the name of the texture that doesn't match
+                }
+            }
+
+            return null;
+        }
+
         private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
         {
             ReloadOutputTexture();
 
-            // We don't want to create it at the time of clicking this button, this should be saved and generated only during build
-            GTexture.IsOptimizedDuringBuild = true;
-            GTexture.IsOptimizeNeeded = false;
-            GTexture.TxtDetails = new GTextureDetails
+            foreach (var txt in GTextures)
             {
-                Width = OutputTextureDetails.Width,
-                Height = OutputTextureDetails.Height,
-                Compression = OutputTextureDetails.Compression,
-                MipMapCount = OutputTextureDetails.MipMapCount
-            };
-            Close();
-        }
+                // We don't want to create it at the time of clicking this button, this should be saved and generated only during build
+                txt.IsOptimizedDuringBuild = true;
+                txt.IsOptimizeNeeded = false;
+                txt.TxtDetails = new GTextureDetails
+                {
+                    Width = OutputTextureDetails.Width,
+                    Height = OutputTextureDetails.Height,
+                    Compression = OutputTextureDetails.Compression,
+                    MipMapCount = OutputTextureDetails.MipMapCount
+                };
+            }
 
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            Close();
         }
 
         private void ReloadOutputTexture()
         {
-            var size = SelectedTextureSize.Split('x');
-            var width = int.Parse(size[0]);
-            var height = int.Parse(size[1]);
-
-
-            if (IsTextureDownsizeEnabled)
+            if (IsTextureDownsizeEnabled && SelectedTextureSize != null)
             {
+                var size = SelectedTextureSize.Split('x');
+                var width = int.Parse(size[0]);
+                var height = int.Parse(size[1]);
+
                 OutputTextureDetails.Width = width;
                 OutputTextureDetails.Height = height;
 
@@ -215,6 +240,11 @@ namespace grzyClothTool.Views
             }
 
             OnPropertyChanged("OutputTextureDetails");
+        }
+
+        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
     }
 }

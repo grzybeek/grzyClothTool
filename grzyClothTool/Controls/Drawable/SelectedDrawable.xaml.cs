@@ -15,6 +15,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using static grzyClothTool.Controls.CustomMessageBox;
 
 namespace grzyClothTool.Controls
 {
@@ -89,6 +90,12 @@ namespace grzyClothTool.Controls
             SelectedTxt = listBox.SelectedItem as GTexture;
             SelectedTextures = listBox.SelectedItems.Cast<GTexture>().ToList();
             TextureListSelectedValueChanged?.Invoke(sender, e);
+
+            if(SelectedTxt == null && listBox.Items.Count >= 1)
+            {
+                SelectedTxt = listBox.Items[0] as GTexture;
+                SelectedTextures = [SelectedTxt];
+            }
         }
 
 
@@ -245,9 +252,17 @@ namespace grzyClothTool.Controls
 
         private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedTxt != null)
+            if (SelectedTextures != null)
             {
-                var optimizeWindow = new OptimizeWindow(SelectedTxt);
+                var wrongTextureName = OptimizeWindow.CheckTexturesHaveSameSize(SelectedTextures);
+                if (wrongTextureName != null)
+                {
+                    Show($"Texture {wrongTextureName} does not have the same size as the others!", "Error", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Error);
+                    return;
+                }
+
+                var multipleSelected = SelectedTextures.Count > 1;
+                var optimizeWindow = new OptimizeWindow(SelectedTextures, multipleSelected);
                 optimizeWindow.ShowDialog();
             }
         }
