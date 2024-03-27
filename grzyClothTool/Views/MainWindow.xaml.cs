@@ -42,6 +42,7 @@ namespace grzyClothTool
             _navigationHelper.Navigate("Project");
             version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
+            FileHelper.GenerateReservedAssets();
 
 
             Dispatcher.BeginInvoke((Action)(async () =>

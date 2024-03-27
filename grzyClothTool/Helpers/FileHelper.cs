@@ -11,26 +11,14 @@ using grzyClothTool.Models;
 
 namespace grzyClothTool.Helpers;
 
-public class FileHelper
+public static class FileHelper
 {
-    private DirectoryInfo ProjectPath;
-    private readonly string ProjectName;
     public static string ReservedAssetsPath { get; private set; }
 
-    public FileHelper(string projectName)
-    {
-        ProjectName = projectName;
-
-        GenerateProjectFolder();
-    }
-
-    private void GenerateProjectFolder()
+    public static void GenerateReservedAssets()
     {
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         var exeName = Assembly.GetExecutingAssembly().GetName().Name;
-
-        var path = Path.Combine(documentsPath, exeName, ProjectName);
-        ProjectPath = Directory.CreateDirectory(path);
 
         ReservedAssetsPath = Path.Combine(documentsPath, exeName, "reservedAssets");
         Directory.CreateDirectory(ReservedAssetsPath);

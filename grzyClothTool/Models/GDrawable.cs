@@ -18,7 +18,6 @@ public class GReservedDrawable : GDrawable
 
     public GReservedDrawable(bool isMale, bool isProp, int compType, int count) : base(isMale, isProp, compType, count)
     {
-
         FilePath = Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd");
         Textures = [new GTexture(Path.Combine(FileHelper.ReservedAssetsPath, "reservedTexture.ytd"), compType, count, 0, false, isProp)];
         TypeNumeric = compType;

@@ -40,12 +40,17 @@ namespace grzyClothTool
             Exception ex = (Exception)e.ExceptionObject;
 
 
-            CustomMessageBox.Show($"An error occurred: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly);
-            // Log the exception, e.g. to a file:
+            Show($"An error occurred: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly);
+
             File.WriteAllText("error.log", ex.ToString());
 
-            // Or print the exception to the console:
             Console.WriteLine("Unhandled exception: " + ex.ToString());
+
+            if (e.IsTerminating)
+            {
+                //todo: save
+                Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            }
         }
 
         private void ShowSplash()
