@@ -76,6 +76,8 @@ public class GDrawable : INotifyPropertyChanged
                 {
                     txt.HasSkin = value;
                 }
+                SetDrawableName();
+                OnPropertyChanged();
             }
         }
     }

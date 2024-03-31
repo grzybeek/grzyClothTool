@@ -20,6 +20,7 @@ public class Addon : INotifyPropertyChanged
 
     public bool HasFemale { get; set; }
     public bool HasMale { get; set; }
+    public bool HasProps { get; set; }
     private bool _isPreviewEnabled;
     public bool IsPreviewEnabled
     {
@@ -150,9 +151,10 @@ public class Addon : INotifyPropertyChanged
             // Add the drawable to the current Addon
             currentAddon.Drawables.Add(drawable);
 
-            //set HasMale/HasFemale only once adding first drawable of this gender
+            //set HasMale/HasFemale/HasProps only once adding first drawable
             if (isMale && !currentAddon.HasMale) currentAddon.HasMale = true;
             if (!isMale && !currentAddon.HasFemale) currentAddon.HasFemale = true;
+            if (isProp && !currentAddon.HasProps) currentAddon.HasProps = true;
         }
 
         // Sort the ObservableCollection in place, in all existing addons

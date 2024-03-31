@@ -44,6 +44,8 @@ namespace CodeWalker.GameFiles
         public List<RbfEntryDescription> descriptors { get; set; }
         public Dictionary<string, int> outDescriptors { get; private set; } = new Dictionary<string, int>();
 
+        public string SingleplayerFileName { get; set; }
+
 
         public void Load(byte[] data)
         {

@@ -9,7 +9,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         MouseDown="Window_MouseDown"
-        Title="(WIP) grzyClothTool - Build FiveM resource"
+        Title="(WIP) grzyClothTool - Build resource"
         Height="400"
         Width="500">
     <Grid>
@@ -18,6 +18,25 @@
             <RowDefinition Height="50" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
+
+            <GroupBox Header="Select resource type" Margin="15">
+                <StackPanel>
+                    <c:ModernLabelRadioButton 
+                        Margin="5,5,5,0"
+                        GroupName="resource"
+                        Label="FiveM"
+                        IsChecked="True"
+                        MyBtnSelectEvent="RadioButton_ChangedEvent"
+                    />
+                    <c:ModernLabelRadioButton 
+                        Margin="5,1,5,5"
+                        GroupName="resource"
+                        Label="Singleplayer"
+                        MyBtnSelectEvent="RadioButton_ChangedEvent"
+                    />
+                </StackPanel>
+            </GroupBox>
+            
             <c:ModernLabelTextBox 
             x:Name="name"
             Label="Project name"

@@ -1,7 +1,9 @@
 ﻿using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -14,8 +16,16 @@ namespace grzyClothTool.Views
     /// </summary>
     public partial class BuildWindow : Window
     {
+        public enum ResourceType
+        {
+            FiveM,
+            Singleplayer
+        }
+
         public string ProjectName { get; set; }
         public string BuildPath { get; set; }
+
+        private ResourceType _resourceType;
 
         public BuildWindow()
         {
@@ -39,42 +49,77 @@ namespace grzyClothTool.Views
             }
             var timer = new Stopwatch();
             timer.Start();
-
-            int counter = 1;
-            var metaFiles = new List<string>();
-            var tasks = new List<Task>();
             var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, MainWindow.AddonManager.Addons.Count);
-            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+
+            switch (_resourceType)
             {
-                buildHelper.SetAddon(selectedAddon);
-                buildHelper.SetNumber(counter);
-
-                if (selectedAddon.HasMale)
-                {
-                    var bytes = buildHelper.BuildYMT(true);
-                    tasks.Add(buildHelper.BuildFilesAsync(true, bytes, counter));
-
-                    var meta = buildHelper.BuildMeta(true);
-                    metaFiles.Add(meta.Name);
-                }
-                if (selectedAddon.HasFemale)
-                {
-                    var bytes = buildHelper.BuildYMT(false);
-                    tasks.Add(buildHelper.BuildFilesAsync(false, bytes, counter));
-
-                    var meta = buildHelper.BuildMeta(false);
-                    metaFiles.Add(meta.Name);
-                }
-                counter++;
+                case ResourceType.FiveM:
+                    await BuildFiveMResource(buildHelper);
+                    break;
+                case ResourceType.Singleplayer:
+                    await buildHelper.BuildSingleplayer();
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
-            await Task.WhenAll(tasks);
-            buildHelper.BuildFxManifest(metaFiles);
 
             Close();
             timer.Stop();
 
-            //MessageBox.Show($"Build done, elapsed time: {timer.Elapsed}");
             CustomMessageBox.Show($"Build done, elapsed time: {timer.Elapsed}", "Build done", CustomMessageBoxButtons.OpenFolder, BuildPath);
+        }
+
+        private async Task BuildFiveMResource(BuildResourceHelper bHelper)
+        {
+
+            int counter = 1;
+            var metaFiles = new List<string>();
+            var tasks = new List<Task>();
+            
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                bHelper.SetAddon(selectedAddon);
+                bHelper.SetNumber(counter);
+
+                if (selectedAddon.HasMale)
+                {
+                    var bytes = bHelper.BuildYMT(true);
+                    tasks.Add(bHelper.BuildFiveMFilesAsync(true, bytes, counter));
+
+                    var (name, b) = bHelper.BuildMeta(true);
+                    metaFiles.Add(name);
+
+                    var path = Path.Combine(BuildPath, name);
+                    tasks.Add(File.WriteAllBytesAsync(path, b));
+                }
+                if (selectedAddon.HasFemale)
+                {
+                    var bytes = bHelper.BuildYMT(false);
+                    tasks.Add(bHelper.BuildFiveMFilesAsync(false, bytes, counter));
+
+                    var (name, b) = bHelper.BuildMeta(false);
+                    metaFiles.Add(name);
+
+                    var path = Path.Combine(BuildPath, name);
+                    tasks.Add(File.WriteAllBytesAsync(path, b));
+                }
+                counter++;
+            }
+            await Task.WhenAll(tasks);
+            bHelper.BuildFxManifest(metaFiles);
+        }
+
+        private void RadioButton_ChangedEvent(object sender, RoutedEventArgs e)
+        {
+            if (sender is ModernLabelRadioButton radioButton && radioButton.IsChecked == true)
+            {
+                _resourceType = radioButton.Label switch
+                {
+                    "FiveM" => ResourceType.FiveM,
+                    "Singleplayer" => ResourceType.Singleplayer,
+                    _ => throw new NotImplementedException()
+                };
+            }
         }
     }
 }

@@ -31,7 +31,7 @@ public static class ImgHelper
         return (width, height);
     }
 
-    public static async Task OptimizeAndSave(GTexture gtxt, string savePath)
+    public static async Task<byte[]> Optimize(GTexture gtxt)
     {
         var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
         var txt = ytd.TextureDict.Textures[0];
@@ -55,7 +55,7 @@ public static class ImgHelper
         ytd.TextureDict.BuildFromTextureList([newTxt]);
 
         var bytes = ytd.Save();
-        await File.WriteAllBytesAsync(savePath, bytes);
+        return bytes;
     }
 
     private static string GetCompressionString(string cwCompression)
