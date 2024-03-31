@@ -38,12 +38,12 @@
             </GroupBox>
             
             <c:ModernLabelTextBox 
-            x:Name="name"
-            Label="Project name"
-            Margin="15,15,15,0"
-            VerticalAlignment="Top"
-            HorizontalAlignment="Stretch"
-            Text="{Binding ProjectName}" />
+                x:Name="name"
+                Label="Project name"
+                Margin="15,15,15,0"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Stretch"
+                Text="{Binding ProjectName}" />
 
             <c:ModernLabelTextBox 
                 x:Name="output"

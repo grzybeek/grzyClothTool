@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -40,6 +41,13 @@ namespace grzyClothTool.Views
 
         private async void build_MyBtnClickEvent(object sender, RoutedEventArgs e)
         {
+            var error = ValidateProjectName();
+            if (error != null)
+            {
+                MessageBox.Show(error);
+                return;
+            }
+
             if (ProjectName == null || BuildPath == null)
             {
                 MessageBox.Show("Please fill in all fields");
@@ -120,6 +128,31 @@ namespace grzyClothTool.Views
                     _ => throw new NotImplementedException()
                 };
             }
+        }
+
+        private string ValidateProjectName()
+        {
+            string result = null;
+
+            if (string.IsNullOrEmpty(ProjectName))
+            {
+                result = "Project name cannot be empty";
+            }
+            else if (ProjectName.Length < 3)
+            {
+                result = "Project name must be at least 3 characters long";
+            }
+            else if (ProjectName.Length > 50)
+            {
+                result = "Project name cannot be longer than 50 characters";
+            }
+            else if (!Regex.IsMatch(ProjectName, @"^[a-z0-9_]+$"))
+            {
+                result = "Project name can only contain lowercase letters, numbers, and underscores";
+
+            }
+
+            return result;
         }
     }
 }
