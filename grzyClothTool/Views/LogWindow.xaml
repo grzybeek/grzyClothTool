@@ -1,0 +1,47 @@
+﻿<Window x:Class="grzyClothTool.Views.LogWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        mc:Ignorable="d"
+        Title="Logs" Height="300" MinHeight="300" Width="500" MinWidth="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Headers -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="35" />
+                <ColumnDefinition Width="80" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="" FontWeight="Bold" />
+            <TextBlock Grid.Column="1" Text="Timestamp" FontWeight="Bold" Margin="5,2" />
+            <TextBlock Grid.Column="2" Text="Message" FontWeight="Bold" Margin="5,2" />
+        </Grid>
+
+        <!-- Logs -->
+        <ListView BorderThickness="0,1,0,0" Grid.Row="1" ItemsSource="{Binding LogMessages}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="35" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <icons:MaterialIcon Grid.Column="0" Kind="{Binding TypeIcon}" Width="20" HorizontalAlignment="Left" Height="20" />
+                        <TextBlock Grid.Column="1" Text="{Binding Timestamp, StringFormat='[{0}]'}" Margin="0,1" />
+                        <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Color}" Margin="0,1" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Window>

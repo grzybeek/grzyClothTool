@@ -77,7 +77,7 @@ namespace grzyClothTool.Views
                 await Addon.AddDrawables(files.FileNames, isMaleBtn);
 
                 timer.Stop();
-                CustomMessageBox.Show($"Added drawables in {timer.Elapsed}");
+                LogHelper.Log($"Added drawables in {timer.Elapsed}");
             }
         }
 
@@ -104,7 +104,7 @@ namespace grzyClothTool.Views
                 }
 
                 timer.Stop();
-                CustomMessageBox.Show($"Added drawables in {timer.Elapsed}");
+                LogHelper.Log($"Added drawables in {timer.Elapsed}");
             }
         }
 

@@ -249,15 +249,6 @@ public class BuildResourceHelper
                 var generated = GenerateCreatureMetadata(drawables);
                 if (generated != null)
                 {
-                    sb.AppendLine($"    <Item>");
-                    sb.AppendLine($"      <filename>dlc_{_projectName}:/%PLATFORM%/anim/mp_creaturemetadata_m_{_projectName}.rpf</filename>");
-                    sb.AppendLine($"      <fileType>RPF_FILE</fileType>");
-                    sb.AppendLine($"      <overlay value=\"false\" />");
-                    sb.AppendLine($"      <disabled value=\"true\" />");
-                    sb.AppendLine($"      <persistent value=\"true\" />");
-                    sb.AppendLine($"    </Item>");
-
-                    filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/anim/mp_creaturemetadata_m_{_projectName}.rpf");
                     generated.SingleplayerFileName = $"mp_creaturemetadata_m_{_projectName}";
                     generatedCreatureMetadatas.Add(generated);
                 }
@@ -302,25 +293,29 @@ public class BuildResourceHelper
                 var generated = GenerateCreatureMetadata(drawables);
                 if (generated != null)
                 {
-                    sb.AppendLine($"    <Item>");
-                    sb.AppendLine($"      <filename>dlc_{_projectName}:/%PLATFORM%/anim/mp_creaturemetadata_f_{_projectName}.rpf</filename>");
-                    sb.AppendLine($"      <fileType>RPF_FILE</fileType>");
-                    sb.AppendLine($"      <overlay value=\"false\" />");
-                    sb.AppendLine($"      <disabled value=\"true\" />");
-                    sb.AppendLine($"      <persistent value=\"true\" />");
-                    sb.AppendLine($"    </Item>");
-
-                    filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/anim/mp_creaturemetadata_f_{_projectName}.rpf");
                     generated.SingleplayerFileName = $"mp_creaturemetadata_f_{_projectName}";
                     generatedCreatureMetadatas.Add(generated);
                 }
             }
         }
 
+        if (generatedCreatureMetadatas.Count > 0)
+        {
+            sb.AppendLine($"    <Item>");
+            sb.AppendLine($"      <filename>dlc_{_projectName}:/%PLATFORM%/anim/creaturemetadata.rpf</filename>");
+            sb.AppendLine($"      <fileType>RPF_FILE</fileType>");
+            sb.AppendLine($"      <overlay value=\"false\" />");
+            sb.AppendLine($"      <disabled value=\"true\" />");
+            sb.AppendLine($"      <persistent value=\"true\" />");
+            sb.AppendLine($"    </Item>");
+
+            filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/anim/creaturemetadata.rpf");
+        }
+
         sb.AppendLine($"  </dataFiles>");
         sb.AppendLine($"  <contentChangeSets>");
         sb.AppendLine($"    <Item>");
-        sb.AppendLine($"      <changeSetName>{_projectName}_AUTOGEN</changeSetName>");
+        sb.AppendLine($"      <changeSetName>{_projectName.ToUpper()}_GEN</changeSetName>");
         sb.AppendLine($"      <mapChangeSetData />");
         sb.AppendLine($"      <filesToInvalidate />");
         sb.AppendLine($"      <filesToDisable />");
@@ -349,7 +344,7 @@ public class BuildResourceHelper
 
     private void BuildSetupXml(RpfDirectoryEntry dir)
     {
-        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var timestamp = DateTimeOffset.UtcNow.ToString("dd/MM/yyyy HH:mm:ss");
 
         StringBuilder sb = new();
         sb.AppendLine($"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -396,14 +391,14 @@ public class BuildResourceHelper
 
         var hasProps = drawables.Any(x => x.IsProp);
 
-        var genderRpfName = isMale ? "_male.rpf" : "_female.rpf";
-        var componentsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName);
+        var genderRpfName = isMale ? "_male" : "_female";
+        var componentsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + ".rpf");
         var componentsFolder = RpfFile.CreateDirectory(componentsRpf.Root, pedName + "_" + projectName);
         RpfFile propsRpf = null;
         RpfDirectoryEntry propsFolder = null;
         if (hasProps)
         {
-            propsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + "_p");
+            propsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + "_p" + ".rpf");
             propsFolder = RpfFile.CreateDirectory(propsRpf.Root, pedName + "_p_" + projectName);
         }
 
@@ -414,7 +409,9 @@ public class BuildResourceHelper
             foreach (var d in group)
             {
                 var drawableBytes = File.ReadAllBytes(d.FilePath);
-                RpfFile.CreateFile(componentsFolder, $"{d.Name}{Path.GetExtension(d.FilePath)}", drawableBytes);
+
+                RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;
+                RpfFile.CreateFile(folder, $"{d.Name}{Path.GetExtension(d.FilePath)}", drawableBytes);
 
                 foreach (var t in d.Textures)
                 {
@@ -423,12 +420,12 @@ public class BuildResourceHelper
                     if (t.IsOptimizedDuringBuild)
                     {
                         var optimizedBytes = await ImgHelper.Optimize(t);
-                        RpfFile.CreateFile(componentsFolder, $"{displayName}{Path.GetExtension(t.FilePath)}", optimizedBytes);
+                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FilePath)}", optimizedBytes);
                     }
                     else
                     {
                         var texBytes = File.ReadAllBytes(t.FilePath);
-                        RpfFile.CreateFile(componentsFolder, $"{displayName}{Path.GetExtension(t.FilePath)}", texBytes);
+                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FilePath)}", texBytes);
                     }
                 }
             }

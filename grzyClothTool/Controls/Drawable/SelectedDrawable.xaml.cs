@@ -258,6 +258,7 @@ namespace grzyClothTool.Controls
                 if (wrongTextureName != null)
                 {
                     Show($"Texture {wrongTextureName} does not have the same size as the others!", "Error", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Error);
+                    LogHelper.Log($"Texture {wrongTextureName} does not have the same size as the others!", LogType.Error);
                     return;
                 }
 

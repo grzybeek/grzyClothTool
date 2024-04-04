@@ -53,6 +53,8 @@ namespace grzyClothTool.Views
         {
             CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
             CWHelper.SetCacheStartup(c.IsChecked);
+
+            LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
         }
     }
 }

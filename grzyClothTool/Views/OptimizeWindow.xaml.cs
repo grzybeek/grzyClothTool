@@ -217,6 +217,7 @@ namespace grzyClothTool.Views
                 };
             }
 
+            LogHelper.Log("Textures will be optimized during resource build");
             Close();
         }
 

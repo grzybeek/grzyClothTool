@@ -1,12 +1,14 @@
 ﻿using grzyClothTool.Helpers;
 using grzyClothTool.Models;
 using grzyClothTool.Views;
+using Material.Icons;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Navigation;
 
 namespace grzyClothTool
@@ -43,6 +45,8 @@ namespace grzyClothTool
             version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
             FileHelper.GenerateReservedAssets();
+            LogHelper.Init();
+            LogHelper.LogMessageCreated += LogHelper_LogMessageCreated;
 
 
             Dispatcher.BeginInvoke((Action)(async () =>
@@ -61,6 +65,16 @@ namespace grzyClothTool
 
                 await App.splashScreen.LoadComplete();
             }));
+        }
+
+        private void LogHelper_LogMessageCreated(object sender, LogMessageEventArgs e)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                logBar.Text = e.Message;
+                logBarIcon.Kind = Enum.Parse<MaterialIconKind>(e.TypeIcon);
+                logBarIcon.Visibility = Visibility.Visible;
+            });
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
@@ -85,28 +99,30 @@ namespace grzyClothTool
         }
         private void OpenProject_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog metaFiles = new()
-            {
-                Title = "Select .meta file(s)",
-                Multiselect = true,
-                Filter = "Meta files (*.meta)|*.meta"
-            };
+            //OpenFileDialog metaFiles = new()
+            //{
+            //    Title = "Select .meta file(s)",
+            //    Multiselect = true,
+            //    Filter = "Meta files (*.meta)|*.meta"
+            //};
 
-            if (metaFiles.ShowDialog() == true)
-            {
-                //foreach (var fldr in folder.FolderNames)
-                //{
-                //    foreach (var file in Directory.GetFiles(fldr, "*.ydd", SearchOption.TopDirectoryOnly))
-                //    {
-                //        Addon.AddDrawable(file, isMaleBtn);
-                //    }
-                //}
+            //if (metaFiles.ShowDialog() == true)
+            //{
+            //    //foreach (var fldr in folder.FolderNames)
+            //    //{
+            //    //    foreach (var file in Directory.GetFiles(fldr, "*.ydd", SearchOption.TopDirectoryOnly))
+            //    //    {
+            //    //        Addon.AddDrawable(file, isMaleBtn);
+            //    //    }
+            //    //}
 
-                //foreach (var dir in metaFiles.FileNames)
-                //{
-                //    _addon.LoadAddon(dir);  //todo: fix this
-                //}
-            }
+            //    //foreach (var dir in metaFiles.FileNames)
+            //    //{
+            //    //    _addon.LoadAddon(dir);  //todo: fix this
+            //    //}
+            //}
+
+            LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
         }
 
 
@@ -117,6 +133,18 @@ namespace grzyClothTool
             {
                 CWHelper.CWForm.Close();
             }
+
+            LogHelper.Close();
+        }
+
+        private void StatusBarItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            LogHelper.OpenLogWindow();
+        }
+
+        private void LogsOpen_Click(object sender, RoutedEventArgs e)
+        {
+            LogHelper.OpenLogWindow();
         }
     }
 }
