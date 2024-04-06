@@ -520,7 +520,7 @@ public class BuildResourceHelper
         {
             var prop = allPropDrawablesArray[i];
             props[i].audioId = JenkHash.GenHash(prop.Audio);
-            props[i].expressionMods = new ArrayOfFloats5 { f0 = prop.HairScaleValue, f1 = 0, f2 = 0, f3 = 0, f4 = 0 };
+            props[i].expressionMods = new ArrayOfFloats5 { f0 = -prop.HairScaleValue, f1 = 0, f2 = 0, f3 = 0, f4 = 0 };
 
             var texturesArray = prop.Textures.ToArray();
             var textures = new CPedPropTexData[texturesArray.Length];
