@@ -839,7 +839,8 @@ namespace CodeWalker
             switch (name)
             {
                 case "EnableKeepPreview":
-                    var v = (bool)value;
+                    var lowercasevalue = value.ToString().ToLower();
+                    var v = bool.Parse(lowercasevalue);
                     //if loadeddrawables already contains drawable, remove it
                     if (v == true && !LoadedDrawables.ContainsKey(d.Name))
                     {

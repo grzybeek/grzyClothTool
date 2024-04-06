@@ -236,6 +236,11 @@ namespace grzyClothTool.Views
                 updateName = "HighHeels";
                 value = Addon.SelectedDrawable.HighHeelsValue.ToString();
             }
+            else if (Addon.SelectedDrawable.EnableKeepPreview)
+            {
+                updateName = "EnableKeepPreview";
+                value = Addon.SelectedDrawable.EnableKeepPreview.ToString();
+            }
 
             CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateName, value);
         }
