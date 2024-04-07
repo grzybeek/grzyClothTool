@@ -1,18 +1,13 @@
-﻿using grzyClothTool.Models;
-using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace grzyClothTool.Controls
 {
     /// <summary>
     /// Interaction logic for ModernLabelComboBox.xaml
     /// </summary>
-    public partial class ModernLabelComboBox : UserControl
+    public partial class ModernLabelComboBox : ModernLabelBaseControl
     {
-        public event EventHandler<DependencyPropertyChangedEventArgs> IsUpdated;
-
         public static readonly DependencyProperty LabelProperty = DependencyProperty
         .Register("Label",
                 typeof(string),
@@ -71,12 +66,8 @@ namespace grzyClothTool.Controls
         public ModernLabelComboBox()
         {
             InitializeComponent();
-        }
-
-        private static void OnUpdate(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (ModernLabelComboBox)d;
-            control.IsUpdated?.Invoke(control, e);
+            MyComboBox.DropDownOpened += (s, e) => IsUserInitiated = true;
+            MyComboBox.DropDownClosed += (s, e) => IsUserInitiated = false;
         }
     }
 }

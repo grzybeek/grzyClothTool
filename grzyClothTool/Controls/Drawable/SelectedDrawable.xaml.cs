@@ -25,6 +25,12 @@ namespace grzyClothTool.Controls
         public dynamic Value { get; set; }
     }
 
+    public class UpdatedEventArgs : EventArgs
+    {
+        public DependencyPropertyChangedEventArgs DependencyPropertyChangedEventArgs { get; set; }
+        public bool IsUserInitiated { get; set; }
+    }
+
     /// <summary>
     /// Interaction logic for SelectedDrawable.xaml
     /// </summary>
@@ -186,14 +192,19 @@ namespace grzyClothTool.Controls
         }
 
         // Used to notify CW ped viewer of changes to selected drawable
-        private void SelectedDrawable_Updated(object sender, DependencyPropertyChangedEventArgs e)
+        private void SelectedDrawable_Updated(object sender, UpdatedEventArgs e)
         {
+            if (!e.IsUserInitiated)
+            {
+                return;
+            }
+
             var control = sender as Control;
 
             var args = new DrawableUpdatedArgs
             {
                 UpdatedName = control.Tag.ToString(),
-                Value = control.GetValue(e.Property)
+                Value = control.GetValue(e.DependencyPropertyChangedEventArgs.Property)
             };
             SelectedDrawableUpdated?.Invoke(control, args);
         }
@@ -268,6 +279,22 @@ namespace grzyClothTool.Controls
             }
         }
 
-        
+        private void ComponentType_Changed(object sender, UpdatedEventArgs e)
+        {
+            if (!e.IsUserInitiated)
+            {
+                return;
+            }
+
+            var newValue = e.DependencyPropertyChangedEventArgs.NewValue;
+            var oldValue = e.DependencyPropertyChangedEventArgs.OldValue;
+
+            if((newValue == null || oldValue == null) || newValue == oldValue)
+            {
+                return;
+            }
+
+            SelectedDraw.ChangeDrawableType(newValue.ToString());
+        }
     }
 }

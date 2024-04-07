@@ -52,7 +52,7 @@ namespace grzyClothTool.Views
             {
                 MessageBox.Show("Please fill in all fields");
 
-                CustomMessageBox.Show($"Please fill in all fields", "Build done", CustomMessageBoxButtons.OKCancel);
+                CustomMessageBox.Show($"Please fill in all fields", "Error", CustomMessageBoxButtons.OKCancel);
                 return;
             }
             var timer = new Stopwatch();
@@ -75,6 +75,7 @@ namespace grzyClothTool.Views
             timer.Stop();
 
             CustomMessageBox.Show($"Build done, elapsed time: {timer.Elapsed}", "Build done", CustomMessageBoxButtons.OpenFolder, BuildPath);
+            LogHelper.Log($"Build done, elapsed time: {timer.Elapsed}");
         }
 
         private async Task BuildFiveMResource(BuildResourceHelper bHelper)

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelTextBox"
+﻿<local:ModernLabelBaseControl x:Class="grzyClothTool.Controls.ModernLabelTextBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -85,6 +85,12 @@
                                         <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
                                     </Trigger.Setters>
                                 </Trigger>
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Trigger.Setters>
+                                        <Setter TargetName="border" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                                        <Setter TargetName="placeholder" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                                    </Trigger.Setters>
+                                </Trigger>
                                 <DataTrigger Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True">
                                     <DataTrigger.Setters>
                                         <Setter TargetName="dots" Property="Visibility" Value="Visible" />
@@ -104,4 +110,4 @@
             </Style>
         </TextBox.Style>
     </TextBox>
-</UserControl>
+</local:ModernLabelBaseControl>

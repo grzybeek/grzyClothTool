@@ -124,7 +124,7 @@ public class Addon : INotifyPropertyChanged
             var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, compType, countOfType));
 
             // Check if the number of drawables of this type has reached 128
-            while (countOfType >= 128)
+            while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
             {
                 // Move to the next Addon
                 currentAddonIndex++;
@@ -162,6 +162,30 @@ public class Addon : INotifyPropertyChanged
         {
             addon.Drawables.Sort();
         }
+    }
+
+    public int GetNextDrawableNumber(int typeNumeric, bool isProp, bool isMale)
+    {
+        var nextNumber = 0;
+        var currentAddonIndex = 0;
+
+        while (currentAddonIndex < MainWindow.AddonManager.Addons.Count)
+        {
+            var currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
+            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == typeNumeric && x.IsProp == isProp && x.Sex == isMale);
+
+            // If the number of drawables of this type has reached 128, move to the next addon
+            if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+            {
+                currentAddonIndex++;
+                continue;
+            }
+
+            nextNumber = countOfType;
+            break;
+        }
+
+        return nextNumber;
     }
 
     public async void LoadAddon(string path)

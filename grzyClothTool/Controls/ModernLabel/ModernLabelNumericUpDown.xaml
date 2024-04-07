@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelNumericUpDown"
+﻿<local:ModernLabelBaseControl x:Class="grzyClothTool.Controls.ModernLabelNumericUpDown"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:grzyClothTool.Controls"
@@ -58,7 +58,7 @@
                                        Padding="2" 
                                        />
                                     <Border Name="line" Grid.Column="1" Background="{StaticResource ButtonBorder}" Width="1" VerticalAlignment="Stretch" Margin="0"/>
-                                    <TextBox Name="number" Foreground="{StaticResource ButtonFocus}" Background="{StaticResource ButtonBackground}" Grid.Column="2" HorizontalAlignment="left" BorderThickness="0" Width="24" Text="{Binding Value, ElementName=MyModernLabelNumericUpDown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                    <TextBox Name="number" Focusable="False" Cursor="Arrow" Foreground="{StaticResource ButtonFocus}" Background="{StaticResource ButtonBackground}" Grid.Column="2" HorizontalAlignment="left" BorderThickness="0" Width="24" Text="{Binding Value, ElementName=MyModernLabelNumericUpDown, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                         VerticalContentAlignment="Center" Margin="0,5" />
                                     <StackPanel Grid.Column="2" Orientation="Vertical" HorizontalAlignment="Right" Margin="0">
                                         <Button Style="{StaticResource UpButton}" BorderThickness="0" Margin="0" Padding="0" Width="16" Height="19.5" Click="IncrementValue">
@@ -90,4 +90,4 @@
         </ContentControl.Style>
         
     </ContentControl>
-</UserControl>
+</local:ModernLabelBaseControl>

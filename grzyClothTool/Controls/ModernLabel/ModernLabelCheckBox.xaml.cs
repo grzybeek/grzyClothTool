@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace grzyClothTool.Controls
 {
-    public partial class ModernLabelCheckBox : UserControl
+    public partial class ModernLabelCheckBox : ModernLabelBaseControl
     {
-        public event EventHandler<DependencyPropertyChangedEventArgs> IsUpdated;
-
         public static readonly DependencyProperty LabelProperty = DependencyProperty
             .Register("Label", typeof(string), typeof(ModernLabelCheckBox), new FrameworkPropertyMetadata("Placeholder"));
 
@@ -29,13 +26,7 @@ namespace grzyClothTool.Controls
         public ModernLabelCheckBox()
         {
             InitializeComponent();
+            MyCheckBox.PreviewMouseDown += (s, e) => IsUserInitiated = true;
         }
-
-        private static void OnUpdate(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (ModernLabelCheckBox)d;
-            control.IsUpdated?.Invoke(control, e);
-        }
-
     }
 }

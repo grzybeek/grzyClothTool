@@ -30,6 +30,11 @@
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{StaticResource Brush300}" />
                 </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Trigger.Setters>
+                        <Setter Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                    </Trigger.Setters>
+                </Trigger>
             </Style.Triggers>
         </Style>
 

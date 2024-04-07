@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using static grzyClothTool.Enums;
 
 namespace grzyClothTool.Helpers;
@@ -11,7 +12,13 @@ public static class EnumHelper
         return Enum.GetName(enumType, type);
     }
 
-    internal static List<string> GetAudioList(int typeNumeric)
+    public static int GetValue(string type, bool isProp)
+    {
+        Type enumType = isProp ? typeof(Enums.PropNumbers) : typeof(Enums.ComponentNumbers);
+        return (int)Enum.Parse(enumType, type);
+    }
+
+    public static List<string> GetAudioList(int typeNumeric)
     {
         ComponentNumbers component = (ComponentNumbers)typeNumeric;
         return component switch
@@ -123,5 +130,21 @@ public static class EnumHelper
             //head, hair, teef, decl
             _ => ["none"],
         };
+    }
+
+    public static List<string> GetComponentTypeList()
+    {
+        return Enum.GetValues(typeof(ComponentNumbers))
+            .Cast<ComponentNumbers>()
+            .Select(item => item.ToString())
+            .ToList();
+    }
+
+    public static List<string> GetPropTypeList()
+    {
+        return Enum.GetValues(typeof(PropNumbers))
+            .Cast<PropNumbers>()
+            .Select(item => item.ToString())
+            .ToList();
     }
 }

@@ -1,9 +1,8 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
 
 namespace grzyClothTool.Controls
 {
-    public partial class ModernLabelRadioButton : UserControl
+    public partial class ModernLabelRadioButton : ModernLabelBaseControl
     {
         public ModernLabelRadioButton()
         {

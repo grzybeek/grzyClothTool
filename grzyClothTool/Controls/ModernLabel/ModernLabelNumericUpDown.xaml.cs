@@ -1,13 +1,9 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows;
 
 namespace grzyClothTool.Controls
 {
-    public partial class ModernLabelNumericUpDown : UserControl
+    public partial class ModernLabelNumericUpDown : ModernLabelBaseControl
     {
-        public event EventHandler<DependencyPropertyChangedEventArgs> IsUpdated;
-
         public static readonly DependencyProperty LabelProperty = DependencyProperty
             .Register("Label", typeof(string), typeof(ModernLabelNumericUpDown), new FrameworkPropertyMetadata("Numeric UpDown"));
 
@@ -62,6 +58,7 @@ namespace grzyClothTool.Controls
         {
             if (Value + Increment <= Maximum)
             {
+                IsUserInitiated = true;
                 Value += Increment;
             }
         }
@@ -70,14 +67,9 @@ namespace grzyClothTool.Controls
         {
             if (Value - Increment >= Minimum)
             {
+                IsUserInitiated = true;
                 Value -= Increment;
             }
-        }
-
-        private static void OnUpdate(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (ModernLabelNumericUpDown)d;
-            control.IsUpdated?.Invoke(control, e);
         }
     }
 }

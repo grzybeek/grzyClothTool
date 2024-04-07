@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelRadioButton"
+﻿<local:ModernLabelBaseControl x:Class="grzyClothTool.Controls.ModernLabelRadioButton"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:grzyClothTool.Controls"
@@ -53,4 +53,4 @@
             </ControlTemplate>
         </RadioButton.Template>
     </RadioButton>
-</UserControl>
+</local:ModernLabelBaseControl>

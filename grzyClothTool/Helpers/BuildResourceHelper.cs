@@ -55,7 +55,7 @@ public class BuildResourceHelper
 
         var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
-                                       .GroupBy(x => x.Value.Number / 128)
+                                       .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())
                                        .ToList();
 
@@ -383,7 +383,7 @@ public class BuildResourceHelper
 
         var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
-                                       .GroupBy(x => x.Value.Number / 128)
+                                       .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())
                                        .ToList();
 

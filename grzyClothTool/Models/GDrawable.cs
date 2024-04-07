@@ -1,4 +1,6 @@
-﻿using grzyClothTool.Helpers;
+﻿using grzyClothTool.Extensions;
+using grzyClothTool.Helpers;
+using grzyClothTool.Views;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -49,7 +51,25 @@ public class GDrawable : INotifyPropertyChanged
     public virtual bool IsReserved => false;
 
     public int TypeNumeric { get; set; }
-    public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);
+    private string _typeName;
+    public string TypeName
+    {
+        get
+        {
+            _typeName ??= EnumHelper.GetName(TypeNumeric, IsProp);
+            return _typeName;
+        }
+        set
+        {
+            _typeName = value;
+
+            //TypeNumeric = EnumHelper.GetValue(value, IsProp);
+
+            SetDrawableName();
+            OnPropertyChanged();
+        }
+    }
+    public List<string> AvailableTypes => IsProp ? EnumHelper.GetPropTypeList() : EnumHelper.GetComponentTypeList();
 
     /// <returns>
     /// true(1) = male ped, false(0) = female ped
@@ -59,7 +79,7 @@ public class GDrawable : INotifyPropertyChanged
     public bool IsComponent => !IsProp;
 
     public int Number { get; set; }
-    public string DisplayNumber => (Number % 128).ToString("D3");
+    public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
 
     private bool _hasSkin;
@@ -156,7 +176,28 @@ public class GDrawable : INotifyPropertyChanged
         foreach (var txt in Textures)
         {
             txt.Number = Number;
+            txt.TypeNumeric = TypeNumeric;
         }
+    }
+
+    public void ChangeDrawableType(string newType)
+    {
+        var newTypeNumeric = EnumHelper.GetValue(newType, IsProp);
+        var reserved = new GReservedDrawable(Sex, IsProp, TypeNumeric, Number);
+        var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
+
+        // change current drawable to new type
+        Number = MainWindow.AddonManager.SelectedAddon.GetNextDrawableNumber(newTypeNumeric, IsProp, Sex);
+        TypeNumeric = newTypeNumeric;
+        SetDrawableName();
+
+        // add new drawable with new number and type
+        MainWindow.AddonManager.SelectedAddon.Drawables.Insert(index + 1, this);
+
+        // replace drawable with reserved in the same place
+        MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;
+
+        MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
     }
 
     protected void OnPropertyChanged([CallerMemberName] string name = null)

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelComboBox"
+﻿<local:ModernLabelBaseControl x:Class="grzyClothTool.Controls.ModernLabelComboBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:grzyClothTool.Controls"
@@ -203,4 +203,4 @@
             </Style>
         </ComboBox.ItemContainerStyle>
     </ComboBox>
-</UserControl>
+</local:ModernLabelBaseControl>

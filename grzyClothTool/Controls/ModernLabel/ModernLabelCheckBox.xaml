@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Controls.ModernLabelCheckBox"
+﻿<local:ModernLabelBaseControl x:Class="grzyClothTool.Controls.ModernLabelCheckBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:grzyClothTool.Controls"
@@ -79,4 +79,4 @@
             </ControlTemplate>
         </CheckBox.Template>
     </CheckBox>
-</UserControl>
+</local:ModernLabelBaseControl>

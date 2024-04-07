@@ -8,6 +8,7 @@
 
     <Application.Resources>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
 
         <Style x:Key="Spin" TargetType="icons:MaterialIcon">

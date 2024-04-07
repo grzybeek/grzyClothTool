@@ -1,27 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace grzyClothTool.Controls
 {
     /// <summary>
     /// Interaction logic for ModernLabelTextBox.xaml
     /// </summary>
-    public partial class ModernLabelTextBox : UserControl
+    public partial class ModernLabelTextBox : ModernLabelBaseControl
     {
-        public event EventHandler IsUpdated;
-
         public static readonly DependencyProperty LabelProperty = DependencyProperty
         .Register("Label",
                 typeof(string),
@@ -56,13 +42,6 @@ namespace grzyClothTool.Controls
         {
             get { return (bool)GetValue(IsFolderSelectionProperty); }
             set { SetValue(IsFolderSelectionProperty, value); }
-        }   
-
-        private static void OnUpdate(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var control = (ModernLabelTextBox)d;
-
-            control.IsUpdated?.Invoke(control, EventArgs.Empty);
         }
 
         static ModernLabelTextBox()
@@ -75,6 +54,8 @@ namespace grzyClothTool.Controls
         public ModernLabelTextBox()
         {
             InitializeComponent();
+            MyText.GotFocus += (s, e) => IsUserInitiated = true;
+            MyText.LostFocus += (s, e) => IsUserInitiated = false;
         }
 
         private void MyText_MouseDown(object sender, MouseButtonEventArgs e)
