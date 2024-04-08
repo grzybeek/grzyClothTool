@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner"
         MouseDown="Window_MouseDown"
         Title="(WIP) grzyClothTool - Build resource"
-        Height="400"
+        Height="450"
         Width="500">
     <Grid>
         <Grid.RowDefinitions>
@@ -26,6 +26,12 @@
                         GroupName="resource"
                         Label="FiveM"
                         IsChecked="True"
+                        MyBtnSelectEvent="RadioButton_ChangedEvent"
+                    />
+                    <c:ModernLabelRadioButton 
+                        Margin="5,1,5,5"
+                        GroupName="resource"
+                        Label="AltV"
                         MyBtnSelectEvent="RadioButton_ChangedEvent"
                     />
                     <c:ModernLabelRadioButton 
