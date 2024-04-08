@@ -38,7 +38,7 @@
 
                         <icons:MaterialIcon Grid.Column="0" Kind="{Binding TypeIcon}" Width="20" HorizontalAlignment="Left" Height="20" />
                         <TextBlock Grid.Column="1" Text="{Binding Timestamp, StringFormat='[{0}]'}" Margin="0,1" />
-                        <TextBlock Grid.Column="2" Text="{Binding Message}" Foreground="{Binding Color}" Margin="0,1" />
+                        <TextBlock Grid.Column="2" Text="{Binding Message}" Margin="0,1" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
