@@ -66,7 +66,7 @@ namespace grzyClothTool.Views
                     await BuildFiveMResource(buildHelper);
                     break;
                 case ResourceType.AltV:
-                    await BuildAltVMResource(buildHelper);
+                    await BuildAltVResource(buildHelper);
                     break;
                 case ResourceType.Singleplayer:
                     await buildHelper.BuildSingleplayer();
@@ -121,7 +121,7 @@ namespace grzyClothTool.Views
             bHelper.BuildFxManifest(metaFiles);
         }
 
-        private async Task BuildAltVMResource(BuildResourceHelper bHelper) {
+        private async Task BuildAltVResource(BuildResourceHelper bHelper) {
             int counter = 1;
             var metaFiles = new List<string>();
             var tasks = new List<Task>();

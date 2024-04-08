@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:constants="clr-namespace:grzyClothTool"
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
         Background="{StaticResource Brush50}"
@@ -51,7 +52,7 @@
                 </StackPanel>
             </StatusBarItem>
             <StatusBarItem Grid.Column="1" HorizontalAlignment="Right" Padding="5,0,10,2">
-                <Hyperlink NavigateUri="https://discord.gg/HCQutNhxWt" RequestNavigate="Hyperlink_RequestNavigate">Discord</Hyperlink>
+                <Hyperlink NavigateUri="{x:Static constants:GlobalConstants.DISCORD_INVITE_URL}" RequestNavigate="Hyperlink_RequestNavigate">Discord</Hyperlink>
             </StatusBarItem>
             <StatusBarItem Grid.Column="2" HorizontalAlignment="Right" Padding="5,0,10,2">
                 <Hyperlink NavigateUri="https://github.com/grzybeek/grzyClothTool" RequestNavigate="Hyperlink_RequestNavigate">Source code</Hyperlink>
