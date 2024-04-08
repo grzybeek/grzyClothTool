@@ -20,6 +20,7 @@ namespace grzyClothTool.Views
         public enum ResourceType
         {
             FiveM,
+            AltV,
             Singleplayer
         }
 
@@ -64,6 +65,9 @@ namespace grzyClothTool.Views
                 case ResourceType.FiveM:
                     await BuildFiveMResource(buildHelper);
                     break;
+                case ResourceType.AltV:
+                    await BuildAltVMResource(buildHelper);
+                    break;
                 case ResourceType.Singleplayer:
                     await buildHelper.BuildSingleplayer();
                     break;
@@ -80,7 +84,6 @@ namespace grzyClothTool.Views
 
         private async Task BuildFiveMResource(BuildResourceHelper bHelper)
         {
-
             int counter = 1;
             var metaFiles = new List<string>();
             var tasks = new List<Task>();
@@ -118,6 +121,41 @@ namespace grzyClothTool.Views
             bHelper.BuildFxManifest(metaFiles);
         }
 
+        private async Task BuildAltVMResource(BuildResourceHelper bHelper) {
+            int counter = 1;
+            var metaFiles = new List<string>();
+            var tasks = new List<Task>();
+
+            foreach(var selectedAddon in MainWindow.AddonManager.Addons) {
+                bHelper.SetAddon(selectedAddon);
+                bHelper.SetNumber(counter);
+
+                if(selectedAddon.HasMale) {
+                    var bytes = bHelper.BuildYMT(true);
+                    tasks.Add(bHelper.BuildAltVFilesAsync(true, bytes, counter));
+
+                    var (name, b) = bHelper.BuildMeta(true);
+                    metaFiles.Add(name);
+
+                    var path = Path.Combine(BuildPath, "stream", name);
+                    tasks.Add(File.WriteAllBytesAsync(path, b));
+                }
+                if(selectedAddon.HasFemale) {
+                    var bytes = bHelper.BuildYMT(false);
+                    tasks.Add(bHelper.BuildAltVFilesAsync(false, bytes, counter));
+
+                    var (name, b) = bHelper.BuildMeta(false);
+                    metaFiles.Add(name);
+
+                    var path = Path.Combine(BuildPath, "stream", name);
+                    tasks.Add(File.WriteAllBytesAsync(path, b));
+                }
+                counter++;
+            }
+            await Task.WhenAll(tasks);
+            bHelper.BuildAltVTomls(metaFiles);
+        }
+
         private void RadioButton_ChangedEvent(object sender, RoutedEventArgs e)
         {
             if (sender is ModernLabelRadioButton radioButton && radioButton.IsChecked == true)
@@ -125,6 +163,7 @@ namespace grzyClothTool.Views
                 _resourceType = radioButton.Label switch
                 {
                     "FiveM" => ResourceType.FiveM,
+                    "AltV" => ResourceType.AltV,
                     "Singleplayer" => ResourceType.Singleplayer,
                     _ => throw new NotImplementedException()
                 };
