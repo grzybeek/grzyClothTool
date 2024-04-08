@@ -12,7 +12,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static grzyClothTool.Controls.CustomMessageBox;
@@ -295,6 +294,24 @@ namespace grzyClothTool.Controls
             }
 
             SelectedDraw.ChangeDrawableType(newValue.ToString());
+        }
+
+        private async void ReplaceReserved_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog file = new()
+            {
+                Title = $"Select drawable file to replace reserved",
+                Filter = "Drawable file (*.ydd)|*.ydd"
+            };
+
+            if (file.ShowDialog() == true)
+            {
+                var newDrawable = await FileHelper.CreateDrawableAsync(file.FileName, SelectedDraw.Sex, SelectedDraw.IsProp, SelectedDraw.TypeNumeric, SelectedDraw.Number);
+
+                // Replace reserved drawable with new drawable
+                var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(SelectedDraw);
+                MainWindow.AddonManager.SelectedAddon.Drawables[index] = newDrawable;
+            }
         }
     }
 }

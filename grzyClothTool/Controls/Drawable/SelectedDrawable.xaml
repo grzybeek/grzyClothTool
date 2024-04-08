@@ -45,7 +45,7 @@
                                         <c:ModernLabelComboBox Width="125" Label="Component Type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="ComponentType_Changed" />
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">
-                                        <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
+                                        <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />
                                     </StackPanel>
                                     <ListBox 
                                         Grid.Row="1"
