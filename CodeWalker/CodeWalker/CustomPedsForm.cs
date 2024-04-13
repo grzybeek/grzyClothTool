@@ -766,9 +766,14 @@ namespace CodeWalker
             SelectClip("idle");
         }
 
-        public void LoadPed()
+        public void LoadPed(string pedname = "")
         {
-            var pedname = PedNameComboBox.Text;
+            if (string.IsNullOrEmpty(pedname))
+            {
+                pedname = PedNameComboBox.Text;
+            }
+            PedNameComboBox.Text = pedname;
+
             var pedhash = JenkHash.GenHash(pedname.ToLowerInvariant());
             var pedchange = SelectedPed.NameHash != pedhash;
 
@@ -830,46 +835,51 @@ namespace CodeWalker
             return 0;
         }
 
-        public void UpdateSelectedDrawable(Drawable d, TextureDictionary t, string name, object value)
+        public void UpdateSelectedDrawable(Drawable d, TextureDictionary t, Dictionary<string, string> updates)
         {
             Renderer.SelDrawable = d;
             Renderer.SelectedDrawableChanged = true;
 
-
-            switch (name)
+            foreach (var update in updates)
             {
-                case "EnableKeepPreview":
-                    var lowercasevalue = value.ToString().ToLower();
-                    var v = bool.Parse(lowercasevalue);
-                    //if loadeddrawables already contains drawable, remove it
-                    if (v == true && !LoadedDrawables.ContainsKey(d.Name))
-                    {
-                        LoadedDrawables.Add(d.Name, d);
-                        LoadedTextures.Add(d, t);
-                        UpdateModelsUI();
-                    }
-                    else if(v == false && LoadedDrawables.ContainsKey(d.Name))
-                    {
-                        LoadedDrawables.Remove(d.Name);
-                        LoadedTextures.Remove(d);
-                        UpdateModelsUI();
-                    }
-                    break;
-                case "EnableHairScale":
-                    Renderer.SelDrawable.IsHairScaleEnabled = (bool)value;
-                    break;
-                case "HairScale":
-                    Renderer.hairscalevalue = Convert.ToSingle(value);
-                    break;
-                case "EnableHighHeels":
-                    Renderer.SelDrawable.IsHighHeelsEnabled = (bool)value;
-                    break;
-                case "HighHeels":
-                    Renderer.highheelvalue = Convert.ToSingle(value) / 10;
-                    highheelvaluechanged = true;
-                    break;
-                default:
-                    break;
+                var value = update.Value.ToString().ToLower();
+                switch (update.Key)
+                {
+                    case "EnableKeepPreview":
+                        var v = bool.Parse(value);
+                        //if loadeddrawables already contains drawable, remove it
+                        if (v == true && !LoadedDrawables.ContainsKey(d.Name))
+                        {
+                            LoadedDrawables.Add(d.Name, d);
+                            LoadedTextures.Add(d, t);
+                            UpdateModelsUI();
+                        }
+                        else if (v == false && LoadedDrawables.ContainsKey(d.Name))
+                        {
+                            LoadedDrawables.Remove(d.Name);
+                            LoadedTextures.Remove(d);
+                            UpdateModelsUI();
+                        }
+                        break;
+                    case "EnableHairScale":
+                        Renderer.SelDrawable.IsHairScaleEnabled = bool.Parse(value);
+                        break;
+                    case "HairScale":
+                        Renderer.hairscalevalue = Convert.ToSingle(value);
+                        break;
+                    case "EnableHighHeels":
+                        Renderer.SelDrawable.IsHighHeelsEnabled = bool.Parse(value);
+                        break;
+                    case "HighHeels":
+                        Renderer.highheelvalue = Convert.ToSingle(value) / 10;
+                        highheelvaluechanged = true;
+                        break;
+                    case "GenderChanged":
+                        LoadPed(value);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 

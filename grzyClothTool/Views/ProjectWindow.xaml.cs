@@ -6,6 +6,7 @@ using grzyClothTool.Helpers;
 using grzyClothTool.Models;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -25,6 +26,7 @@ namespace grzyClothTool.Views
     /// </summary>
     public partial class ProjectWindow : UserControl, INotifyPropertyChanged
     {
+        private bool PrevDrawableSex;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private Addon _addon;
@@ -223,26 +225,38 @@ namespace grzyClothTool.Views
             CWHelper.CWForm.LoadedDrawable = firstDrawable;
             CWHelper.CWForm.Refresh();
 
-            string updateName = "";
-            string value = "";
-
+            Dictionary<string, string> updateDict = [];
+            string updateName, value;
             if (Addon.SelectedDrawable.EnableHairScale)
             {
                 updateName = "HairScale";
                 value = Addon.SelectedDrawable.HairScaleValue.ToString();
+                updateDict.Add(updateName, value);
             }
             else if (Addon.SelectedDrawable.EnableHighHeels)
             {
                 updateName = "HighHeels";
                 value = Addon.SelectedDrawable.HighHeelsValue.ToString();
+                updateDict.Add(updateName, value);
             }
             else if (Addon.SelectedDrawable.EnableKeepPreview)
             {
                 updateName = "EnableKeepPreview";
                 value = Addon.SelectedDrawable.EnableKeepPreview.ToString();
+                updateDict.Add(updateName, value);
             }
 
-            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateName, value);
+            if (PrevDrawableSex != Addon.SelectedDrawable.Sex)
+            {
+                PrevDrawableSex = Addon.SelectedDrawable.Sex;
+
+                updateName = "GenderChanged";
+                value = Addon.SelectedDrawable.Sex ? "mp_m_freemode_01" : "mp_f_freemode_01";
+                updateDict.Add(updateName, value);
+            }
+
+
+            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateDict);
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
