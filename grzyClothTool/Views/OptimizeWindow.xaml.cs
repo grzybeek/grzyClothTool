@@ -221,6 +221,11 @@ namespace grzyClothTool.Views
             Close();
         }
 
+        private void CancelBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         private void ReloadOutputTexture()
         {
             if (IsTextureDownsizeEnabled && SelectedTextureSize != null)

@@ -132,7 +132,7 @@ public static class EnumHelper
         };
     }
 
-    public static List<string> GetComponentTypeList()
+    public static List<string> GetDrawableTypeList()
     {
         return Enum.GetValues(typeof(ComponentNumbers))
             .Cast<ComponentNumbers>()

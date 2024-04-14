@@ -278,7 +278,7 @@ namespace grzyClothTool.Controls
             }
         }
 
-        private void ComponentType_Changed(object sender, UpdatedEventArgs e)
+        private void DrawableType_Changed(object sender, UpdatedEventArgs e)
         {
             if (!e.IsUserInitiated)
             {

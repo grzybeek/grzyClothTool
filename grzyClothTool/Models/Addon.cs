@@ -102,12 +102,10 @@ public class Addon : INotifyPropertyChanged
         Regex alternateRegex = new(@"_\w_\d+\.ydd$");
         foreach (var filePath in filePaths)
         {
-            var isProp = false;
-            var (isValidComp, compType) = FileHelper.IsValidComponent(filePath);
-            if (!isValidComp)
+            var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
+            if (drawableType == -1)
             {
-                if (compType == -1) return; //not component not prop
-                isProp = true;
+                continue;
             }
 
             if(alternateRegex.IsMatch(filePath))
@@ -120,8 +118,8 @@ public class Addon : INotifyPropertyChanged
             Addon currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
 
             // Calculate countOfType for the current Addon
-            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == compType && x.IsProp == isProp && x.Sex == isMale);
-            var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, compType, countOfType));
+            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
+            var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, drawableType, countOfType));
 
             // Check if the number of drawables of this type has reached 128
             while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
@@ -141,7 +139,7 @@ public class Addon : INotifyPropertyChanged
                 }
 
                 // Calculate countOfType for the current Addon
-                countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == compType && x.IsProp == isProp && x.Sex == isMale);
+                countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
 
                 // Update name and number
                 drawable.Number = countOfType;

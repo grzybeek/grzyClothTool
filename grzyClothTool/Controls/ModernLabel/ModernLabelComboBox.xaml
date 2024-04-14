@@ -10,7 +10,7 @@
             <Border
                 BorderBrush="{TemplateBinding BorderBrush}"
                 BorderThickness="0"
-                Background="{StaticResource ButtonBackground}"
+                Background="{DynamicResource Brush50}"
                 CornerRadius="5">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
@@ -21,6 +21,7 @@
               Width="auto"
               Height="40"
               Margin="5"
+              Foreground="{DynamicResource Brush950}"
               VerticalContentAlignment="Center"
               SelectedItem="{Binding SelectedItem, ElementName=MyModernLabelComboBox}"
               ItemsSource="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"
@@ -29,12 +30,13 @@
             <ControlTemplate TargetType="ComboBox">
                 <Border BorderThickness="1"
                         CornerRadius="5"
-                        BorderBrush="{StaticResource ButtonBorder}"
+                        BorderBrush="{DynamicResource Brush400}"
                         Name="border">
                     <Grid>
                         <ToggleButton Name="toggleButton" 
                                       Width="auto"
                                       Height="auto"
+                                      Foreground="{DynamicResource Brush950}"
                                       Template="{StaticResource ToggleButtonTemplate}"
                                       VerticalContentAlignment="Center"
                                       HorizontalContentAlignment="Center"
@@ -44,7 +46,7 @@
 
                         <TextBlock x:Name="placeholder"
                                    Text="{Binding Label, ElementName=MyModernLabelComboBox}"
-                                   Foreground="{StaticResource ButtonFocus}"
+                                   Foreground="{DynamicResource Brush950}"
                                    VerticalAlignment="Center"
                                    IsHitTestVisible="False"
                                    FontSize="14" 
@@ -59,17 +61,17 @@
                                PopupAnimation="Slide">
                             <Border x:Name="dropDownBorder"
                                     Width="{Binding ElementName=MyComboBox, Path=ActualWidth}"
-                                    BorderBrush="{StaticResource Brush400}"
+                                    BorderBrush="{DynamicResource Brush400}"
                                     BorderThickness="1"
                                     CornerRadius="5"
-                                    Background="{StaticResource ButtonBackground}">
+                                    Background="{DynamicResource Brush50}">
                                 <ScrollViewer>
                                     <ScrollViewer.Resources>
                                         <Style x:Key="ScrollBarThumb" TargetType="Thumb">
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="Thumb">
-                                                        <Border x:Name="borderThumb" Background="{StaticResource ButtonFocus}" CornerRadius="5"/>
+                                                        <Border x:Name="borderThumb" Background="{DynamicResource Brush950}" CornerRadius="5"/>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -116,8 +118,8 @@
                             <Condition Property="Text" Value="" />
                         </MultiTrigger.Conditions>
                         <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
+                            <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
                         </MultiTrigger.Setters>
                         <MultiTrigger.EnterActions>
                             <BeginStoryboard>
@@ -154,8 +156,8 @@
                             <Condition Property="IsDropDownOpen" Value="False" />
                         </MultiTrigger.Conditions>
                         <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
-                            <Setter TargetName="placeholder" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                            <Setter TargetName="border" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                            <Setter TargetName="placeholder" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
                         </MultiTrigger.Setters>
                     </MultiTrigger>
                     <MultiTrigger>
@@ -164,13 +166,13 @@
                             <Condition Property="IsDropDownOpen" Value="False" />
                         </MultiTrigger.Conditions>
                         <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
-                            <Setter TargetName="placeholder" Property="Foreground" Value="{StaticResource ButtonBorder}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
+                            <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
                         </MultiTrigger.Setters>
                     </MultiTrigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush800}" />
                         </Trigger.Setters>
                     </Trigger>
                 </ControlTemplate.Triggers>
@@ -191,10 +193,10 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush200}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush100}" />
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush300}" />
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush300}" />
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>

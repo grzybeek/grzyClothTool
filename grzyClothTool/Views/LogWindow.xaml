@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        Background="{DynamicResource Brush50}"
         mc:Ignorable="d"
         Title="Logs" Height="300" MinHeight="300" Width="500" MinWidth="400">
     <Grid>
@@ -21,12 +22,12 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Column="0" Text="" FontWeight="Bold" />
-            <TextBlock Grid.Column="1" Text="Timestamp" FontWeight="Bold" Margin="5,2" />
-            <TextBlock Grid.Column="2" Text="Message" FontWeight="Bold" Margin="5,2" />
+            <TextBlock Grid.Column="1" Foreground="{DynamicResource Brush950}" Text="Timestamp" FontWeight="Bold" Margin="5,2" />
+            <TextBlock Grid.Column="2" Foreground="{DynamicResource Brush950}" Text="Message" FontWeight="Bold" Margin="5,2" />
         </Grid>
 
         <!-- Logs -->
-        <ListView BorderThickness="0,1,0,0" Grid.Row="1" ItemsSource="{Binding LogMessages}">
+        <ListView BorderThickness="0,1,0,0" Grid.Row="1" ItemsSource="{Binding LogMessages}" Background="{DynamicResource Brush50}">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -36,9 +37,9 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <icons:MaterialIcon Grid.Column="0" Kind="{Binding TypeIcon}" Width="20" HorizontalAlignment="Left" Height="20" />
-                        <TextBlock Grid.Column="1" Text="{Binding Timestamp, StringFormat='[{0}]'}" Margin="0,1" />
-                        <TextBlock Grid.Column="2" Text="{Binding Message}" Margin="0,1" />
+                        <icons:MaterialIcon Grid.Column="0" Kind="{Binding TypeIcon}" Foreground="{DynamicResource Brush950}" Width="20" HorizontalAlignment="Left" Height="20" />
+                        <TextBlock Grid.Column="1" Foreground="{DynamicResource Brush950}" Text="{Binding Timestamp, StringFormat='[{0}]'}" Margin="0,1" />
+                        <TextBlock Grid.Column="2" Foreground="{DynamicResource Brush950}" Text="{Binding Message}" Margin="0,1" />
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

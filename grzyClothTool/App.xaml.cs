@@ -1,9 +1,11 @@
-﻿using grzyClothTool.Controls;
+﻿using grzyClothTool.Extensions;
 using grzyClothTool.Views;
+using Material.Icons;
 using System;
 using System.IO;
 using System.Threading;
 using System.Windows;
+using grzyClothTool.Properties;
 using static grzyClothTool.Controls.CustomMessageBox;
 
 namespace grzyClothTool
@@ -28,10 +30,15 @@ namespace grzyClothTool
 
             ResetSplashCreated.WaitOne();
             base.OnStartup(e);
+
+            //get value from settings properties
+            bool isDarkTheme = Settings.Default.IsDarkMode;
+            ChangeTheme(isDarkTheme);
         }
 
         public App()
         {
+            MaterialIconDataProvider.Instance = new CustomIconProvider(); // use custom icons
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
         }
 
@@ -62,6 +69,17 @@ namespace grzyClothTool
 
             ResetSplashCreated.Set();
             System.Windows.Threading.Dispatcher.Run();
+        }
+
+        public static void ChangeTheme(bool isDarkMode)
+        {
+            Uri uri = isDarkMode ? new Uri("Themes/Dark.xaml", UriKind.Relative) : new Uri("Themes/Light.xaml", UriKind.Relative);
+            ResourceDictionary theme = new() { Source = uri };
+            ResourceDictionary shared = new() { Source = new Uri("Themes/Shared.xaml", UriKind.Relative) };
+
+            Current.Resources.MergedDictionaries.Clear();
+            Current.Resources.MergedDictionaries.Add(theme);
+            Current.Resources.MergedDictionaries.Add(shared);
         }
 
     }

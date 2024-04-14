@@ -1,0 +1,62 @@
+﻿<Window x:Class="grzyClothTool.Views.DrawableSelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:c="clr-namespace:grzyClothTool.Controls"
+        xmlns:local="clr-namespace:grzyClothTool.Views"
+        mc:Ignorable="d"
+        Title="Select your drawable properties"
+        ResizeMode="NoResize"
+        Background="{DynamicResource Brush50}"
+        WindowStartupLocation="CenterOwner"
+        Height="350"
+        Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="15">
+            <TextBlock Text="Could not recognize your drawable properties" FontSize="16" Foreground="{DynamicResource Brush950}" FontWeight="Medium"/>
+            <TextBlock x:Name="path" Text="{Binding AssetPath}" d:Text="C:\this\is\some\random\path\10.ydd" FontSize="12" Foreground="{DynamicResource Brush500}" FontWeight="Light" Margin="0 0 0 25" TextWrapping="WrapWithOverflow"/>
+            <c:ModernLabelComboBox
+                x:Name="assetType"
+                Label="Asset type"
+                ItemsSource="{Binding AssetTypes}"
+                SelectedItem="{Binding SelectedAssetType}"
+                Width="250"
+                Margin="0,0,0,5"
+                IsUpdated="AssetType_IsUpdated"
+            />
+            <c:ModernLabelComboBox
+                x:Name="x"
+                Label="Drawable type"
+                IsEnabled="{Binding IsAssetTypeSelected}"
+                ItemsSource="{Binding DrawableTypes}"
+                SelectedItem="{Binding SelectedDrawableType}"
+                Width="250"
+                Margin="0,0,0,5"
+            />
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="5">
+            <c:CustomButton 
+                HorizontalAlignment="Left"
+                x:Name="cancel"
+                CornerRadius="5"
+                Width="150"
+                Label="Cancel"
+                MyBtnClickEvent="Cancel_MyBtnClickEvent"
+             />
+            <c:CustomButton 
+                HorizontalAlignment="Right"
+                x:Name="select"
+                CornerRadius="5"
+                Width="150"
+                Label="Select"
+                IsEnabled="{Binding IsSubmitEnabled}"
+                MyBtnClickEvent="Select_MyBtnClickEvent"
+             />
+        </Grid>
+    </Grid>
+</Window>

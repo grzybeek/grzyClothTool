@@ -13,7 +13,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Border" BorderBrush="{StaticResource Brush800}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
+                        <Border x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
@@ -55,7 +55,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{StaticResource Brush200 }" TargetName="Border"/>
+                                <Setter Property="Background" Value="{DynamicResource Brush200}" TargetName="Border"/>
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="FontWeight" Value="Bold" />
@@ -73,7 +73,8 @@
     </UserControl.Resources>
 
     <ListBox 
-        Background="{StaticResource Brush50}"
+        Background="Transparent"
+        Foreground="{DynamicResource Brush950}"
         x:Name="MyListBox" 
         SelectionChanged="ListBox_SelectionChanged"
         HorizontalContentAlignment="Stretch" 

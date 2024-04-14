@@ -7,6 +7,7 @@
 
     <CheckBox x:Name="MyCheckBox"
                 IsChecked="{Binding IsChecked, ElementName=MyModernLabelCheckBox, Mode=TwoWay}"
+                Foreground="{DynamicResource Brush950}"
                 Width="auto" 
                 MinWidth="150"
                 Margin="5">
@@ -17,8 +18,8 @@
                         Height="40"
                         Padding="5,0,0,0"
                         CornerRadius="5"
-                        Background="{StaticResource ButtonBackground}"
-                        BorderBrush="{StaticResource ButtonBorder}"
+                        Background="{DynamicResource Brush50}"
+                        BorderBrush="{DynamicResource Brush400}"
                         BorderThickness="{TemplateBinding BorderThickness}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -29,27 +30,27 @@
                         <TextBlock Name="placeholder" 
                                     Grid.Column="0"
                                     Text="{Binding Label, ElementName=MyModernLabelCheckBox}"
-                                    Foreground="{StaticResource ButtonFocus}" 
-                                    Background="{StaticResource ButtonBackground}" 
+                                    Foreground="{DynamicResource Brush950}" 
+                                    Background="{DynamicResource Brush50}" 
                                     VerticalAlignment="Center" 
                                     IsHitTestVisible="False" 
                                     FontSize="14" 
                                     Margin="2,0,2,0"
                                     Padding="2" 
                                     />
-                        <Border x:Name="line" Grid.Column="1" Background="{StaticResource ButtonBorder}" Width="1" VerticalAlignment="Stretch" Margin="0"/>
+                        <Border x:Name="line" Grid.Column="1" Background="{DynamicResource Brush400}" Width="1" VerticalAlignment="Stretch" Margin="0"/>
                         <Border x:Name="toggleHandle"
                                 Grid.Column="2"
-                                Background="{StaticResource White}"
+                                Background="{DynamicResource Brush50}"
                                 Width="24" Height="24"
                                 CornerRadius="5"
                                 VerticalAlignment="Center"
-                                BorderBrush="{StaticResource ButtonFocus}"
+                                BorderBrush="{DynamicResource Brush950}"
                                 BorderThickness="1">
                             <Path x:Name="CheckMark"
                                     Width="16" Height="14"
                                     Stretch="Fill" 
-                                    Stroke="{StaticResource ButtonFocus}" 
+                                    Stroke="{DynamicResource Brush950}" 
                                     StrokeThickness="3"
                                     StrokeLineJoin="Bevel"
                                     Data="M 2,6 L 6,10 L 12,2"
@@ -62,17 +63,17 @@
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsEnabled" Value="False">
-                        <Setter TargetName="border" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
-                        <Setter TargetName="placeholder" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
-                        <Setter TargetName="line" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
-                        <Setter TargetName="toggleHandle" Property="Opacity" Value="{StaticResource DisabledOpacity}" />
+                        <Setter TargetName="border" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                        <Setter TargetName="placeholder" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                        <Setter TargetName="line" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                        <Setter TargetName="toggleHandle" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
                     </Trigger>
                     <Trigger Property="IsChecked" Value="True">
                         <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
                     </Trigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}" />
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush800}" />
                         </Trigger.Setters>
                     </Trigger>
                 </ControlTemplate.Triggers>

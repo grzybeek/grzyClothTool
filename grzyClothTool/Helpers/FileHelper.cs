@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using grzyClothTool.Models;
+using grzyClothTool.Views;
 
 namespace grzyClothTool.Helpers;
 
@@ -76,9 +77,19 @@ public static class FileHelper
             fileName = split[1];
         }
         string[] nameParts = Path.GetFileNameWithoutExtension(fileName).Split("_");
-        var searchedNumber = isProp ? nameParts[2] : nameParts[1];
 
-        var regexToSearch = $"^{name}_diff_{searchedNumber}";
+        string searchedNumber, regexToSearch;
+        if (nameParts.Length == 1) //this will happen when someone is adding weirdly named ydds (for example 5.ydd)
+        {
+            searchedNumber = nameParts[0];
+            regexToSearch = $"^{searchedNumber}([a-z]|_[a-z])?"; //this will try to find 5.ytd 5a.ytd or 5_a.ytd files
+        } 
+        else
+        {
+            searchedNumber = isProp ? nameParts[2] : nameParts[1];
+            regexToSearch = $"^{name}_diff_{searchedNumber}";
+        }
+
         if (addonName != string.Empty)
         {
             regexToSearch = $"^{addonName}\\{regexToSearch}";
@@ -89,37 +100,10 @@ public static class FileHelper
                 Regex.IsMatch(Path.GetFileNameWithoutExtension(x), regexToSearch))
             .ToList();
 
-
         return allYtds;
     }
 
-    public static (bool, int) IsValidComponent(string file)
-    {
-        string fileName = Path.GetFileNameWithoutExtension(file);
-        if(fileName.Contains('^'))
-        {
-            fileName = fileName.Split("^")[1];
-        }
-
-        var componentsEnumNames = Enum.GetNames(typeof(Enums.ComponentNumbers));
-        var compName = componentsEnumNames.FirstOrDefault(fileName.Contains);
-
-        if(fileName.Contains($"p_{compName}"))
-        {
-            var prop = IsValidProp(file);
-            return (false, prop.Item2);
-        }
-
-        if (!Enum.IsDefined(typeof(Enums.ComponentNumbers), compName))
-        {
-            return (false, -1); //todo: not found, ask for type
-        }
-
-        var compNumber = (int)(Enums.ComponentNumbers)Enum.Parse(typeof(Enums.ComponentNumbers), compName.ToLower());
-        return (true, compNumber);
-    }
-
-    public static (bool, int) IsValidProp(string file)
+    public static (bool, int) ResolveDrawableType(string file)
     {
         string fileName = Path.GetFileNameWithoutExtension(file);
         if (fileName.Contains('^'))
@@ -127,17 +111,32 @@ public static class FileHelper
             fileName = fileName.Split("^")[1];
         }
 
-        var propsEnumNames = Enum.GetNames(typeof(Enums.PropNumbers));
-        var propName = propsEnumNames.FirstOrDefault(fileName.Contains);
+        var componentsList = EnumHelper.GetDrawableTypeList();
+        var propsList = EnumHelper.GetPropTypeList();
 
-        if (!Enum.IsDefined(typeof(Enums.PropNumbers), propName))
+        var compName = componentsList.FirstOrDefault(name => fileName.StartsWith(name + "_"));
+        var propName = propsList.FirstOrDefault(name => fileName.StartsWith(name + "_"));
+
+        if (compName != null)
         {
-            return (false, -1); //todo: not found, ask for type
+            var value = EnumHelper.GetValue(compName, false);
+            return (false, value);
         }
 
-        var propNumber = (int)(Enums.PropNumbers)Enum.Parse(typeof(Enums.PropNumbers), propName.ToLower());
-        return (true, propNumber);
+        if (propName != null)
+        {
+            var value = EnumHelper.GetValue(propName, true);
+            return (true, value);
+        }
+
+        var window = new DrawableSelectWindow(file);
+        var result = window.ShowDialog();
+        if (result == true)
+        {
+            var value = EnumHelper.GetValue(window.SelectedDrawableType, window.IsProp);
+            return (window.IsProp, value);
+        }
+
+        return (false, -1);
     }
-
-
 }

@@ -21,6 +21,27 @@
         <Style x:Key="5Gap" TargetType="StackPanel">
             <Setter Property="Margin" Value="5,0,5,0" />
         </Style>
+
+        <Style x:Key="FixedListBox" TargetType="ListBox">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer Padding="{TemplateBinding Padding}" Focusable="false">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.8"/>
+                                <Setter Property="Background" Value="red"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </UserControl.Resources>
     <ContentControl Content="{Binding SelectedAddon.SelectedDrawable}">
         <ContentControl.Style>
@@ -42,15 +63,19 @@
                                     <StackPanel IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
                                         <c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
                                         <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
-                                        <c:ModernLabelComboBox Width="125" Label="Component Type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="ComponentType_Changed" />
+                                        <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">
                                         <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />
                                     </StackPanel>
                                     <ListBox 
                                         Grid.Row="1"
+                                        Style="{StaticResource FixedListBox}"
                                         x:Name="TextureListBox"
                                         SelectionChanged="TextureListBox_SelectionChanged"
+                                        BorderBrush="{DynamicResource Brush200}"
+                                        Background="Transparent"
+                                        Foreground="{DynamicResource Brush950}"
                                         SelectionMode="Extended"
                                         SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
                                         ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
@@ -111,7 +136,7 @@
                                                             </TextBlock.Text>
                                                         </TextBlock>
                                                     </StackPanel>
-                                                    
+
 
                                                     <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" />
                                                     <Grid.ContextMenu>
@@ -120,13 +145,12 @@
                                                         </ContextMenu>
                                                     </Grid.ContextMenu>
                                                 </Grid>
-
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                     </ListBox>
                                     <StackPanel IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="2" Margin="0" VerticalAlignment="Stretch" Orientation="Horizontal">
                                         <c:CustomButton Width="150" Label="ADD TEXTURES" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
-                                        <c:CustomButton Image="/grzyClothTool;component/Resources/delete.png" Width="25" Tooltip="Delete selected drawable" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
+                                        <c:CustomButton Image="TrashCanOutline" Width="25" Tooltip="Delete selected drawable" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
                                     </StackPanel>
                                 </Grid>
                                 <Grid IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Column="1">
@@ -134,7 +158,7 @@
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
-                                    <GroupBox Header="Drawable Options" Grid.Row="0" BorderBrush="LightGray" BorderThickness="1">
+                                    <GroupBox Header="Drawable Options" Grid.Row="0" Style="{DynamicResource FixedGroupBox}" Margin="2">
                                         <StackPanel Orientation="Vertical">
                                             <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}"/>
                                             <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.AdditionalOptions.RenderFlags}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
@@ -176,7 +200,7 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>
-                                    <GroupBox Grid.Row="1" BorderBrush="LightGray" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" BorderThickness="1">
+                                    <GroupBox Grid.Row="1" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" Style="{DynamicResource FixedGroupBox}" Margin="2">
                                         <StackPanel Orientation="Vertical" Margin="0">
                                             <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
                                                 <TextBlock.Style>

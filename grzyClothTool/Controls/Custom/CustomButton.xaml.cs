@@ -23,7 +23,7 @@ namespace grzyClothTool.Controls
 
         public static readonly DependencyProperty ImageProperty = DependencyProperty
             .Register("Image",
-                typeof(ImageSource),
+                typeof(string),
                 typeof(CustomButton),
                 new FrameworkPropertyMetadata(null));
 
@@ -64,9 +64,9 @@ namespace grzyClothTool.Controls
             set { SetValue(LabelProperty, value); }
         }
 
-        public ImageSource Image
+        public string Image
         {
-            get { return (ImageSource)GetValue(ImageProperty); }
+            get { return (string)GetValue(ImageProperty); }
             set { SetValue(ImageProperty, value); }
         }
 

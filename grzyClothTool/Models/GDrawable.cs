@@ -69,7 +69,7 @@ public class GDrawable : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-    public List<string> AvailableTypes => IsProp ? EnumHelper.GetPropTypeList() : EnumHelper.GetComponentTypeList();
+    public List<string> AvailableTypes => IsProp ? EnumHelper.GetPropTypeList() : EnumHelper.GetDrawableTypeList();
 
     /// <returns>
     /// true(1) = male ped, false(0) = female ped

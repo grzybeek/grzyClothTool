@@ -14,7 +14,7 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Title="CustomMessageBox" Height="450" Width="800">
-    <Grid Margin="5" Background="White">
+    <Grid Margin="5" Background="{DynamicResource Brush50}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="32"/>
             <ColumnDefinition Width="*"/>
@@ -28,7 +28,7 @@
         <!-- Border for our custom message box -->
         <Border Grid.ColumnSpan="3" 
                 Grid.RowSpan="3" 
-                BorderBrush="Gray" 
+                BorderBrush="{DynamicResource Brush100}" 
                 BorderThickness="1" 
                 HorizontalAlignment="Stretch" 
                 VerticalAlignment="Stretch">
@@ -50,7 +50,7 @@
                    Foreground="Black"
                    FontWeight="SemiBold"
                    Margin="1,1,1,0"
-                   Padding="5,2,0,0" 
+                   Padding="5,4,0,0" 
                    MouseLeftButtonDown="OnCaptionPress"/>
         <!-- Icon for our custom message box -->
         <Image x:Name="CMBIcon" 
@@ -67,12 +67,13 @@
                Margin="2,24,4,24">
             <TextBlock x:Name="CMBMessage" 
                        TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush950}"
                        Text="Custom Message Box Message"/>
         </Label>
         <!-- Background for button block -->
         <Rectangle Grid.Row="2" 
                    Grid.ColumnSpan="2" 
-                   Fill="{StaticResource Brush100}"
+                   Fill="{DynamicResource Brush100}"
                    Margin="1,0,1,1"/>
         <!-- Buttons block -->
         <StackPanel x:Name="CMBButtons"                    

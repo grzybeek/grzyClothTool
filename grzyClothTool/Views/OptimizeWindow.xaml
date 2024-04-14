@@ -6,6 +6,7 @@
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
         xmlns:local="clr-namespace:grzyClothTool.Views"
         xmlns:c="clr-namespace:grzyClothTool.Controls"
+        Background="{DynamicResource Brush50}"
         mc:Ignorable="d"
         Title="OptimizeWindow" MinHeight="420" MaxHeight="420" MinWidth="690" MaxWidth="690">
     <Grid>
@@ -20,7 +21,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="70" />
             </Grid.RowDefinitions>
-            <GroupBox Header="Current texture" Margin="5" Grid.Row="0"  >
+            <GroupBox Header="Current texture" Margin="5" Grid.Row="0" Style="{DynamicResource FixedGroupBox}">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Name: " />
@@ -55,7 +56,7 @@
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
-            <StackPanel Grid.Row="1" Margin="0,15,0,0">
+            <StackPanel Grid.Row="1" Margin="0,15,0,0" >
 
                 <c:ModernLabelCheckBox
                     Label="Downscale texture size"
@@ -82,8 +83,8 @@
                         </Style.Triggers>
                     </Style>
                 </StackPanel.Style>
-                <icons:MaterialIcon Kind="WarningBoxOutline" Width="40" Height="40" />
-                <TextBlock Width="280" FontWeight="Medium" Text="Changing texture size here will make quality worse. To preserve texture quality this should be done with 3d programs and texture baking." TextWrapping="WrapWithOverflow" FontSize="12"/>
+                <icons:MaterialIcon Kind="WarningBoxOutline" Width="40" Height="40" Foreground="{DynamicResource Brush950}" />
+                <TextBlock Width="280" FontWeight="Medium" Foreground="{DynamicResource Brush950}" Text="Changing texture size here will make quality worse. To preserve texture quality this should be done with 3d programs and texture baking." TextWrapping="WrapWithOverflow" FontSize="12"/>
             </StackPanel>
         </Grid>
 
@@ -93,7 +94,7 @@
                 <RowDefinition Height="*" />
                 <RowDefinition Height="70" />
             </Grid.RowDefinitions>
-            <GroupBox Header="Output texture" Margin="5" Grid.Row="0"  >
+            <GroupBox Header="Output texture" Margin="5" Grid.Row="0" Style="{DynamicResource FixedGroupBox}">
                 <StackPanel Orientation="Vertical">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Name: " />
@@ -134,7 +135,7 @@
                     Label="Change texture compression"
     
                     />
-                 <c:ModernLabelComboBox
+                <c:ModernLabelComboBox
                     IsEnabled="{Binding IsTextureCompressionEnabled}"
                     Label="Select compression"
                     ItemsSource="{Binding AvailableCompression}"
@@ -150,6 +151,7 @@
                     Height="40"
                     Width="100"
                     Label="Cancel"
+                    MyBtnClickEvent="CancelBtn_Click"
                 />
                 <c:CustomButton 
                     Margin="5"
@@ -162,7 +164,5 @@
                 />
             </StackPanel>
         </Grid>
-        
-
     </Grid>
 </Window>

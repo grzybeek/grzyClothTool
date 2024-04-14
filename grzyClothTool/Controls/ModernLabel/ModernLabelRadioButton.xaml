@@ -10,6 +10,7 @@
                  Content="{Binding Label, ElementName=MyModernLabelRadioButton}"
                  Checked="RadioButton_Change"
                  Unchecked="RadioButton_Change"
+                 Foreground="{DynamicResource Brush950}"
                  VerticalContentAlignment="Center"
                  HorizontalContentAlignment="Left"
                  Padding="5,0"
@@ -19,8 +20,8 @@
                 <Border x:Name="border"
                         Height="40"
                         CornerRadius="5"
-                        Background="{StaticResource ButtonBackground}"
-                        BorderBrush="{StaticResource ButtonBorder}"
+                        Background="{DynamicResource Brush50}"
+                        BorderBrush="{DynamicResource Brush400}"
                         BorderThickness="1">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -31,7 +32,7 @@
                                  Width="12"
                                  Height="12"
                                  Fill="Transparent"
-                                 Stroke="{StaticResource ButtonFocus}"
+                                 Stroke="{DynamicResource Brush200}"
                                  StrokeThickness="2"
                                  VerticalAlignment="Center"
                                  Margin="5,0"/>
@@ -44,10 +45,10 @@
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsChecked" Value="True">
-                        <Setter TargetName="Indicator" Property="Fill" Value="{StaticResource ButtonFocus}"/>
+                        <Setter TargetName="Indicator" Property="Fill" Value="{DynamicResource Brush950}"/>
                     </Trigger>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource ButtonHover}"/>
+                        <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush800}"/>
                     </Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate>

@@ -10,6 +10,7 @@
         WindowStartupLocation="CenterOwner"
         MouseDown="Window_MouseDown"
         Title="(WIP) grzyClothTool - Build resource"
+        Background="{DynamicResource Brush50}"
         Height="450"
         Width="500">
     <Grid>
@@ -19,7 +20,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
 
-            <GroupBox Header="Select resource type" Margin="15">
+            <GroupBox Header="Select resource type" Margin="15" Style="{DynamicResource FixedGroupBox}">
                 <StackPanel>
                     <c:ModernLabelRadioButton 
                         Margin="5,5,5,0"

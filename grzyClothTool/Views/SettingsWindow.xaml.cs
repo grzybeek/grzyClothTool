@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace grzyClothTool.Views
 {
@@ -14,6 +15,8 @@ namespace grzyClothTool.Views
     {
         public static string GTAVPath => CWHelper.GTAVPath;
         public static bool CacheStartupIsChecked => CWHelper.IsCacheStartupEnabled;
+
+        public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
         public SettingsWindow()
         {
@@ -55,6 +58,18 @@ namespace grzyClothTool.Views
             CWHelper.SetCacheStartup(c.IsChecked);
 
             LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
+        }
+
+        public void ThemeModeChange_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleButton toggleButton && toggleButton.IsChecked.HasValue)
+            {
+                var value = (bool)toggleButton.IsChecked;
+                App.ChangeTheme(value);
+
+                Properties.Settings.Default.IsDarkMode = value;
+                Properties.Settings.Default.Save();
+            }
         }
     }
 }
