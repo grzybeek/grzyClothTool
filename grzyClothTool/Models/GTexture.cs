@@ -1,5 +1,6 @@
 ﻿using CodeWalker.GameFiles;
 using grzyClothTool.Helpers;
+using ImageMagick;
 using System;
 using System.ComponentModel;
 using System.IO;
@@ -23,6 +24,7 @@ public class GTexture : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler PropertyChanged;
     public string FilePath;
+    public string Extension;
 
     public string DisplayName
     {
@@ -78,6 +80,7 @@ public class GTexture : INotifyPropertyChanged
         IsLoading = true;
 
         FilePath = path;
+        Extension = Path.GetExtension(path);
         Number = drawableNumber;
         TxtNumber = txtNumber;
         TypeNumeric = compType;
@@ -151,24 +154,42 @@ public class GTexture : INotifyPropertyChanged
     public static async Task<GTextureDetails> GetTextureDetailsAsync(string path)
     {
         var bytes = await File.ReadAllBytesAsync(path);
-        var ytdFile = new YtdFile();
-        await ytdFile.LoadAsync(bytes);
+        var extension = Path.GetExtension(path);
 
-        if (ytdFile.TextureDict.Textures.Count == 0)
+        if (extension == ".ytd")
         {
-            return null;
+            var ytdFile = new YtdFile();
+            await ytdFile.LoadAsync(bytes);
+
+            if (ytdFile.TextureDict.Textures.Count == 0)
+            {
+                return null;
+            }
+
+            var txt = ytdFile.TextureDict.Textures[0];
+
+            return new GTextureDetails
+            {
+                MipMapCount = txt.Levels,
+                Compression = txt.Format.ToString(),
+                Width = txt.Width,
+                Height = txt.Height
+            };
+        }
+        else if (extension == ".jpg" || extension == ".png")
+        {
+            using var img = new MagickImage(bytes);
+
+            return new GTextureDetails
+            {
+                Width = img.Width,
+                Height = img.Height,
+                MipMapCount = ImgHelper.GetCorrectMipMapAmount(img.Width, img.Height),
+                Compression = "UNKNOWN"
+            };
         }
 
-        var txt = ytdFile.TextureDict.Textures[0];
+        return null;
 
-        var details = new GTextureDetails
-        {
-            MipMapCount = txt.Levels,
-            Compression = txt.Format.ToString(),
-            Width = txt.Width,
-            Height = txt.Height
-        };
-
-        return details;
     }
 }

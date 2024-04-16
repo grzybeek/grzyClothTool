@@ -175,7 +175,7 @@ namespace grzyClothTool.Views
 
             if (Addon.SelectedTexture != null)
             {
-                var ytd = CreateYtdFile(Addon.SelectedTexture);
+                var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
@@ -217,7 +217,7 @@ namespace grzyClothTool.Views
             YtdFile ytd = null;
             if (Addon.SelectedTexture != null)
             {
-                ytd = CreateYtdFile(Addon.SelectedTexture);
+                ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
@@ -286,21 +286,9 @@ namespace grzyClothTool.Views
 
             if (!Addon.IsPreviewEnabled) return;
 
-            var ytd = CreateYtdFile(Addon.SelectedTexture);
+            var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
             CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             CWHelper.CWForm.Refresh();
-        }
-
-        private static YtdFile CreateYtdFile(GTexture t)
-        {
-            byte[] data = File.ReadAllBytes(t.FilePath);
-
-            RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
-            var decompressedData = ResourceBuilder.Decompress(data);
-            YtdFile ytd = RpfFile.GetFile<YtdFile>(rpf, decompressedData);
-            ytd.Name = Path.GetFileNameWithoutExtension(t.DisplayName);
-
-            return ytd;
         }
 
         private static YddFile CreateYddFile(GDrawable d)

@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Models;
+﻿using CodeWalker.GameFiles;
+using grzyClothTool.Models;
 using ImageMagick;
 using System;
 using System.IO;
@@ -11,6 +12,24 @@ public static class ImgHelper
     static ImgHelper()
     {
         MagickNET.Initialize();
+    }
+
+    public static MagickImage GetImage(string path)
+    {
+        string ext = Path.GetExtension(path);
+
+        if(ext == ".ytd")
+        {
+            var ytd = CWHelper.GetYtdFile(path);
+            var txt = ytd.TextureDict.Textures[0];
+            var dds = CodeWalker.Utils.DDSIO.GetDDSFile(txt);
+
+            return new MagickImage(dds);
+        }
+        else
+        {
+            return new MagickImage(path);
+        }
     }
 
     public static int GetCorrectMipMapAmount(int width, int height)
@@ -31,27 +50,32 @@ public static class ImgHelper
         return (width, height);
     }
 
-    public static async Task<byte[]> Optimize(GTexture gtxt)
+    public static async Task<byte[]> Optimize(GTexture gtxt, bool shouldSkipOptimization = false)
     {
-        var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
-        var txt = ytd.TextureDict.Textures[0];
-        var dds = CodeWalker.Utils.DDSIO.GetDDSFile(txt);
-
+        var ytd = new YtdFile
+        {
+            TextureDict = new TextureDictionary()
+        };
         var details = gtxt.TxtDetails;
+        using var img = GetImage(gtxt.FilePath);
 
-        using var img = new MagickImage(dds);
+        img.Format = MagickFormat.Dds;
 
-        img.Resize(details.Width, details.Height);
-        img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
-        img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
-        img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", details.MipMapCount);
+        // Skip optimization (I think this is best way to not duplicate code, and reuse this for jpg/png textures that don't need optimization)
+        if (!shouldSkipOptimization)
+        {
+            img.Resize(details.Width, details.Height);
+            img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
+            img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
+            img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", details.MipMapCount);
+        }
 
         var stream = new MemoryStream();
         img.Write(stream);
 
         var newDds = stream.ToArray();
         var newTxt = CodeWalker.Utils.DDSIO.GetTexture(newDds);
-        newTxt.Name = txt.Name;
+        newTxt.Name = gtxt.DisplayName;
         ytd.TextureDict.BuildFromTextureList([newTxt]);
 
         var bytes = ytd.Save();

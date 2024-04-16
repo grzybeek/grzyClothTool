@@ -88,15 +88,26 @@ public class BuildResourceHelper
                 foreach (var t in d.Textures)
                 {
                     var displayName = RemoveInvalidChars(t.DisplayName);
-                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{displayName}{Path.GetExtension(t.FilePath)}");
+                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{displayName}.ytd");
+
+                    byte[] txtBytes = null;
                     if (t.IsOptimizedDuringBuild)
                     {
-                        var optimizedBytes = await ImgHelper.Optimize(t);
-                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, optimizedBytes));
+                        txtBytes = await ImgHelper.Optimize(t);
+                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
                     }
                     else
                     {
-                        fileOperations.Add(FileHelper.CopyAsync(t.FilePath, finalTexPath));
+                        if(t.Extension != ".ytd")
+                        {
+                            txtBytes = await ImgHelper.Optimize(t, true);
+                        } 
+                        else
+                        {
+                            txtBytes = File.ReadAllBytes(t.FilePath);
+                        }
+
+                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
                     }
                 }
             }

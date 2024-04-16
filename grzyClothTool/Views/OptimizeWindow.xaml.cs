@@ -163,19 +163,16 @@ namespace grzyClothTool.Views
 
         public static GTextureDetails GetTextureDetails(GTexture gtxt)
         {
-            var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
-            var txt = ytd.TextureDict.Textures[0];
+            var curDetails = gtxt.TxtDetails;
+            var (correctWidth, correctHeight) = ImgHelper.CheckPowerOfTwo(curDetails.Width, curDetails.Height);
 
-            var (correctWidth, correctHeight) = ImgHelper.CheckPowerOfTwo(txt.Width, txt.Height);
-
-            var details = new GTextureDetails
+            return new GTextureDetails
             {
-                MipMapCount = txt.Levels,
-                Compression = txt.Format.ToString(),
+                MipMapCount = curDetails.MipMapCount,
+                Compression = curDetails.Compression,
                 Width = correctWidth,
                 Height = correctHeight
             };
-            return details;
         }
 
         public static string CheckTexturesHaveSameSize(List<GTexture> textures)

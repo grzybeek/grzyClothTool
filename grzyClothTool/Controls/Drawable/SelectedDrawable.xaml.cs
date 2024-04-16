@@ -2,6 +2,7 @@
 using grzyClothTool.Helpers;
 using grzyClothTool.Models;
 using grzyClothTool.Views;
+using ImageMagick;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -116,17 +117,16 @@ namespace grzyClothTool.Controls
                     textureListBox.SelectedIndex = gtxt.TxtNumber;
                 }
 
-                var ytd = CWHelper.GetYtdFile(gtxt.FilePath);
-                var txt = ytd.TextureDict.Textures[0];
-                var pixels = CodeWalker.Utils.DDSIO.GetPixels(txt, 0);
-
-                if(pixels == null)
+                MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
+                if (img == null)
                 {
                     return;
                 }
 
-                var w = txt.Width;
-                var h = txt.Height;
+                int w = img.Width;
+                int h = img.Height;
+                byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
+
                 Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
                 BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
                 Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
@@ -246,7 +246,7 @@ namespace grzyClothTool.Controls
             OpenFileDialog files = new()
             {
                 Title = $"Select textures",
-                Filter = "Texture files (*.ytd)|*.ytd",
+                Filter = "Texture files (*.ytd)|*.ytd|Image files (*.jpg;*.png)|*.jpg;*.png",
                 Multiselect = true
             };
 

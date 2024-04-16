@@ -48,4 +48,16 @@ public static class CWHelper
         return _ytdFile;
     }
 
+    public static YtdFile CreateYtdFile(string path, string name)
+    {
+        byte[] data = File.ReadAllBytes(path);
+
+        RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
+        var decompressedData = ResourceBuilder.Decompress(data);
+        YtdFile ytd = RpfFile.GetFile<YtdFile>(rpf, decompressedData);
+        ytd.Name = Path.GetFileNameWithoutExtension(name);
+
+        return ytd;
+    }
+
 }
