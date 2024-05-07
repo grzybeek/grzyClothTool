@@ -21,6 +21,11 @@ public static class ImgHelper
         if(ext == ".ytd")
         {
             var ytd = CWHelper.GetYtdFile(path);
+
+            if (ytd.TextureDict.Textures.Count == 0)
+            {
+                return null;
+            }
             var txt = ytd.TextureDict.Textures[0];
             var dds = CodeWalker.Utils.DDSIO.GetDDSFile(txt);
 

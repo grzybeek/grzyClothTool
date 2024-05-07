@@ -75,6 +75,8 @@ public class GTexture : INotifyPropertyChanged
     public bool IsOptimizedDuringBuild { get; set; }
     public GTextureDetails OptimizeDetails;
 
+    public bool IsPreviewDisabled { get; set; }
+
     public GTexture(string path, int compType, int drawableNumber, int txtNumber, bool hasSkin, bool isProp)
     {
         IsLoading = true;
@@ -102,6 +104,12 @@ public class GTexture : INotifyPropertyChanged
                 IsLoading = false; // Loading finished
                 if (t.Status == TaskStatus.RanToCompletion)
                 {
+                    if (t.Result == null)
+                    {
+                        IsPreviewDisabled = true;
+                        return null;
+                    }
+
                     TxtDetails = t.Result;
                     OnPropertyChanged(nameof(TxtDetails));
 

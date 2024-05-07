@@ -90,8 +90,8 @@
                                                         <ColumnDefinition Width="25" />
                                                         <ColumnDefinition Width="60" />
                                                     </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" ToolTip="{Binding IsOptimizeNeededTooltip}" >
-                                                        <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,0,2">
+                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" >
+                                                        <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
                                                             <icons:MaterialIcon.Style>
                                                                 <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
                                                                     <Style.Triggers>
@@ -105,12 +105,24 @@
                                                                 </Style>
                                                             </icons:MaterialIcon.Style>
                                                         </icons:MaterialIcon>
-                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,5,2">
+                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2" ToolTip="{Binding IsOptimizeNeededTooltip}">
                                                             <icons:MaterialIcon.Style>
                                                                 <Style TargetType="{x:Type icons:MaterialIcon}">
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsOptimizeNeeded}" Value="True">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </icons:MaterialIcon.Style>
+                                                        </icons:MaterialIcon>
+                                                        <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2" ToolTip="Texture not found. Most likely this .ytd is empty">
+                                                            <icons:MaterialIcon.Style>
+                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
                                                                             <Setter Property="Visibility" Value="Visible" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
@@ -138,7 +150,7 @@
                                                     </StackPanel>
 
 
-                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" Content="Preview" />
+                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
                                                     <Grid.ContextMenu>
                                                         <ContextMenu>
                                                             <MenuItem Header="Optimize texture" Click="OptimizeTexture_Click" />
