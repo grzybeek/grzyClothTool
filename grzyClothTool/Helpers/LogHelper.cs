@@ -21,11 +21,17 @@ public static class LogHelper
 
     public static void Log(string message, LogType logtype = LogType.Info)
     {
-        var timestamp = DateTime.Now.ToString("HH:mm:ss");
-        var type = GetLogTypeIcon(logtype);
+        if (_logWindow == null)
+            return;
 
-        _logWindow.LogMessages.Add(new LogMessage { TypeIcon = type, Message = message, Timestamp = timestamp});
-        LogMessageCreated?.Invoke(_logWindow, new LogMessageEventArgs { TypeIcon = type, Message = message });
+        _logWindow.Dispatcher.Invoke(() =>
+        {
+            var timestamp = DateTime.Now.ToString("HH:mm:ss");
+            var type = GetLogTypeIcon(logtype);
+
+            _logWindow.LogMessages.Add(new LogMessage { TypeIcon = type, Message = message, Timestamp = timestamp });
+            LogMessageCreated?.Invoke(_logWindow, new LogMessageEventArgs { TypeIcon = type, Message = message });
+        });
     }
 
     public static string GetLogTypeIcon(LogType type)

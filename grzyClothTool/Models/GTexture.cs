@@ -87,43 +87,46 @@ public class GTexture : INotifyPropertyChanged
         IsProp = isProp;
         HasSkin = hasSkin;
 
-        Task<GTextureDetails> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(path).ContinueWith(t =>
+        if(path != null)
         {
-            if (t.IsFaulted)
+            Task<GTextureDetails> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(path).ContinueWith(t =>
             {
-                Console.WriteLine(t.Exception);
-                //todo: add some warning that it couldn't load
-                IsLoading = true;
-                return null;
-            }
-
-            IsLoading = false; // Loading finished
-            if (t.Status == TaskStatus.RanToCompletion)
-            {
-                TxtDetails = t.Result;
-                OnPropertyChanged(nameof(TxtDetails));
-
-                if(TxtDetails.Height > 2048 || TxtDetails.Width > 2048)
+                if (t.IsFaulted)
                 {
-                    IsOptimizeNeeded = true;
-                    IsOptimizeNeededTooltip += "Texture is larger than 2048x2048. Optimize it to reduce the size.\n";
+                    Console.WriteLine(t.Exception);
+                    //todo: add some warning that it couldn't load
+                    IsLoading = true;
+                    return null;
                 }
 
-                if((TxtDetails.Height & (TxtDetails.Height - 1)) != 0 || (TxtDetails.Width & (TxtDetails.Width - 1)) != 0)
+                IsLoading = false; // Loading finished
+                if (t.Status == TaskStatus.RanToCompletion)
                 {
-                    IsOptimizeNeeded = true;
-                    IsOptimizeNeededTooltip += "Texture height or width is not power of 2. Optimize it to fix the issue.\n";
+                    TxtDetails = t.Result;
+                    OnPropertyChanged(nameof(TxtDetails));
+
+                    if(TxtDetails.Height > 2048 || TxtDetails.Width > 2048)
+                    {
+                        IsOptimizeNeeded = true;
+                        IsOptimizeNeededTooltip += "Texture is larger than 2048x2048. Optimize it to reduce the size.\n";
+                    }
+
+                    if((TxtDetails.Height & (TxtDetails.Height - 1)) != 0 || (TxtDetails.Width & (TxtDetails.Width - 1)) != 0)
+                    {
+                        IsOptimizeNeeded = true;
+                        IsOptimizeNeededTooltip += "Texture height or width is not power of 2. Optimize it to fix the issue.\n";
+                    }
+
+                    if(TxtDetails.MipMapCount == 1)
+                    {
+                        IsOptimizeNeeded = true;
+                        IsOptimizeNeededTooltip += "Texture has only 1 mip map. Optimize it to automatically generate correct amount.";
+                    }
                 }
 
-                if(TxtDetails.MipMapCount == 1)
-                {
-                    IsOptimizeNeeded = true;
-                    IsOptimizeNeededTooltip += "Texture has only 1 mip map. Optimize it to automatically generate correct amount.";
-                }
-            }
-
-            return t.Result;
-        });
+                return t.Result;
+            });
+        }
     }
 
 

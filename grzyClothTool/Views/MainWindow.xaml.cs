@@ -48,6 +48,7 @@ namespace grzyClothTool
             LogHelper.Init();
             LogHelper.LogMessageCreated += LogHelper_LogMessageCreated;
 
+            SaveHelper.Init();
 
             Dispatcher.BeginInvoke((Action)(async () =>
             {

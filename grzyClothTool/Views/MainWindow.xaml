@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:constants="clr-namespace:grzyClothTool"
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
@@ -13,6 +14,14 @@
         MouseDown="Window_MouseDown"
         Closed="Window_Closed"
         >
+
+    <Window.Resources>
+        <CollectionViewSource x:Key="SortedSaveFiles" Source="{Binding SaveFiles}">
+            <CollectionViewSource.SortDescriptions>
+                <scm:SortDescription PropertyName="SaveDate" Direction="Descending"/>
+            </CollectionViewSource.SortDescriptions>
+        </CollectionViewSource>
+    </Window.Resources>
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -25,6 +34,19 @@
 
             <MenuItem Header="_Project">
                 <MenuItem Header="_Open" Click="OpenProject_Click" />
+                <MenuItem Header="_Open Recent" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
+                    <MenuItem.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock>
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="{}Auto-save ({0:dd.MM.yyyy HH:mm:ss})">
+                                        <Binding Path="SaveDate" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </DataTemplate>
+                    </MenuItem.ItemTemplate>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Settings" Tag="Settings" Click="Navigation_Click" />
             <MenuItem Header="_View" Tag="View">

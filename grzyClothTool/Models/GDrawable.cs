@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Views;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,11 +9,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace grzyClothTool.Models;
-
-public class DrawableAdditionalOptions
-{
-    public bool RenderFlags { get; set; } = false;
-}
 
 public class GReservedDrawable : GDrawable
 {
@@ -69,6 +65,8 @@ public class GDrawable : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+
+    [JsonIgnore]
     public List<string> AvailableTypes => IsProp ? EnumHelper.GetPropTypeList() : EnumHelper.GetDrawableTypeList();
 
     /// <returns>
@@ -101,10 +99,6 @@ public class GDrawable : INotifyPropertyChanged
             }
         }
     }
-
-
-    public DrawableAdditionalOptions AdditionalOptions { get; set; }
-
 
     private bool _enableKeepPreview;
     public bool EnableKeepPreview 
@@ -141,9 +135,12 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
+    [JsonIgnore]
     public List<string> AvailableAudioList => EnumHelper.GetAudioList(TypeNumeric);
 
     public string RenderFlag { get; set; } = ""; // "" is the default value
+
+    [JsonIgnore]
     public static List<string> AvailableRenderFlagList => ["","PRF_ALPHA","PRF_DECAL", "PRF_CUTOUT"];
 
     public ObservableCollection<GTexture> Textures { get; set; }
@@ -159,8 +156,6 @@ public class GDrawable : INotifyPropertyChanged
         IsProp = isProp;
 
         Audio = "none";
-        AdditionalOptions = new DrawableAdditionalOptions() { RenderFlags = isProp };
-
         SetDrawableName();
     }
 

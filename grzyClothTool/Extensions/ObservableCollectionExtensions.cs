@@ -1,4 +1,5 @@
 ﻿using grzyClothTool.Models;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -29,5 +30,10 @@ public static class ObservableCollectionExtensions
         {
             textures[i].TxtNumber = i;
         }
+    }
+
+    public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> source)
+    {
+        return new ObservableCollection<T>(source);
     }
 }

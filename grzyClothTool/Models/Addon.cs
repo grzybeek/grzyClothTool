@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -32,10 +33,11 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-
+    [JsonIgnore]
     public bool TriggerSelectedDrawableUpdatedEvent { get; set; }
 
     private GDrawable _selectedDrawable;
+    [JsonIgnore]
     public GDrawable SelectedDrawable
     {
         get { return _selectedDrawable; }
@@ -49,6 +51,7 @@ public class Addon : INotifyPropertyChanged
     }
 
     private GTexture _selectedTexture;
+    [JsonIgnore]
     public GTexture SelectedTexture
     {
         get { return _selectedTexture; }

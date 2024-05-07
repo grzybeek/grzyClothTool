@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Views;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
@@ -8,6 +9,18 @@ using System.Windows.Controls;
 namespace grzyClothTool.Helpers;
 public class NavigationHelper : INotifyPropertyChanged
 {
+    private ObservableCollection<SaveFile> _saveFiles = [];
+    public ObservableCollection<SaveFile> SaveFiles
+    {
+        get { return _saveFiles; }
+        set
+        {
+            _saveFiles = value;
+            OnPropertyChanged(nameof(SaveFiles));
+        }
+    }
+
+
     private readonly Dictionary<string, Func<UserControl>> _pageFactories = [];
     private readonly Dictionary<string, UserControl> _pages = [];
 
@@ -27,6 +40,9 @@ public class NavigationHelper : INotifyPropertyChanged
     public NavigationHelper()
     {
         CurrentPage = new ProjectWindow();
+
+
+        SaveHelper.SaveCreated += () => SaveFiles = SaveHelper.GetSaveFiles();
     }
 
     protected virtual void OnPropertyChanged([CallerMemberName] string name = null)

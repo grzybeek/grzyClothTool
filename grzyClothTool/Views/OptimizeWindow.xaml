@@ -8,7 +8,7 @@
         xmlns:c="clr-namespace:grzyClothTool.Controls"
         Background="{DynamicResource Brush50}"
         mc:Ignorable="d"
-        Title="OptimizeWindow" MinHeight="420" MaxHeight="420" MinWidth="690" MaxWidth="690">
+        Title="Optimize textures" MinHeight="420" MaxHeight="420" MinWidth="690" MaxWidth="690">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="330" />

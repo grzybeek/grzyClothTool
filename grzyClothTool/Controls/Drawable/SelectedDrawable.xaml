@@ -161,7 +161,7 @@
                                     <GroupBox Header="Drawable Options" Grid.Row="0" Style="{DynamicResource FixedGroupBox}" Margin="2">
                                         <StackPanel Orientation="Vertical">
                                             <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}"/>
-                                            <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.AdditionalOptions.RenderFlags}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
+                                            <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsProp}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelCheckBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" />
                                             <StackPanel Orientation="Vertical" Margin="0">
                                                 <StackPanel.Style>

@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,6 +23,10 @@ namespace grzyClothTool.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
+        [JsonProperty]
+        private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+
         private ObservableCollection<Addon> _addons = [];
         public ObservableCollection<Addon> Addons
         {
@@ -37,6 +43,7 @@ namespace grzyClothTool.Models
 
         
         private Addon _selectedAddon;
+        [JsonIgnore]
         public Addon SelectedAddon
         {
             get { return _selectedAddon; }
