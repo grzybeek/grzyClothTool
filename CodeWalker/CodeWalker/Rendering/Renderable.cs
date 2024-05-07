@@ -405,7 +405,15 @@ namespace CodeWalker.Rendering
         }
         private void UpdateBoneTransforms()
         {
-            if (Skeleton?.Bones?.Items == null) return;
+            if (Skeleton?.Bones?.Items == null)
+            {
+                // try to get skeleton
+                if (Key.Skeleton != null) {
+                    Skeleton = Key.Skeleton;
+                }
+
+                return;
+            }
 
             Skeleton.UpdateBoneTransforms();
 
