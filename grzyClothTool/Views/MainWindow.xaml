@@ -33,16 +33,19 @@
 
 
             <MenuItem Header="_Project">
-                <MenuItem Header="_Open" Click="OpenProject_Click" />
-                <MenuItem Header="_Open Recent" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
+                <MenuItem Header="_Open" Click="OpenProject_Click" IsEnabled="False" />
+                <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
                     <MenuItem.ItemTemplate>
                         <DataTemplate>
-                            <TextBlock>
+                            <TextBlock MouseUp="OpenSave_Click">
                                 <TextBlock.Text>
                                     <MultiBinding StringFormat="{}Auto-save ({0:dd.MM.yyyy HH:mm:ss})">
                                         <Binding Path="SaveDate" />
                                     </MultiBinding>
                                 </TextBlock.Text>
+                                <TextBlock.Tag>
+                                    <Binding />
+                                </TextBlock.Tag>
                             </TextBlock>
                         </DataTemplate>
                     </MenuItem.ItemTemplate>

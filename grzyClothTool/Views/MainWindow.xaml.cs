@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
@@ -124,6 +125,14 @@ namespace grzyClothTool
             //}
 
             LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
+        }
+
+        private async void OpenSave_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBlock textBlock && textBlock.Tag is SaveFile saveFile)
+            {
+                await SaveHelper.LoadAsync(saveFile);
+            }
         }
 
 

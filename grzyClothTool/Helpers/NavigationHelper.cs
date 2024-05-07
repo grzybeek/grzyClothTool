@@ -41,7 +41,7 @@ public class NavigationHelper : INotifyPropertyChanged
     {
         CurrentPage = new ProjectWindow();
 
-
+        SaveFiles = SaveHelper.GetSaveFiles();
         SaveHelper.SaveCreated += () => SaveFiles = SaveHelper.GetSaveFiles();
     }
 

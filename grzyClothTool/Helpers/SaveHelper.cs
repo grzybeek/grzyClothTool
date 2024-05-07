@@ -28,7 +28,6 @@ public static class SaveHelper
     public static event Action SaveCreated;
     private static SemaphoreSlim _semaphore = new(1);
 
-
     static SaveHelper()
     {
         var appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -44,10 +43,21 @@ public static class SaveHelper
         _timer.Elapsed += async (sender, e) => await SaveAsync();
         _timer.Start();
 
-        _ = SaveAsync();
+        var latestSaveFile = Directory.EnumerateFiles(SavesPath, "save_*.json")
+            .Select(file => new { File = file, WriteTime = File.GetLastWriteTime(file) })
+            .OrderBy(fileInfo => fileInfo.WriteTime)
+            .FirstOrDefault();
+
+        if (latestSaveFile != null)
+        {
+            var fileName = Path.GetFileNameWithoutExtension(latestSaveFile.File);
+            var numberPart = fileName.Split('_').Last();
+            if (int.TryParse(numberPart, out var number))
+            {
+                _saveCounter = number;
+            }
+        }
     }
-
-
 
     public static async Task SaveAsync()
     {
@@ -76,17 +86,20 @@ public static class SaveHelper
         }
     }
 
-    public static async Task LoadAsync()
+    public static async Task LoadAsync(SaveFile save)
     {
+        var path = Path.Combine(SavesPath, $"{save.FileName}.json");
 
-        foreach (var file in Directory.EnumerateFiles(SavesPath, "*.json"))
+        var json = await File.ReadAllTextAsync(path);
+        var addonManager = JsonConvert.DeserializeObject<AddonManager>(json);
+
+        MainWindow.AddonManager.Addons.Clear();
+        foreach (var addon in addonManager.Addons)
         {
-            var json = await File.ReadAllTextAsync(file);
-            var addon = JsonConvert.DeserializeObject<Addon>(json);
-
-            MainWindow.AddonManager.Addons.Clear();
             MainWindow.AddonManager.Addons.Add(addon);
         }
+
+        LogHelper.Log($"Loaded save: {save.SaveDate}");
     }
 
     public static ObservableCollection<SaveFile> GetSaveFiles()
