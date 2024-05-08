@@ -212,16 +212,16 @@
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>
-                                    <GroupBox Grid.Row="1" Header="Preview Options" IsEnabled="{Binding SelectedAddon.IsPreviewEnabled}" Style="{DynamicResource FixedGroupBox}" Margin="2">
+                                    <GroupBox Grid.Row="1" Header="Preview Options" IsEnabled="{Binding IsPreviewEnabled}" Style="{DynamicResource FixedGroupBox}" Margin="2">
                                         <StackPanel Orientation="Vertical" Margin="0">
                                             <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="False">
+                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
                                                                 <Setter Property="Visibility" Value="Visible" />
                                                             </DataTrigger>
-                                                            <DataTrigger Binding="{Binding SelectedAddon.IsPreviewEnabled}" Value="True">
+                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="True">
                                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                             </DataTrigger>
                                                         </Style.Triggers>

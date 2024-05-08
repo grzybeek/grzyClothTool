@@ -57,6 +57,18 @@ namespace grzyClothTool.Models
             }
         }
 
+        private bool _isPreviewEnabled;
+        [JsonIgnore]
+        public bool IsPreviewEnabled
+        {
+            get { return _isPreviewEnabled; }
+            set
+            {
+                _isPreviewEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
         public AddonManager()
         {
         }

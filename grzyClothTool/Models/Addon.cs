@@ -22,16 +22,6 @@ public class Addon : INotifyPropertyChanged
     public bool HasFemale { get; set; }
     public bool HasMale { get; set; }
     public bool HasProps { get; set; }
-    private bool _isPreviewEnabled;
-    public bool IsPreviewEnabled
-    {
-        get { return _isPreviewEnabled; }
-        set
-        {
-            _isPreviewEnabled = value;
-            OnPropertyChanged();
-        }
-    }
 
     [JsonIgnore]
     public bool TriggerSelectedDrawableUpdatedEvent { get; set; }

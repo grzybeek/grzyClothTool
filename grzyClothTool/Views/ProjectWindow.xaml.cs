@@ -166,7 +166,7 @@ namespace grzyClothTool.Views
             if (Addon.SelectedDrawable == null)
             {
                 CWHelper.CWForm.Show();
-                Addon.IsPreviewEnabled = true;
+                MainWindow.AddonManager.IsPreviewEnabled = true;
                 return;
             }
 
@@ -180,18 +180,17 @@ namespace grzyClothTool.Views
             }
 
             CWHelper.CWForm.Show();
-            Addon.IsPreviewEnabled = true;
+            MainWindow.AddonManager.IsPreviewEnabled = true;
         }
 
         private void CWForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Addon.IsPreviewEnabled = false;
+            MainWindow.AddonManager.IsPreviewEnabled = false;
         }
 
         private void SelectedDrawable_Changed(object sender, EventArgs e)
         {
-            var args = e as SelectionChangedEventArgs;
-            if (args == null) return;
+            if (e is not SelectionChangedEventArgs args) return;
             args.Handled = true;
 
             if (args.AddedItems.Count == 0)
@@ -207,11 +206,11 @@ namespace grzyClothTool.Views
                 SelDrawable.SelectedIndex = 0;
             }
 
-            if (!Addon.IsPreviewEnabled) return;
-            SendDrawableUpdateToCodewalkerPreview();
+            if (!MainWindow.AddonManager.IsPreviewEnabled) return;
+            SendDrawableUpdateToCodewalkerPreview(e);
         }
 
-        private void SendDrawableUpdateToCodewalkerPreview()
+        private void SendDrawableUpdateToCodewalkerPreview(EventArgs args)
         {
             var ydd = CreateYddFile(Addon.SelectedDrawable);
             YtdFile ytd = null;
@@ -227,22 +226,11 @@ namespace grzyClothTool.Views
 
             Dictionary<string, string> updateDict = [];
             string updateName, value;
-            if (Addon.SelectedDrawable.EnableHairScale)
+
+            if (args is DrawableUpdatedArgs dargs)
             {
-                updateName = "HairScale";
-                value = Addon.SelectedDrawable.HairScaleValue.ToString();
-                updateDict.Add(updateName, value);
-            }
-            else if (Addon.SelectedDrawable.EnableHighHeels)
-            {
-                updateName = "HighHeels";
-                value = Addon.SelectedDrawable.HighHeelsValue.ToString();
-                updateDict.Add(updateName, value);
-            }
-            else if (Addon.SelectedDrawable.EnableKeepPreview)
-            {
-                updateName = "EnableKeepPreview";
-                value = Addon.SelectedDrawable.EnableKeepPreview.ToString();
+                updateName = dargs.UpdatedName;
+                value = dargs.Value.ToString();
                 updateDict.Add(updateName, value);
             }
 
@@ -255,13 +243,12 @@ namespace grzyClothTool.Views
                 updateDict.Add(updateName, value);
             }
 
-
             CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateDict);
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
         {
-            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !Addon.IsPreviewEnabled || Addon.SelectedDrawable is null || Addon.SelectedDrawable.Textures.Count == 0)
+            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !MainWindow.AddonManager.IsPreviewEnabled || Addon.SelectedDrawable is null || Addon.SelectedDrawable.Textures.Count == 0)
             {
                 return;
             }
@@ -269,13 +256,12 @@ namespace grzyClothTool.Views
             Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
             SelDrawable.SelectedIndex = 0;
 
-            SendDrawableUpdateToCodewalkerPreview();
+            SendDrawableUpdateToCodewalkerPreview(e);
         }
 
         private void SelectedDrawable_TextureChanged(object sender, EventArgs e)
         {
-            var args = e as SelectionChangedEventArgs;
-            if (args == null || args.AddedItems.Count == 0)
+            if (e is not SelectionChangedEventArgs args || args.AddedItems.Count == 0)
             {
                 Addon.SelectedTexture = null;
                 return;
@@ -284,7 +270,7 @@ namespace grzyClothTool.Views
             args.Handled = true;
             Addon.SelectedTexture = (GTexture)args.AddedItems[0];
 
-            if (!Addon.IsPreviewEnabled) return;
+            if (!MainWindow.AddonManager.IsPreviewEnabled) return;
 
             var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
             CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
