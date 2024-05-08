@@ -253,9 +253,6 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
-            SelDrawable.SelectedIndex = 0;
-
             SendDrawableUpdateToCodewalkerPreview(e);
         }
 
