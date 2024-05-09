@@ -1,5 +1,7 @@
-﻿using grzyClothTool.Extensions;
+﻿using grzyClothTool.Controls;
+using grzyClothTool.Extensions;
 using grzyClothTool.Models;
+using ImageMagick;
 using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
@@ -9,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using static grzyClothTool.Controls.CustomMessageBox;
 using Timer = System.Timers.Timer;
 
 namespace grzyClothTool.Helpers;
@@ -27,6 +30,8 @@ public static class SaveHelper
     private static int _saveCounter = 0;
     public static event Action SaveCreated;
     private static SemaphoreSlim _semaphore = new(1);
+
+    public static bool HasUnsavedChanges { get; set; }
 
     static SaveHelper()
     {
@@ -61,6 +66,8 @@ public static class SaveHelper
 
     public static async Task SaveAsync()
     {
+        if (!HasUnsavedChanges) return;
+
         await _semaphore.WaitAsync();
 
         try
@@ -79,11 +86,48 @@ public static class SaveHelper
             _saveCounter = (_saveCounter + 1) % 10;
 
             SaveCreated?.Invoke();
+            SetUnsavedChanges(false);
         }
         finally
         {
             _semaphore.Release();
         }
+    }
+
+    public static void SetUnsavedChanges(bool status)
+    {
+        HasUnsavedChanges = status;
+
+        MainWindow.Instance.Dispatcher.Invoke(() =>
+        {
+            string unsavedText = " (Unsaved changes)";
+            bool titleContainsUnsaved = MainWindow.Instance.Title.Contains(unsavedText);
+
+            if (status && !titleContainsUnsaved)
+            {
+                MainWindow.Instance.Title += unsavedText;
+            }
+            else if (!status && titleContainsUnsaved)
+            {
+                MainWindow.Instance.Title = MainWindow.Instance.Title.Replace(unsavedText, "");
+            }
+        });
+    }
+
+    public static bool CheckUnsavedChangesMessage()
+    {
+        if (!HasUnsavedChanges) return true;
+
+        bool result = false;
+
+        MainWindow.Instance.Dispatcher.Invoke(() =>
+        {
+            var clickResult = Show("You have unsaved changes. Do you want to continue with this action?", "Unsaved changes", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Warning);
+
+            result = clickResult == CustomMessageBoxResult.OK;
+        });
+
+        return result;
     }
 
     public static async Task LoadAsync(SaveFile save)

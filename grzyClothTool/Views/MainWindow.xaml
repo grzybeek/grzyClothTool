@@ -13,6 +13,7 @@
         Title="(WIP) grzyClothTool" Height="800" Width="1200" MinWidth="800" MinHeight="400"
         MouseDown="Window_MouseDown"
         Closed="Window_Closed"
+        Closing="Window_Closing"
         >
 
     <Window.Resources>
@@ -33,7 +34,7 @@
 
 
             <MenuItem Header="_Project">
-                <MenuItem Header="_Open" Click="OpenProject_Click" IsEnabled="False" />
+                <MenuItem Header="_Open" Click="OpenProject_Click" />
                 <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
                     <MenuItem.ItemTemplate>
                         <DataTemplate>

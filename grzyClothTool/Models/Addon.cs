@@ -89,71 +89,6 @@ public class Addon : INotifyPropertyChanged
             SelectedDrawable = Drawables.First();
         }
     }
-    public async Task AddDrawables(string[] filePaths, bool isMale)
-    {
-
-        Regex alternateRegex = new(@"_\w_\d+\.ydd$");
-        foreach (var filePath in filePaths)
-        {
-            var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
-            if (drawableType == -1)
-            {
-                continue;
-            }
-
-            if(alternateRegex.IsMatch(filePath))
-            {
-                continue;
-            }
-
-            // Start from the first Addon
-            var currentAddonIndex = 0;
-            Addon currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
-
-            // Calculate countOfType for the current Addon
-            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
-            var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, drawableType, countOfType));
-
-            // Check if the number of drawables of this type has reached 128
-            while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
-            {
-                // Move to the next Addon
-                currentAddonIndex++;
-                if (currentAddonIndex < MainWindow.AddonManager.Addons.Count)
-                {
-                    // Get the next Addon
-                    currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
-                }
-                else
-                {
-                    // Create a new Addon
-                    currentAddon = new Addon("Addon " + (currentAddonIndex + 1));
-                    MainWindow.AddonManager.Addons.Add(currentAddon);
-                }
-
-                // Calculate countOfType for the current Addon
-                countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
-
-                // Update name and number
-                drawable.Number = countOfType;
-                drawable.SetDrawableName();
-            }
-
-            // Add the drawable to the current Addon
-            currentAddon.Drawables.Add(drawable);
-
-            //set HasMale/HasFemale/HasProps only once adding first drawable
-            if (isMale && !currentAddon.HasMale) currentAddon.HasMale = true;
-            if (!isMale && !currentAddon.HasFemale) currentAddon.HasFemale = true;
-            if (isProp && !currentAddon.HasProps) currentAddon.HasProps = true;
-        }
-
-        // Sort the ObservableCollection in place, in all existing addons
-        foreach (var addon in MainWindow.AddonManager.Addons)
-        {
-            addon.Drawables.Sort();
-        }
-    }
 
     public int GetNextDrawableNumber(int typeNumeric, bool isProp, bool isMale)
     {
@@ -177,25 +112,6 @@ public class Addon : INotifyPropertyChanged
         }
 
         return nextNumber;
-    }
-
-    public async void LoadAddon(string path)
-    {
-        var dirPath = Path.GetDirectoryName(path);
-        var addonName = Path.GetFileNameWithoutExtension(path);
-
-        // find all .ydd files within all folders that contain addonName in name
-        var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
-            .Where(x => x.Contains(addonName))
-            .ToArray();
-
-        if (yddFiles.Length == 0)
-        {
-            CustomMessageBox.Show($"No .ydd files found for selected .meta file ({Path.GetFileName(path)})", "Error");
-            return;
-        }
-
-        await AddDrawables(yddFiles, true);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string name = null)

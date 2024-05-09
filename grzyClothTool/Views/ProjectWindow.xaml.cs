@@ -76,10 +76,11 @@ namespace grzyClothTool.Views
                 var timer = new Stopwatch();
                 timer.Start();
 
-                await Addon.AddDrawables(files.FileNames, isMaleBtn);
+                await MainWindow.AddonManager.AddDrawables(files.FileNames, isMaleBtn);
 
                 timer.Stop();
                 LogHelper.Log($"Added drawables in {timer.Elapsed}");
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
 
@@ -102,11 +103,12 @@ namespace grzyClothTool.Views
                 foreach (var fldr in folder.FolderNames)
                 {
                     var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories).OrderBy(f => Path.GetFileName(f)).ToArray();
-                    await Addon.AddDrawables(files, isMaleBtn);
+                    await MainWindow.AddonManager.AddDrawables(files, isMaleBtn);
                 }
 
                 timer.Stop();
                 LogHelper.Log($"Added drawables in {timer.Elapsed}");
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
 
@@ -132,6 +134,8 @@ namespace grzyClothTool.Views
                 //replace drawable with reserved in the same place
                 Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
             }
+
+            SaveHelper.SetUnsavedChanges(true);
         }
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)

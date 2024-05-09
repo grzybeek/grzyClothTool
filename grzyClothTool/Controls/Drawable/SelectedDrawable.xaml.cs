@@ -206,6 +206,7 @@ namespace grzyClothTool.Controls
                 Value = control.GetValue(e.DependencyPropertyChangedEventArgs.Property)
             };
             SelectedDrawableUpdated?.Invoke(control, args);
+            SaveHelper.SetUnsavedChanges(true);
         }
 
         private static ListBox FindTextureListBox(DependencyObject parent)
@@ -238,6 +239,8 @@ namespace grzyClothTool.Controls
                     SelectedDraw.Textures.Remove(texture);
                 }
                 SelectedDraw.Textures.ReassignNumbers();
+
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
 
@@ -257,6 +260,8 @@ namespace grzyClothTool.Controls
                     var gtxt = new GTexture(file, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedDraw.Textures.Count, SelectedDraw.HasSkin, SelectedDraw.IsProp);
                     SelectedDraw.Textures.Add(gtxt);
                 }
+
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
 
@@ -275,6 +280,8 @@ namespace grzyClothTool.Controls
                 var multipleSelected = SelectedTextures.Count > 1;
                 var optimizeWindow = new OptimizeWindow(SelectedTextures, multipleSelected);
                 optimizeWindow.ShowDialog();
+
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
 
@@ -294,6 +301,7 @@ namespace grzyClothTool.Controls
             }
 
             SelectedDraw.ChangeDrawableType(newValue.ToString());
+            SaveHelper.SetUnsavedChanges(true);
         }
 
         private async void ReplaceReserved_Click(object sender, RoutedEventArgs e)
@@ -311,6 +319,7 @@ namespace grzyClothTool.Controls
                 // Replace reserved drawable with new drawable
                 var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(SelectedDraw);
                 MainWindow.AddonManager.SelectedAddon.Drawables[index] = newDrawable;
+                SaveHelper.SetUnsavedChanges(true);
             }
         }
     }

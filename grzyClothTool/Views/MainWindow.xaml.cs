@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Navigation;
 
 namespace grzyClothTool
@@ -99,38 +98,39 @@ namespace grzyClothTool
 
             _navigationHelper.Navigate(tag);
         }
+
         private void OpenProject_Click(object sender, RoutedEventArgs e)
         {
-            //OpenFileDialog metaFiles = new()
-            //{
-            //    Title = "Select .meta file(s)",
-            //    Multiselect = true,
-            //    Filter = "Meta files (*.meta)|*.meta"
-            //};
+            if (!SaveHelper.CheckUnsavedChangesMessage())
+            {
+                return;
+            }
 
-            //if (metaFiles.ShowDialog() == true)
-            //{
-            //    //foreach (var fldr in folder.FolderNames)
-            //    //{
-            //    //    foreach (var file in Directory.GetFiles(fldr, "*.ydd", SearchOption.TopDirectoryOnly))
-            //    //    {
-            //    //        Addon.AddDrawable(file, isMaleBtn);
-            //    //    }
-            //    //}
+            OpenFileDialog metaFiles = new()
+            {
+                Title = "Select .meta file(s)",
+                Multiselect = true,
+                Filter = "Meta files (*.meta)|*.meta"
+            };
 
-            //    //foreach (var dir in metaFiles.FileNames)
-            //    //{
-            //    //    _addon.LoadAddon(dir);  //todo: fix this
-            //    //}
-            //}
-
-            LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
+            if (metaFiles.ShowDialog() == true)
+            {
+                foreach (var dir in metaFiles.FileNames)
+                {
+                    AddonManager.LoadAddon(dir);
+                }
+            }
         }
 
         private async void OpenSave_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is TextBlock textBlock && textBlock.Tag is SaveFile saveFile)
             {
+                if(!SaveHelper.CheckUnsavedChangesMessage())
+                {
+                    return;
+                }
+
                 await SaveHelper.LoadAsync(saveFile);
             }
         }
@@ -145,6 +145,14 @@ namespace grzyClothTool
             }
 
             LogHelper.Close();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!SaveHelper.CheckUnsavedChangesMessage())
+            {
+                e.Cancel = true;
+            }
         }
 
         private void StatusBarItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
