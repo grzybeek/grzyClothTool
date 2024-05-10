@@ -34,7 +34,7 @@
 
 
             <MenuItem Header="_Project">
-                <MenuItem Header="_Open" Click="OpenProject_Click" />
+                <MenuItem Header="_Open Addon" Click="OpenProject_Click" />
                 <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
                     <MenuItem.ItemTemplate>
                         <DataTemplate>
