@@ -1,15 +1,9 @@
-﻿using grzyClothTool.Controls;
-using grzyClothTool.Extensions;
-using grzyClothTool.Helpers;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace grzyClothTool.Models;
 

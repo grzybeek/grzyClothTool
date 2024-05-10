@@ -621,16 +621,16 @@ public class BuildResourceHelper
         for (int i = 0; i < compInfos.Length; i++)
         {
             var drawable = allCompDrawablesArray[i];
-            compInfos[i].Unk_802196719 = JenkHash.GenHash(drawable.Audio);
-            compInfos[i].Unk_4233133352 = JenkHash.GenHash("none"); //todo
-            compInfos[i].Unk_128864925 = new ArrayOfFloats5 { f0 = 0, f1 = 0, f2 = 0, f3 = 0, f4 = drawable.HighHeelsValue }; //expression mods
+            compInfos[i].pedXml_audioID = JenkHash.GenHash(drawable.Audio);
+            compInfos[i].pedXml_audioID2 = JenkHash.GenHash("none"); //todo
+            compInfos[i].pedXml_expressionMods = new ArrayOfFloats5 { f0 = 0, f1 = 0, f2 = 0, f3 = 0, f4 = drawable.HighHeelsValue }; //expression mods
             compInfos[i].flags = 0;
             compInfos[i].inclusions = 0;
             compInfos[i].exclusions = 0;
-            compInfos[i].Unk_1613922652 = ePedVarComp.PV_COMP_HEAD;
-            compInfos[i].Unk_2114993291 = 0;
-            compInfos[i].Unk_3509540765 = (byte)drawable.TypeNumeric;
-            compInfos[i].Unk_4196345791 = (byte)drawable.Number;
+            compInfos[i].pedXml_vfxComps = ePedVarComp.PV_COMP_HEAD;
+            compInfos[i].pedXml_flags = 0;
+            compInfos[i].pedXml_compIdx = (byte)drawable.TypeNumeric;
+            compInfos[i].pedXml_drawblIdx = (byte)drawable.Number;
         }
 
         CPed.compInfos = mb.AddItemArrayPtr(MetaName.CComponentInfo, compInfos);

@@ -6402,16 +6402,16 @@ namespace CodeWalker.GameFiles
 
     [TC(typeof(EXP))] public struct CComponentInfo //48 bytes, Key:3693847250  //COMPONENT PEDS 
     {
-        public MetaHash Unk_802196719 { get; set; } //0   0: Hash: 0: 802196719
-        public MetaHash Unk_4233133352 { get; set; } //4   4: Hash: 0: 4233133352
-        public ArrayOfFloats5 Unk_128864925 { get; set; } //8   8: ArrayOfBytes: 5: 128864925
+        public MetaHash pedXml_audioID { get; set; } //0   0: Hash: 0: 802196719
+        public MetaHash pedXml_audioID2 { get; set; } //4   4: Hash: 0: 4233133352
+        public ArrayOfFloats5 pedXml_expressionMods { get; set; } //8   8: ArrayOfBytes: 5: 128864925
         public uint flags { get; set; } //28   28: UnsignedInt: 0: flags
         public int inclusions { get; set; } //32   32: IntFlags2: 0: inclusions//2172318933
         public int exclusions { get; set; } //36   36: IntFlags2: 0: exclusions
-        public ePedVarComp Unk_1613922652 { get; set; } //40   40: ShortFlags: ePedVarComp: 1613922652
-        public ushort Unk_2114993291 { get; set; } //42   42: UnsignedShort: 0: 2114993291
-        public byte Unk_3509540765 { get; set; } //44   44: UnsignedByte: 0: 3509540765
-        public byte Unk_4196345791 { get; set; } //45   45: UnsignedByte: 0: 4196345791
+        public ePedVarComp pedXml_vfxComps { get; set; } //40   40: ShortFlags: ePedVarComp: 1613922652
+        public ushort pedXml_flags { get; set; } //42   42: UnsignedShort: 0: 2114993291
+        public byte pedXml_compIdx { get; set; } //44   44: UnsignedByte: 0: 3509540765
+        public byte pedXml_drawblIdx { get; set; } //45   45: UnsignedByte: 0: 4196345791
         public ushort Unused5 { get; set; }//46
     }
     [TC(typeof(EXP))] public class MCComponentInfo : MetaWrapper
@@ -6422,8 +6422,8 @@ namespace CodeWalker.GameFiles
         public CComponentInfo Data { get { return _Data; } }
 
 
-        public int ComponentType { get { return _Data.Unk_3509540765; } }
-        public int ComponentIndex { get { return _Data.Unk_4196345791; } }
+        public int ComponentType { get { return _Data.pedXml_compIdx; } }
+        public int ComponentIndex { get { return _Data.pedXml_drawblIdx; } }
 
         public MCComponentInfo() { }
         public MCComponentInfo(Meta meta, CComponentInfo data, MCPedVariationInfo owner)

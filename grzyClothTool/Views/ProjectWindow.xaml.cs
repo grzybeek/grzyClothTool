@@ -73,6 +73,7 @@ namespace grzyClothTool.Views
 
             if (files.ShowDialog() == true)
             {
+                SaveHelper.SavingPaused = true;
                 var timer = new Stopwatch();
                 timer.Start();
 
@@ -81,6 +82,7 @@ namespace grzyClothTool.Views
                 timer.Stop();
                 LogHelper.Log($"Added drawables in {timer.Elapsed}");
                 SaveHelper.SetUnsavedChanges(true);
+                SaveHelper.SavingPaused = false;
             }
         }
 
@@ -98,6 +100,7 @@ namespace grzyClothTool.Views
 
             if (folder.ShowDialog() == true)
             {
+                SaveHelper.SavingPaused = true;
                 var timer = new Stopwatch();
                 timer.Start();
                 foreach (var fldr in folder.FolderNames)
@@ -109,6 +112,7 @@ namespace grzyClothTool.Views
                 timer.Stop();
                 LogHelper.Log($"Added drawables in {timer.Elapsed}");
                 SaveHelper.SetUnsavedChanges(true);
+                SaveHelper.SavingPaused = false;
             }
         }
 

@@ -1,7 +1,5 @@
-﻿using grzyClothTool.Controls;
-using grzyClothTool.Extensions;
+﻿using grzyClothTool.Extensions;
 using grzyClothTool.Models;
-using ImageMagick;
 using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
@@ -32,6 +30,7 @@ public static class SaveHelper
     private static SemaphoreSlim _semaphore = new(1);
 
     public static bool HasUnsavedChanges { get; set; }
+    public static bool SavingPaused { get; set; }
 
     static SaveHelper()
     {
@@ -66,7 +65,7 @@ public static class SaveHelper
 
     public static async Task SaveAsync()
     {
-        if (!HasUnsavedChanges) return;
+        if (!HasUnsavedChanges || SavingPaused) return;
 
         await _semaphore.WaitAsync();
 

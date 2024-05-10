@@ -99,7 +99,7 @@ namespace grzyClothTool
             _navigationHelper.Navigate(tag);
         }
 
-        private void OpenProject_Click(object sender, RoutedEventArgs e)
+        private async void OpenProject_Click(object sender, RoutedEventArgs e)
         {
             if (!SaveHelper.CheckUnsavedChangesMessage())
             {
@@ -115,10 +115,19 @@ namespace grzyClothTool
 
             if (metaFiles.ShowDialog() == true)
             {
+                SaveHelper.SavingPaused = true;
+                var timer = new Stopwatch();
+                timer.Start();
+
                 foreach (var dir in metaFiles.FileNames)
                 {
-                    AddonManager.LoadAddon(dir);
+                    await AddonManager.LoadAddon(dir);
                 }
+
+                timer.Stop();
+                LogHelper.Log($"Loaded addon in {timer.Elapsed}");
+                SaveHelper.SetUnsavedChanges(true);
+                SaveHelper.SavingPaused = false;
             }
         }
 

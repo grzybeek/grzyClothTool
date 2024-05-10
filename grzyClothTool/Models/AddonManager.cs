@@ -1,8 +1,10 @@
-﻿using grzyClothTool.Controls;
+﻿using CodeWalker.GameFiles;
+using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -87,7 +89,7 @@ namespace grzyClothTool.Models
             OnPropertyChanged("Addons");
         }
 
-        public async void LoadAddon(string path)
+        public async Task LoadAddon(string path)
         {
             var dirPath = Path.GetDirectoryName(path);
             var addonName = Path.GetFileNameWithoutExtension(path);
@@ -97,17 +99,80 @@ namespace grzyClothTool.Models
                 .Where(x => x.Contains(addonName))
                 .ToArray();
 
+            var ymtFile = Directory.GetFiles(dirPath, "*.ymt", SearchOption.AllDirectories)
+                .Where(x => x.Contains(addonName))
+                .FirstOrDefault();
+
             if (yddFiles.Length == 0)
             {
                 CustomMessageBox.Show($"No .ydd files found for selected .meta file ({Path.GetFileName(path)})", "Error");
                 return;
             }
 
+            if (ymtFile == null)
+            {
+                CustomMessageBox.Show($"No .ymt file found for selected .meta file ({Path.GetFileName(path)})", "Error");
+                return;
+            }
+
             var isMale = addonName.Contains("mp_m_freemode_01");
+
+            var ymt = new PedFile();
+            RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);
+
+            Dictionary<(int, int), MCComponentInfo> compInfoDict = [];
+            foreach (var compInfo in ymt.VariationInfo.CompInfos)
+            {
+                var key = (compInfo.ComponentType, compInfo.ComponentIndex);
+                compInfoDict[key] = compInfo;
+            }
+
+            Dictionary<(int, int), MCPedPropMetaData> pedPropMetaDataDict = [];
+            foreach (var pedPropMetaData in ymt.VariationInfo.PropInfo.PropMetaData)
+            {
+                var key = (pedPropMetaData.Data.anchorId, pedPropMetaData.Data.propId);
+                pedPropMetaDataDict[key] = pedPropMetaData;
+            }
 
             // Opening existing addon, should clear everything and open
             Addons = [];
             await AddDrawables(yddFiles, isMale);
+
+            foreach (var addon in Addons)
+            {
+                foreach (var drawable in addon.Drawables)
+                {
+                    var key = (drawable.TypeNumeric, drawable.Number);
+                    if (compInfoDict.TryGetValue(key, out MCComponentInfo compInfo))
+                    {
+                        drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
+
+                        if(compInfo.Data.pedXml_expressionMods.f4 != 0)
+                        {
+                            drawable.EnableHighHeels = true;
+                            drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
+                        }
+                    }
+
+                    if (drawable.IsProp)
+                    {
+                        var propKey = (drawable.TypeNumeric, drawable.Number);
+                        if (pedPropMetaDataDict.TryGetValue(propKey, out MCPedPropMetaData pedPropMetaData))
+                        {
+                            drawable.Audio = pedPropMetaData.Data.audioId.ToString();
+                            drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
+
+                            if (pedPropMetaData.Data.expressionMods.f0 != 0)
+                            {
+                                drawable.EnableHairScale = true;
+
+                                // grzyClothTool saves hairScaleValue as positive number, on resource build it makes it negative
+                                drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0); 
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         public async Task AddDrawables(string[] filePaths, bool isMale)
