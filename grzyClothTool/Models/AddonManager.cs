@@ -121,21 +121,27 @@ namespace grzyClothTool.Models
             RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);
 
             Dictionary<(int, int), MCComponentInfo> compInfoDict = [];
-            foreach (var compInfo in ymt.VariationInfo.CompInfos)
+            var hasCompInfos = ymt.VariationInfo.CompInfos != null;
+            if (hasCompInfos)
             {
-                var key = (compInfo.ComponentType, compInfo.ComponentIndex);
-                compInfoDict[key] = compInfo;
+                foreach (var compInfo in ymt.VariationInfo.CompInfos)
+                {
+                    var key = (compInfo.ComponentType, compInfo.ComponentIndex);
+                    compInfoDict[key] = compInfo;
+                }
             }
 
             Dictionary<(int, int), MCPedPropMetaData> pedPropMetaDataDict = [];
-            foreach (var pedPropMetaData in ymt.VariationInfo.PropInfo.PropMetaData)
+            var hasProps = ymt.VariationInfo.PropInfo.PropMetaData != null && ymt.VariationInfo.PropInfo.Data.numAvailProps > 0;
+            if (hasProps) 
             {
-                var key = (pedPropMetaData.Data.anchorId, pedPropMetaData.Data.propId);
-                pedPropMetaDataDict[key] = pedPropMetaData;
+                foreach (var pedPropMetaData in ymt.VariationInfo.PropInfo.PropMetaData)
+                {
+                    var key = (pedPropMetaData.Data.anchorId, pedPropMetaData.Data.propId);
+                    pedPropMetaDataDict[key] = pedPropMetaData;
+                }
             }
-
-            // Opening existing addon, should clear everything and open
-            Addons = [];
+            
             await AddDrawables(yddFiles, isMale);
 
             foreach (var addon in Addons)

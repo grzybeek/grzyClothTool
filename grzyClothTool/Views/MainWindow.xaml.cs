@@ -119,6 +119,8 @@ namespace grzyClothTool
                 var timer = new Stopwatch();
                 timer.Start();
 
+                // Opening existing addon, should clear everything and add new opened ones
+                AddonManager.Addons = [];
                 foreach (var dir in metaFiles.FileNames)
                 {
                     await AddonManager.LoadAddon(dir);
