@@ -65,7 +65,7 @@
             <TabControl.ContentTemplate>
                 <DataTemplate>
                     <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="0" Grid.Row="0" x:Name="DrawablesGroupBox" Header="Drawables">
-                        <c:DrawableList ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
+                        <c:DrawableList ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DrawableListKeyDown="SelectedDrawable_KeyDown" DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
                     </GroupBox>
                 </DataTemplate>
             </TabControl.ContentTemplate>

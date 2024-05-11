@@ -3,6 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace grzyClothTool.Controls
 {
@@ -12,6 +13,7 @@ namespace grzyClothTool.Controls
     public partial class DrawableList : UserControl
     {
         public event EventHandler DrawableListSelectedValueChanged;
+        public event KeyEventHandler DrawableListKeyDown;
 
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.RegisterAttached("ItemsSource", typeof(ObservableCollection<GDrawable>), typeof(DrawableList), new PropertyMetadata(default(ObservableCollection<GDrawable>)));
@@ -36,6 +38,11 @@ namespace grzyClothTool.Controls
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
              DrawableListSelectedValueChanged?.Invoke(sender, e);
+        }
+
+        private void DrawableList_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            DrawableListKeyDown?.Invoke(sender, e);
         }
     }
 }

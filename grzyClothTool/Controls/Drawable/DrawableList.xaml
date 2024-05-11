@@ -84,5 +84,6 @@
         BorderThickness="0" 
         d:SelectedIndex="1"
         d:Width="300"
+        PreviewKeyDown="DrawableList_PreviewKeyDown"
     />
 </UserControl>

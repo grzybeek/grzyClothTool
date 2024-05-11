@@ -18,6 +18,8 @@ using System.Windows.Forms;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Path = System.IO.Path;
 using UserControl = System.Windows.Controls.UserControl;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using System.Windows.Input;
 
 namespace grzyClothTool.Views
 {
@@ -116,29 +118,62 @@ namespace grzyClothTool.Views
             }
         }
 
+        public void SelectedDrawable_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Delete || Addon.SelectedDrawable is null)
+            {
+                return;
+            }
+
+            switch (Keyboard.Modifiers)
+            {
+                case ModifierKeys.Shift:
+                    // Shift+Delete was pressed, delete the drawable instantly
+                    DeleteDrawable(Addon.SelectedDrawable);
+                    break;
+                case ModifierKeys.Control:
+                    // Ctrl+Delete was pressed, replace the drawable instantly
+                    ReplaceDrawable(Addon.SelectedDrawable);
+                    break;
+                default:
+                    // Only Delete was pressed, show the message box
+                    Delete_SelectedDrawable(sender, new RoutedEventArgs());
+                    break;
+            }
+        }
+
         private void Delete_SelectedDrawable(object sender, RoutedEventArgs e)
         {
-            var drawable = Addon.SelectedDrawable;
-            if (drawable == null)
+            if (Addon.SelectedDrawable is null)
             {
                 CustomMessageBox.Show("No drawable selected", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.OKOnly);
                 return;
             }
 
-            var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({drawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
-            if(result == CustomMessageBox.CustomMessageBoxResult.Delete)
+            var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({Addon.SelectedDrawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
+            if (result == CustomMessageBox.CustomMessageBoxResult.Delete)
             {
-                Addon.Drawables.Remove(drawable);
-                Addon.Drawables.Sort(true);
+                DeleteDrawable(Addon.SelectedDrawable);
             }
-            else if(result == CustomMessageBox.CustomMessageBoxResult.Replace)
+            else if (result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {
-                var reserved = new GReservedDrawable(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
-
-                //replace drawable with reserved in the same place
-                Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
+                ReplaceDrawable(Addon.SelectedDrawable);
             }
+        }
 
+        private void DeleteDrawable(GDrawable drawable)
+        {
+            Addon.Drawables.Remove(drawable);
+            Addon.Drawables.Sort(true);
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
+        private void ReplaceDrawable(GDrawable drawable)
+        {
+            var reserved = new GReservedDrawable(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
+
+            //replace drawable with reserved in the same place
+            Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
             SaveHelper.SetUnsavedChanges(true);
         }
 
