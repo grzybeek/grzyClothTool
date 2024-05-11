@@ -326,8 +326,18 @@ namespace grzyClothTool.Views
             YddFile ydd = RpfFile.GetFile<YddFile>(rpf, decompressedData);
             var drawable = ydd.Drawables.First();
             drawable.Name = Path.GetFileNameWithoutExtension(d.Name);
+
             drawable.IsHairScaleEnabled = d.EnableHairScale;
+            if (drawable.IsHairScaleEnabled)
+            {
+                drawable.HairScaleValue = d.HairScaleValue;
+            }
+
             drawable.IsHighHeelsEnabled = d.EnableHighHeels;
+            if (drawable.IsHighHeelsEnabled)
+            {
+                drawable.HighHeelsValue = d.HighHeelsValue / 10;
+            }
 
 
             return ydd;

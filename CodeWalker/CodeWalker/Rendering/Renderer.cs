@@ -72,11 +72,9 @@ namespace CodeWalker.Rendering
 
         public bool renderfloor = false;
         public bool SelectedDrawableChanged = true;
-        public float hairscalevalue = 1.0f;
 
         public bool usehighheels = false;
         public bool usehighheelschanged = false;
-        public float highheelvalue = 0.0f;
 
         public LiveTextureMode LiveTextureSelectedMode = LiveTextureMode.Diffuse;
         public bool LiveTextureEnabled = false;
@@ -1812,11 +1810,11 @@ namespace CodeWalker.Rendering
                                 scaleBones[1] = rndbl.Skeleton.Bones.Items[101];
 
                                 //reverse value
-                                hairscalevalue = 1.0f - hairscalevalue;
+                                SelDrawable.HairScaleValue = 1.0f - SelDrawable.HairScaleValue;
 
                                 foreach (var b in scaleBones)
                                 {
-                                    b.Scale = SelDrawable.IsHairScaleEnabled ? new Vector3(hairscalevalue, hairscalevalue, hairscalevalue) : new Vector3(1.0f, 1.0f, 1.0f);
+                                    b.Scale = SelDrawable.IsHairScaleEnabled ? new Vector3(SelDrawable.HairScaleValue, SelDrawable.HairScaleValue, SelDrawable.HairScaleValue) : new Vector3(1.0f, 1.0f, 1.0f);
                                 }
 
                                 if (SelectedDrawableChanged)

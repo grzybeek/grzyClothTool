@@ -107,7 +107,7 @@ public class GDrawable : INotifyPropertyChanged
         set { _enableKeepPreview = value; OnPropertyChanged(); } 
     }
 
-    public float HairScaleValue { get; set; } = 0.0f;
+    public float HairScaleValue { get; set; } = 0.5f;
 
 
     private bool _enableHairScale;
@@ -117,7 +117,7 @@ public class GDrawable : INotifyPropertyChanged
         set { _enableHairScale = value; OnPropertyChanged(); }
     }
 
-    public float HighHeelsValue { get; set; } = 0.0f;
+    public float HighHeelsValue { get; set; } = 1.0f;
     private bool _enableHighHeels;
     public bool EnableHighHeels
     {

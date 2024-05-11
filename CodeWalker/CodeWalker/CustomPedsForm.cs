@@ -343,7 +343,7 @@ namespace CodeWalker
                         for (int i = 0; i < floorVerticesList.Count; i++)
                         {
                             var ver = floorVerticesList[i];
-                            var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - Renderer.highheelvalue);
+                            var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - Renderer.SelDrawable.HighHeelsValue);
                             ver.Position = newPosition;
 
                             newFloorVerticesList.Add(ver);
@@ -865,13 +865,13 @@ namespace CodeWalker
                         Renderer.SelDrawable.IsHairScaleEnabled = bool.Parse(value);
                         break;
                     case "HairScale":
-                        Renderer.hairscalevalue = Convert.ToSingle(value);
+                        Renderer.SelDrawable.HairScaleValue = Convert.ToSingle(value);
                         break;
                     case "EnableHighHeels":
                         Renderer.SelDrawable.IsHighHeelsEnabled = bool.Parse(value);
                         break;
                     case "HighHeels":
-                        Renderer.highheelvalue = Convert.ToSingle(value) / 10;
+                        Renderer.SelDrawable.HighHeelsValue = Convert.ToSingle(value) / 10;
                         highheelvaluechanged = true;
                         break;
                     case "GenderChanged":
