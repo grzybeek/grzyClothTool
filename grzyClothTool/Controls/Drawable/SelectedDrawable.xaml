@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:models="clr-namespace:grzyClothTool.Models"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+             xmlns:views="clr-namespace:grzyClothTool.Views"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="Control"
              d:Width="900"
@@ -60,10 +61,24 @@
                                         <RowDefinition Height="*" />
                                         <RowDefinition Height="30" />
                                     </Grid.RowDefinitions>
-                                    <StackPanel IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal">
-                                        <c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
-                                        <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
-                                        <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
+                                    <StackPanel Orientation="Vertical" Margin="0" IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" >
+                                        <TextBlock Padding="5,0,0,0" FontStyle="Italic" Text="{Binding SelectedAddon.SelectedDrawable.FilePath}" TextWrapping="Wrap" Foreground="{DynamicResource Brush500}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding SettingsDisplayDrawablePath}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal" Margin="2">
+                                            <c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
+                                            <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
+                                            <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
+                                        </StackPanel>
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">
                                         <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />

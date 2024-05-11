@@ -12,9 +12,11 @@ namespace grzyClothTool.Views
     /// Interaction logic for SettingsWindow.xaml
     /// </summary>
     public partial class SettingsWindow : UserControl
-    {
+    { 
         public static string GTAVPath => CWHelper.GTAVPath;
         public static bool CacheStartupIsChecked => CWHelper.IsCacheStartupEnabled;
+
+        public static bool DrawablePathIsChecked => Properties.Settings.Default.DisplaySelectedDrawablePath;
 
         public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
@@ -52,12 +54,21 @@ namespace grzyClothTool.Views
             }
         }
 
-        private void SettingsLabelCheckBox_CheckBoxClick(object sender, RoutedEventArgs e)
+        private void CacheSettings_Click(object sender, RoutedEventArgs e)
         {
             CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
-            CWHelper.SetCacheStartup(c.IsChecked);
+            //CWHelper.SetCacheStartup(c.IsChecked);
 
             LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
+        }
+
+        private void DrawablePathSettings_Click(object sender, RoutedEventArgs e)
+        {
+            CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
+            Properties.Settings.Default.DisplaySelectedDrawablePath = c.IsChecked;
+            Properties.Settings.Default.Save();
+
+            MainWindow.AddonManager.SettingsDisplayDrawablePath = c.IsChecked;
         }
 
         public void ThemeModeChange_Click(object sender, RoutedEventArgs e)

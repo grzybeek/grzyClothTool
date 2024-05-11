@@ -34,6 +34,21 @@ namespace grzyClothTool.Models
         [JsonProperty]
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
 
+        private bool _settingsDisplayDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;
+        [JsonIgnore]
+        public bool SettingsDisplayDrawablePath
+        {
+            get => _settingsDisplayDrawablePath;
+            set
+            {
+                if (_settingsDisplayDrawablePath != value)
+                {
+                    _settingsDisplayDrawablePath = value;
+                    OnPropertyChanged(nameof(SettingsDisplayDrawablePath));
+                }
+            }
+        }
+
 
         private ObservableCollection<Addon> _addons = [];
         public ObservableCollection<Addon> Addons

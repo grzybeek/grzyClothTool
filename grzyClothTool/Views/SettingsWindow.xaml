@@ -107,7 +107,8 @@
 
             <GroupBox Style="{DynamicResource FixedGroupBox}" Header="Program settings" Grid.Column="2" Margin="2">
                 <StackPanel>
-                    <c:SettingsLabelCheckBox Margin="5" Label="Load GTA5 file cache on tool startup" Text="This enabled will make 3D preview load faster, but tool will load longer on startup." CheckBoxClick="SettingsLabelCheckBox_CheckBoxClick" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
+                    <c:SettingsLabelCheckBox IsEnabled="false" Margin="5" Label="Load GTA5 file cache on tool startup" Text="This enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)" CheckBoxClick="CacheSettings_Click" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
+                    <c:SettingsLabelCheckBox Margin="5" Label="Display drawable path" Text="This enabled will display used path for selected drawable" CheckBoxClick="DrawablePathSettings_Click" IsChecked="{Binding DrawablePathIsChecked, Mode=OneWay}" />
                 </StackPanel>
             </GroupBox>
         </Grid>
