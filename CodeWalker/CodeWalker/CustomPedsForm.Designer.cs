@@ -72,7 +72,6 @@ namespace CodeWalker
             this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.ShowFloorCheckBox = new System.Windows.Forms.CheckBox();
             this.WireframeCheckBox = new System.Windows.Forms.CheckBox();
             this.SkeletonsCheckBox = new System.Windows.Forms.CheckBox();
             this.ShadowsCheckBox = new System.Windows.Forms.CheckBox();
@@ -516,7 +515,6 @@ namespace CodeWalker
             this.ToolsOptionsTabPage.Controls.Add(this.label5);
             this.ToolsOptionsTabPage.Controls.Add(this.label4);
             this.ToolsOptionsTabPage.Controls.Add(this.label1);
-            this.ToolsOptionsTabPage.Controls.Add(this.ShowFloorCheckBox);
             this.ToolsOptionsTabPage.Controls.Add(this.WireframeCheckBox);
             this.ToolsOptionsTabPage.Controls.Add(this.SkeletonsCheckBox);
             this.ToolsOptionsTabPage.Controls.Add(this.ShadowsCheckBox);
@@ -602,17 +600,6 @@ namespace CodeWalker
             this.label1.Size = new System.Drawing.Size(102, 13);
             this.label1.TabIndex = 62;
             this.label1.Text = "(12 for empty model)";
-            // 
-            // ShowFloorCheckBox
-            // 
-            this.ShowFloorCheckBox.AutoSize = true;
-            this.ShowFloorCheckBox.Location = new System.Drawing.Point(10, 344);
-            this.ShowFloorCheckBox.Name = "ShowFloorCheckBox";
-            this.ShowFloorCheckBox.Size = new System.Drawing.Size(76, 17);
-            this.ShowFloorCheckBox.TabIndex = 61;
-            this.ShowFloorCheckBox.Text = "Show floor";
-            this.ShowFloorCheckBox.UseVisualStyleBackColor = true;
-            this.ShowFloorCheckBox.CheckedChanged += new System.EventHandler(this.ShowFloorCheckBox_CheckedChanged);
             // 
             // WireframeCheckBox
             // 
@@ -1026,7 +1013,6 @@ namespace CodeWalker
         private System.Windows.Forms.Button Save_defaultComp;
         private System.Windows.Forms.TabPage ToolsTexturesTabPage;
         private WinForms.TreeViewFix TexturesTreeView;
-        private System.Windows.Forms.CheckBox ShowFloorCheckBox;
         private System.Windows.Forms.CheckBox WireframeCheckBox;
         private System.Windows.Forms.CheckBox SkeletonsCheckBox;
         private System.Windows.Forms.CheckBox ShadowsCheckBox;

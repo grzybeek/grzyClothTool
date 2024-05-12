@@ -332,7 +332,7 @@ namespace CodeWalker
         {
             if(Renderer.renderfloor)
             {
-                if (Renderer.SelDrawable.IsHighHeelsEnabled)
+                if (Renderer.SelDrawable != null && Renderer.SelDrawable.IsHighHeelsEnabled)
                 {
                     List<VertexTypePC> newFloorVerticesList = new List<VertexTypePC>();
 
@@ -1452,12 +1452,6 @@ namespace CodeWalker
             float fh = v / 60.0f;
             PlaybackSpeedLabel.Text = string.Format("{0:0.00}", fh);
         }
-
-        private void ShowFloorCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            Renderer.renderfloor = ShowFloorCheckBox.Checked;
-        }
-
 
         private void OptionsComponent_UpDown_ValueChanged(object sender, EventArgs e)
         {
