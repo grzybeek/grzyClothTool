@@ -65,10 +65,7 @@ namespace grzyClothTool.Views
         private void DrawablePathSettings_Click(object sender, RoutedEventArgs e)
         {
             CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
-            Properties.Settings.Default.DisplaySelectedDrawablePath = c.IsChecked;
-            Properties.Settings.Default.Save();
-
-            MainWindow.AddonManager.SettingsDisplayDrawablePath = c.IsChecked;
+            SettingsHelper.Instance.DisplaySelectedDrawablePath = c.IsChecked;
         }
 
         public void ThemeModeChange_Click(object sender, RoutedEventArgs e)

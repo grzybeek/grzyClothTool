@@ -1,4 +1,4 @@
-﻿using grzyClothTool.Models;
+﻿using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;

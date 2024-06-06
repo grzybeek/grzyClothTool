@@ -8,15 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace grzyClothTool.Models;
+namespace grzyClothTool.Models.Texture;
 
-public class GTextureDetails
-{
-    public int Width { get; set; }
-    public int Height { get; set; }
-    public int MipMapCount { get; set; }
-    public string Compression { get; set; }
-}
+#nullable enable
 
 public class GTexture : INotifyPropertyChanged
 {
@@ -46,7 +40,7 @@ public class GTexture : INotifyPropertyChanged
     public int TypeNumeric { get; set; }
     public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);
 
-    public GTextureDetails TxtDetails;
+    public GTextureDetails TxtDetails { get; set; }
 
     private bool _isLoading;
     public bool IsLoading
@@ -61,17 +55,6 @@ public class GTexture : INotifyPropertyChanged
     public bool IsProp;
     public bool HasSkin;
 
-    private bool _isOptimizeNeeded;
-    public bool IsOptimizeNeeded
-    {
-        get => _isOptimizeNeeded;
-        set
-        {
-            _isOptimizeNeeded = value;
-            OnPropertyChanged(nameof(IsOptimizeNeeded));
-        }
-    }
-    public string IsOptimizeNeededTooltip { get; set; }
     public bool IsOptimizedDuringBuild { get; set; }
     public GTextureDetails OptimizeDetails;
 
@@ -89,9 +72,9 @@ public class GTexture : INotifyPropertyChanged
         IsProp = isProp;
         HasSkin = hasSkin;
 
-        if(path != null)
+        if (path != null)
         {
-            Task<GTextureDetails> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(path).ContinueWith(t =>
+            Task<GTextureDetails?> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(path).ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
@@ -113,23 +96,7 @@ public class GTexture : INotifyPropertyChanged
                     TxtDetails = t.Result;
                     OnPropertyChanged(nameof(TxtDetails));
 
-                    if(TxtDetails.Height > 2048 || TxtDetails.Width > 2048)
-                    {
-                        IsOptimizeNeeded = true;
-                        IsOptimizeNeededTooltip += "Texture is larger than 2048x2048. Optimize it to reduce the size.\n";
-                    }
-
-                    if((TxtDetails.Height & (TxtDetails.Height - 1)) != 0 || (TxtDetails.Width & (TxtDetails.Width - 1)) != 0)
-                    {
-                        IsOptimizeNeeded = true;
-                        IsOptimizeNeededTooltip += "Texture height or width is not power of 2. Optimize it to fix the issue.\n";
-                    }
-
-                    if(TxtDetails.MipMapCount == 1)
-                    {
-                        IsOptimizeNeeded = true;
-                        IsOptimizeNeededTooltip += "Texture has only 1 mip map. Optimize it to automatically generate correct amount.";
-                    }
+                    TxtDetails.Validate();
                 }
 
                 return t.Result;
@@ -145,12 +112,12 @@ public class GTexture : INotifyPropertyChanged
         return IsProp ? name : $"{name}_{(hasSkin ? "whi" : "uni")}";
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string name = null)
+    protected void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    private static async Task<GTextureDetails> LoadTextureDetailsWithConcurrencyControl(string path)
+    private static async Task<GTextureDetails?> LoadTextureDetailsWithConcurrencyControl(string path)
     {
         await _semaphore.WaitAsync();
         try
@@ -162,7 +129,7 @@ public class GTexture : INotifyPropertyChanged
             _semaphore.Release();
         }
     }
-    public static async Task<GTextureDetails> GetTextureDetailsAsync(string path)
+    private static async Task<GTextureDetails?> GetTextureDetailsAsync(string path)
     {
         var bytes = await File.ReadAllBytesAsync(path);
         var extension = Path.GetExtension(path);
@@ -184,7 +151,8 @@ public class GTexture : INotifyPropertyChanged
                 MipMapCount = txt.Levels,
                 Compression = txt.Format.ToString(),
                 Width = txt.Width,
-                Height = txt.Height
+                Height = txt.Height,
+                Name = txt.Name
             };
         }
         else if (extension == ".jpg" || extension == ".png")
@@ -196,7 +164,8 @@ public class GTexture : INotifyPropertyChanged
                 Width = img.Width,
                 Height = img.Height,
                 MipMapCount = ImgHelper.GetCorrectMipMapAmount(img.Width, img.Height),
-                Compression = "UNKNOWN"
+                Compression = "UNKNOWN",
+                Name = img.FileName
             };
         }
 

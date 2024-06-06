@@ -20,6 +20,8 @@ using Path = System.IO.Path;
 using UserControl = System.Windows.Controls.UserControl;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using System.Windows.Input;
+using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
 
 namespace grzyClothTool.Views
 {
@@ -170,7 +172,7 @@ namespace grzyClothTool.Views
 
         private void ReplaceDrawable(GDrawable drawable)
         {
-            var reserved = new GReservedDrawable(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
+            var reserved = new GDrawableReserved(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
 
             //replace drawable with reserved in the same place
             Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;

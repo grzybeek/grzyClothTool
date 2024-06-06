@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Models;
+﻿using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;

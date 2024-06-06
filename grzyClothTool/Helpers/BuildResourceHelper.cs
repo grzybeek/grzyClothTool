@@ -1,5 +1,6 @@
 ﻿using CodeWalker.GameFiles;
 using grzyClothTool.Models;
+using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.Generic;
 using System.IO;

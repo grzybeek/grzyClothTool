@@ -31,6 +31,13 @@ namespace CodeWalker.GameFiles
 
             Loaded = true;
         }
+        public async Task LoadAsync(byte[] data)
+        {
+            await RpfFile.LoadResourceFileAsync(this, data, 165);
+
+            Loaded = true;
+        }
+
         public void Load(byte[] data, RpfFileEntry entry)
         {
             Name = entry.Name;

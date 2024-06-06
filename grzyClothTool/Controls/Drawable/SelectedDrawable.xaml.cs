@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
-using grzyClothTool.Models;
+using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
 using grzyClothTool.Views;
 using ImageMagick;
 using Microsoft.Win32;

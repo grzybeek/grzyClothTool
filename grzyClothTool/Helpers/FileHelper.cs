@@ -7,7 +7,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using grzyClothTool.Models;
+using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
 using grzyClothTool.Views;
 
 namespace grzyClothTool.Helpers;

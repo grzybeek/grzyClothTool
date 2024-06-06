@@ -28,6 +28,17 @@ namespace grzyClothTool.Controls
 
         public static readonly RoutedEvent ButtonClickEvent = EventManager.RegisterRoutedEvent("ButtonClick", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(SettingsLabelTextBox));
 
+        public static readonly DependencyProperty ButtonVisibleProperty = DependencyProperty
+            .Register("ButtonVisible",
+                    typeof(bool),
+                    typeof(SettingsLabelTextBox),
+                    new FrameworkPropertyMetadata(true));
+
+        public bool ButtonVisible
+        {
+            get { return (bool)GetValue(ButtonVisibleProperty); }
+            set { SetValue(ButtonVisibleProperty, value); }
+        }
 
         public SettingsLabelTextBox()
         {
@@ -52,6 +63,7 @@ namespace grzyClothTool.Controls
             set { SetValue(TitleProperty, value); }
         }
 
+        private bool _isButtonClickHandlerAttached;
         public event RoutedEventHandler ButtonClick
         {
             add { AddHandler(ButtonClickEvent, value); }

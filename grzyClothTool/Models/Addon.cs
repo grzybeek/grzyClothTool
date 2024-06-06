@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;

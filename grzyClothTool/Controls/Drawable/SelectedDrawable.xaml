@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:models="clr-namespace:grzyClothTool.Models"
+             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              xmlns:views="clr-namespace:grzyClothTool.Views"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
@@ -67,7 +68,7 @@
                                                 <Style TargetType="TextBlock">
                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding SettingsDisplayDrawablePath}" Value="True">
+                                                        <DataTrigger Binding="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" Value="True">
                                                             <Setter Property="Visibility" Value="Visible" />
                                                         </DataTrigger>
                                                     </Style.Triggers>
@@ -120,12 +121,12 @@
                                                                 </Style>
                                                             </icons:MaterialIcon.Style>
                                                         </icons:MaterialIcon>
-                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2" ToolTip="{Binding IsOptimizeNeededTooltip}">
+                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2" ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}">
                                                             <icons:MaterialIcon.Style>
                                                                 <Style TargetType="{x:Type icons:MaterialIcon}">
                                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                                     <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsOptimizeNeeded}" Value="True">
+                                                                        <DataTrigger Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True">
                                                                             <Setter Property="Visibility" Value="Visible" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>

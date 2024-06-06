@@ -95,7 +95,7 @@ namespace CodeWalker.Rendering
 
 
         public RenderableLight[] Lights;
-
+        private bool isInitialized = false;
 
 
         public override void Init(DrawableBase drawable)
@@ -318,6 +318,8 @@ namespace CodeWalker.Rendering
                         model.Transform = trans;
                     }
                 }
+
+                model.IsInitialized = true;
             }
 
             var lights = dd?.LightAttributes?.data_items;
@@ -332,7 +334,6 @@ namespace CodeWalker.Rendering
 
 
             UpdateBoneTransforms();
-
         }
 
         public void InitLights(LightAttributes[] lights)
@@ -474,14 +475,30 @@ namespace CodeWalker.Rendering
 
         public void UpdatePropTransform() 
         {
-            if (Skeleton == null) return;
+            if (Skeleton == null)
+            {
+                // try to get skeleton
+                if (Key.Skeleton != null)
+                {
+                    Skeleton = Key.Skeleton;
+                }
+
+                return;
+            }
             var bones = Skeleton.Bones.Items;
             var rootBone = bones.First(); //root is always first
 
             RenderableModel model = null;
             ModelBoneLinks?.TryGetValue(rootBone.Tag, out model);
 
-            if (model == null) return;
+            if (model == null)
+            {
+                var m = AllModels.Where(x => x.IsPedProp).FirstOrDefault();
+                if (m != null)
+                {
+                    model = m;
+                }
+            }
 
             Bone bone = null;
             switch (model.PedPropType)
@@ -838,6 +855,7 @@ namespace CodeWalker.Rendering
         public int BoneIndex = 0;
         public bool IsSkinMesh = false;
         public bool IsPedProp = false;
+        public bool IsInitialized = false;
         public int PedPropType = -1;
 
         public void Init(DrawableModel dmodel)

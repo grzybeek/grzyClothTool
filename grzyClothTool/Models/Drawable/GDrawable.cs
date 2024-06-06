@@ -7,41 +7,33 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Threading;
+using CodeWalker.GameFiles;
+using System.Linq;
+using grzyClothTool.Models.Texture;
+using System;
 
-namespace grzyClothTool.Models;
-
-public class GReservedDrawable : GDrawable
-{
-    public override bool IsReserved => true;
-
-    public GReservedDrawable(bool isMale, bool isProp, int compType, int count) : base(isMale, isProp, compType, count)
-    {
-        FilePath = Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd");
-        Textures = [new GTexture(Path.Combine(FileHelper.ReservedAssetsPath, "reservedTexture.ytd"), compType, count, 0, false, isProp)];
-        TypeNumeric = compType;
-        Number = count;
-        Sex = isMale;
-        IsProp = isProp;
-
-        SetDrawableName();
-    }
-}
-
+namespace grzyClothTool.Models.Drawable;
+#nullable enable
 
 public class GDrawable : INotifyPropertyChanged
 {
+    private readonly static SemaphoreSlim _semaphore = new(3);
+
     public event PropertyChangedEventHandler PropertyChanged;
 
     public string FilePath { get; set; }
 
     private string _name;
-    public string Name 
-    { 
-        get => _name; 
-        set {
+    public string Name
+    {
+        get => _name;
+        set
+        {
             _name = value;
             OnPropertyChanged();
-        } 
+        }
     }
 
     public virtual bool IsReserved => false;
@@ -79,6 +71,8 @@ public class GDrawable : INotifyPropertyChanged
     public int Number { get; set; }
     public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
+    public GDrawableDetails Details { get; set; }
+
 
     private bool _hasSkin;
     public bool HasSkin
@@ -101,10 +95,10 @@ public class GDrawable : INotifyPropertyChanged
     }
 
     private bool _enableKeepPreview;
-    public bool EnableKeepPreview 
-    { 
+    public bool EnableKeepPreview
+    {
         get => _enableKeepPreview;
-        set { _enableKeepPreview = value; OnPropertyChanged(); } 
+        set { _enableKeepPreview = value; OnPropertyChanged(); }
     }
 
     public float HairScaleValue { get; set; } = 0.5f;
@@ -129,9 +123,21 @@ public class GDrawable : INotifyPropertyChanged
     public string Audio
     {
         get => _audio;
-        set {
+        set
+        {
             _audio = value;
             OnPropertyChanged();
+        }
+    }
+
+    private bool _isLoading;
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set
+        {
+            _isLoading = value;
+            OnPropertyChanged(nameof(IsLoading));
         }
     }
 
@@ -141,12 +147,14 @@ public class GDrawable : INotifyPropertyChanged
     public string RenderFlag { get; set; } = ""; // "" is the default value
 
     [JsonIgnore]
-    public static List<string> AvailableRenderFlagList => ["","PRF_ALPHA","PRF_DECAL", "PRF_CUTOUT"];
+    public static List<string> AvailableRenderFlagList => ["", "PRF_ALPHA", "PRF_DECAL", "PRF_CUTOUT"];
 
     public ObservableCollection<GTexture> Textures { get; set; }
 
     public GDrawable(string drawablePath, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
+        IsLoading = true;
+
         FilePath = drawablePath;
         Textures = textures;
         TypeNumeric = compType;
@@ -157,6 +165,34 @@ public class GDrawable : INotifyPropertyChanged
 
         Audio = "none";
         SetDrawableName();
+
+        if (FilePath != null)
+        {
+            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl(FilePath).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Console.WriteLine(t.Exception);
+                    //todo: add some warning that it couldn't load
+                    IsLoading = true;
+                    return null;
+                }
+
+                if (t.Status == TaskStatus.RanToCompletion)
+                {
+                    if (t.Result == null)
+                    {
+                        return null;
+                    }
+
+                    Details = t.Result;
+                    OnPropertyChanged(nameof(Details));
+                    IsLoading = false;
+                }
+
+                return t.Result;
+            });
+        }
     }
 
     protected GDrawable(bool isMale, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
@@ -178,7 +214,7 @@ public class GDrawable : INotifyPropertyChanged
     public void ChangeDrawableType(string newType)
     {
         var newTypeNumeric = EnumHelper.GetValue(newType, IsProp);
-        var reserved = new GReservedDrawable(Sex, IsProp, TypeNumeric, Number);
+        var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
 
         // change current drawable to new type
@@ -195,8 +231,74 @@ public class GDrawable : INotifyPropertyChanged
         MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
     }
 
-    protected void OnPropertyChanged([CallerMemberName] string name = null)
+    protected void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    private static async Task<GDrawableDetails?> LoadDrawableDetailsWithConcurrencyControl(string path)
+    {
+        await _semaphore.WaitAsync();
+        try
+        {
+            return await GetDrawableDetailsAsync(path);
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
+    }
+
+    private static async Task<GDrawableDetails?> GetDrawableDetailsAsync(string path)
+    {
+        var bytes = await File.ReadAllBytesAsync(path);
+
+        var yddFile = new YddFile();
+        await yddFile.LoadAsync(bytes);
+
+        if (yddFile.DrawableDict.Drawables.Count == 0)
+        {
+            return null;
+        }
+
+        GDrawableDetails details = new()
+        {
+            EmbeddedTextures = yddFile.Drawables.First().ShaderGroup.TextureDictionary?.Textures?.Select(t =>
+            {
+                var textureDetails = new GTextureDetails
+                {
+                    Width = t.Width,
+                    Height = t.Height,
+                    Name = t.Name,
+                    MipMapCount = t.Levels,
+                    Compression = t.Format.ToString()
+                };
+
+                textureDetails.Validate();
+                return textureDetails;
+            }).ToList() ?? []
+        };
+
+        var drawableModels = yddFile.Drawables.First().DrawableModels;
+        foreach (GDrawableDetails.DetailLevel detailLevel in Enum.GetValues(typeof(GDrawableDetails.DetailLevel)))
+        {
+            var model = detailLevel switch
+            {
+                GDrawableDetails.DetailLevel.High => drawableModels.High,
+                GDrawableDetails.DetailLevel.Med => drawableModels.Med,
+                GDrawableDetails.DetailLevel.Low => drawableModels.Low,
+                _ => null
+            };
+
+            if (model != null)
+            {
+                details.AllModels[detailLevel] = new GDrawableModel
+                {
+                    PolyCount = (int)model.Sum(y => y.Geometries.Sum(g => g.IndicesCount / 3))
+                };
+            }
+        }
+
+        return details;
     }
 }

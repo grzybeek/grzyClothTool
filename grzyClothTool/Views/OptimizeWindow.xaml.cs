@@ -1,6 +1,6 @@
 ﻿using CodeWalker.GameFiles;
 using grzyClothTool.Helpers;
-using grzyClothTool.Models;
+using grzyClothTool.Models.Texture;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -204,13 +204,13 @@ namespace grzyClothTool.Views
             {
                 // We don't want to create it at the time of clicking this button, this should be saved and generated only during build
                 txt.IsOptimizedDuringBuild = true;
-                txt.IsOptimizeNeeded = false;
                 txt.TxtDetails = new GTextureDetails
                 {
                     Width = OutputTextureDetails.Width,
                     Height = OutputTextureDetails.Height,
                     Compression = OutputTextureDetails.Compression,
-                    MipMapCount = OutputTextureDetails.MipMapCount
+                    MipMapCount = OutputTextureDetails.MipMapCount,
+                    IsOptimizeNeeded = false
                 };
             }
 

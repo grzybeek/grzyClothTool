@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:grzyClothTool.Views" 
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:m="clr-namespace:grzyClothTool.Models"
-             d:DataContext="{d:DesignInstance Type=m:AddonManager, IsDesignTimeCreatable=True}"
+             d:DataContext="{d:DesignInstance Type=m:AddonManagerDesign, IsDesignTimeCreatable=True}"
              Background="{DynamicResource Brush50}"
              d:Width="1200"
              d:Height="600"

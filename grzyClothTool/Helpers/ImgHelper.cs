@@ -1,5 +1,5 @@
 ﻿using CodeWalker.GameFiles;
-using grzyClothTool.Models;
+using grzyClothTool.Models.Texture;
 using ImageMagick;
 using System;
 using System.IO;
