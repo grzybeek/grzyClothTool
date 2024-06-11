@@ -152,6 +152,7 @@ namespace CodeWalker.Rendering
 
 
         public List<RenderedDrawable> RenderedDrawables = new List<RenderedDrawable>(); //queued here for later hit tests...
+        public Dictionary<DrawableBase, RenderedDrawable> RenderedDrawablesDict = new Dictionary<DrawableBase, RenderedDrawable>();
         public List<RenderedBoundComposite> RenderedBoundComps = new List<RenderedBoundComposite>();
         public bool RenderedDrawablesListEnable = false; //whether or not to add rendered drawables to the list
         public bool RenderedBoundCompsListEnable = false; //whether or not to add rendered bound comps to the list
@@ -1617,6 +1618,15 @@ namespace CodeWalker.Rendering
                 rd.Archetype = arche;
                 rd.Entity = entity;
                 RenderedDrawables.Add(rd);
+            }
+
+            if (!RenderedDrawablesDict.ContainsKey(rndbl.Key))
+            {
+                var rd = new RenderedDrawable();
+                rd.Drawable = rndbl.Key;
+                rd.Archetype = arche;
+                rd.Entity = entity;
+                RenderedDrawablesDict[rndbl.Key] = rd;
             }
 
             bool isselected = SelectionFlagsTestAll || (rndbl.Key == SelectedDrawable);

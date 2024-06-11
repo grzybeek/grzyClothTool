@@ -297,9 +297,11 @@ namespace CodeWalker
                 }
             }
         }
-
         private void RenderSelectedItem(Drawable d, TextureDictionary t)
         {
+            // dirty hack to render drawable only when all other drawables are rendered, it fixes issue that props sometimes are not rendered attached to the head
+            if (Renderer.RenderedDrawablesDict.Count < 4) return;
+
             var isProp = d.Name.StartsWith("p_");
             d.Owner = SelectedPed;
             d.Skeleton = SelectedPed.Skeleton;
@@ -793,10 +795,6 @@ namespace CodeWalker
                     PopulateCompCombo(ComponentComboBoxes.ElementAt(i), vi.GetComponentData(i));
                 }
             }
-
-
-
-
 
             head_updown.Maximum = ComponentComboBoxes[0].Count - 1;
             berd_updown.Maximum = ComponentComboBoxes[1].Count - 1;

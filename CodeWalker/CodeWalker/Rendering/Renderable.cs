@@ -3,14 +3,11 @@ using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Device = SharpDX.Direct3D11.Device;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using CodeWalker.World;
 using SharpDX.Direct3D;
 using SharpDX;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace CodeWalker.Rendering
 {
@@ -95,7 +92,6 @@ namespace CodeWalker.Rendering
 
 
         public RenderableLight[] Lights;
-        private bool isInitialized = false;
 
 
         public override void Init(DrawableBase drawable)
@@ -485,20 +481,14 @@ namespace CodeWalker.Rendering
 
                 return;
             }
+
             var bones = Skeleton.Bones.Items;
             var rootBone = bones.First(); //root is always first
 
             RenderableModel model = null;
             ModelBoneLinks?.TryGetValue(rootBone.Tag, out model);
 
-            if (model == null)
-            {
-                var m = AllModels.Where(x => x.IsPedProp).FirstOrDefault();
-                if (m != null)
-                {
-                    model = m;
-                }
-            }
+            if (model == null) return;
 
             Bone bone = null;
             switch (model.PedPropType)
