@@ -299,6 +299,7 @@ public class GDrawable : INotifyPropertyChanged
             }
         }
 
+        details.Validate();
         return details;
     }
 }

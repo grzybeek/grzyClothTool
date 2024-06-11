@@ -16,8 +16,6 @@ namespace grzyClothTool.Views
         public static string GTAVPath => CWHelper.GTAVPath;
         public static bool CacheStartupIsChecked => CWHelper.IsCacheStartupEnabled;
 
-        public static bool DrawablePathIsChecked => Properties.Settings.Default.DisplaySelectedDrawablePath;
-
         public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
         public SettingsWindow()
@@ -60,12 +58,6 @@ namespace grzyClothTool.Views
             //CWHelper.SetCacheStartup(c.IsChecked);
 
             LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
-        }
-
-        private void DrawablePathSettings_Click(object sender, RoutedEventArgs e)
-        {
-            CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
-            SettingsHelper.Instance.DisplaySelectedDrawablePath = c.IsChecked;
         }
 
         public void ThemeModeChange_Click(object sender, RoutedEventArgs e)

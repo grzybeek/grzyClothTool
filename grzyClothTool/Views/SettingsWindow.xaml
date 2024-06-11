@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:grzyClothTool.Views"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
@@ -86,32 +87,26 @@
                 </ToggleButton.Style>
             </ToggleButton>
         </Grid>
-        
+
 
         <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <GroupBox Style="{DynamicResource FixedGroupBox}" Header="Project settings" Grid.Column="0" Margin="2">
-
-            </GroupBox>
-
-            <GroupBox Style="{DynamicResource FixedGroupBox}" Header="Preview settings" Grid.Column="1" Margin="2">
-                <StackPanel>
-                    <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="{Binding GTAVPath, Mode=OneWay}" Title="Select your GTA V Path" ButtonClick="GTAVPath_Click"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox Style="{DynamicResource FixedGroupBox}" Header="Program settings" Grid.Column="2" Margin="2">
-                <StackPanel>
-                    <c:SettingsLabelCheckBox IsEnabled="false" Margin="5" Label="Load GTA5 file cache on tool startup" Text="This enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)" CheckBoxClick="CacheSettings_Click" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
-                    <c:SettingsLabelCheckBox Margin="5" Label="Display drawable path" Text="This enabled will display used path for selected drawable" CheckBoxClick="DrawablePathSettings_Click" IsChecked="{Binding DrawablePathIsChecked, Mode=OneWay}" />
-                    <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="test" ButtonVisible="False" Title="Select your GTA V Path"/>
-
-                </StackPanel>
+            <GroupBox Grid.ColumnSpan="2" Style="{DynamicResource FixedGroupBox}" Header="Settings" Padding="5" Margin="2">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="{Binding GTAVPath, Mode=OneWay}" Description="GTAV path is required for 3D preview to work" Title="Select your GTA V Path" ButtonClick="GTAVPath_Click" />
+                            <c:SettingsLabelTextBox Margin="5" Label="Drawable polygon count limit" Description="Sets limit for drawable polygon count, if it exceeds this number it will display warning" Text="{Binding Path=Instance.PolygonCountLimit, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <c:SettingsLabelCheckBox IsEnabled="false" Margin="5" Label="Load GTA5 file cache on tool startup" Text="Enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)" CheckBoxClick="CacheSettings_Click" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
+                            <c:SettingsLabelCheckBox Margin="5" Label="Display drawable path" Text="Enabled will display used path for selected drawable" IsChecked="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
             </GroupBox>
         </Grid>
     </Grid>

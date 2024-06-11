@@ -314,8 +314,6 @@ namespace CodeWalker.Rendering
                         model.Transform = trans;
                     }
                 }
-
-                model.IsInitialized = true;
             }
 
             var lights = dd?.LightAttributes?.data_items;
@@ -845,7 +843,6 @@ namespace CodeWalker.Rendering
         public int BoneIndex = 0;
         public bool IsSkinMesh = false;
         public bool IsPedProp = false;
-        public bool IsInitialized = false;
         public int PedPropType = -1;
 
         public void Init(DrawableModel dmodel)

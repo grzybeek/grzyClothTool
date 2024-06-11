@@ -11,5 +11,8 @@
     <Setting Name="DisplaySelectedDrawablePath" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="PolygonCountLimit" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">20000</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

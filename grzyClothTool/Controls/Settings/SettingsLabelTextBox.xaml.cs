@@ -20,6 +20,12 @@ namespace grzyClothTool.Controls
                     typeof(SettingsLabelTextBox),
                     new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+        public static readonly DependencyProperty DescriptionProperty = DependencyProperty
+            .Register("Description",
+                    typeof(string),
+                    typeof(SettingsLabelTextBox),
+                    new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
         public static readonly DependencyProperty TitleProperty = DependencyProperty
             .Register("Title",
                     typeof(string),
@@ -55,6 +61,12 @@ namespace grzyClothTool.Controls
         {
             get { return (string)GetValue(TextProperty); }
             set { SetValue(TextProperty, value); }
+        }
+
+        public string Description
+        {
+            get { return (string)GetValue(DescriptionProperty); }
+            set { SetValue(DescriptionProperty, value); }
         }
 
         public string Title
