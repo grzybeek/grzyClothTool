@@ -147,28 +147,13 @@ namespace CodeWalker.Rendering
                 curmodel += vlow.Length;
             }
 
-
-            //var sg = Drawable.ShaderGroup;
-            //if ((sg != null) && (sg.TextureDictionary != null))
-            //{
-            //    EmbeddedTextureSize = sg.TextureDictionary.MemoryUsage;
-            //    TextureDict = sg.TextureDictionary.GetDictionary();
-            //}
-
-
-
-            var fd = drawable as FragDrawable;
             var dd = drawable as Drawable;
-
 
             bool hasskeleton = false;
             bool hastransforms = false;
             bool hasbones = false;
             Skeleton skeleton = drawable.Skeleton;
             Matrix[] modeltransforms = null;
-            Matrix[] fragtransforms = null;
-            Vector4 fragoffset = Vector4.Zero;
-            int fragtransformid = 0;
             Bone[] bones = null;
             bool usepose = false;
 
@@ -177,75 +162,7 @@ namespace CodeWalker.Rendering
                 hasskeleton = true;
                 modeltransforms = skeleton.Transformations;
 
-                //for fragments, get the default pose from the root fragment...
-                if (fd != null)
-                {
-                    var frag = fd.OwnerFragment;
-                    var pose = frag?.BoneTransforms;
-                    if ((pose != null) && (pose.Items != null)) //seems to be the default pose
-                    {
-                        var posebonecount = pose.Items.Length;
-                        if ((modeltransforms == null))// || (modeltransforms.Length != posebonecount))
-                        {
-                            modeltransforms = new Matrix[posebonecount];
-                        }
-                        var modelbonecount = modeltransforms.Length;
-                        var maxbonecount = Math.Min(posebonecount, modelbonecount);
-                        for (int i = 0; i < maxbonecount; i++)
-                        {
-                            var p = pose.Items[i];
-                            Vector4 r1 = p.Row1;
-                            Vector4 r2 = p.Row2;
-                            Vector4 r3 = p.Row3;
-                            modeltransforms[i] = new Matrix(r1.X, r2.X, r3.X, 0.0f, r1.Y, r2.Y, r3.Y, 0.0f, r1.Z, r2.Z, r3.Z, 0.0f, r1.W, r2.W, r3.W, 1.0f);
-                        }
-                        usepose = true;
-                    }
-
-                    var phys = fd.OwnerFragmentPhys;
-                    if (phys != null)
-                    {
-                        if (phys.OwnerFragPhysLod != null)
-                        {
-                            fragtransforms = phys.OwnerFragPhysLod.FragTransforms?.Matrices;
-                            fragtransformid = phys.OwnerFragPhysIndex;
-                            fragoffset = new Vector4(phys.OwnerFragPhysLod.PositionOffset, 0.0f);
-
-
-                            switch (phys.BoneTag) //right hand side wheel flip!
-                            {
-                                //case 27922: //wheel_lf
-                                //case 29921: //wheel_lm1
-                                //case 29922: //wheel_lm2
-                                //case 29923: //wheel_lm3
-                                //case 27902: //wheel_lr
-                                case 26418: //wheel_rf
-                                case 5857:  //wheel_rm1
-                                case 5858:  //wheel_rm2
-                                case 5859:  //wheel_rm3
-                                case 26398: //wheel_rr
-                                    fragtransforms[fragtransformid].M11 = -1;
-                                    fragtransforms[fragtransformid].M12 = 0;
-                                    fragtransforms[fragtransformid].M13 = 0;
-                                    fragtransforms[fragtransformid].M21 = 0;
-                                    fragtransforms[fragtransformid].M22 = 1;
-                                    fragtransforms[fragtransformid].M23 = 0;
-                                    fragtransforms[fragtransformid].M31 = 0;
-                                    fragtransforms[fragtransformid].M32 = 0;
-                                    fragtransforms[fragtransformid].M33 = -1;
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                        }
-                    }
-                    else if (frag != null)
-                    {
-                    }
-                }
-
-                hastransforms = (modeltransforms != null) || (fragtransforms != null);
+                hastransforms = modeltransforms != null;
                 hasbones = ((skeleton.Bones != null) && (skeleton.Bones.Items != null));
                 bones = hasbones ? skeleton.Bones.Items : null;
             }
@@ -260,7 +177,6 @@ namespace CodeWalker.Rendering
             for (int mi = 0; mi < AllModels.Length; mi++)
             {
                 var model = AllModels[mi];
-
                 model.UseTransform = hastransforms;
                 if (hastransforms)
                 {
@@ -279,19 +195,7 @@ namespace CodeWalker.Rendering
                         }
                     }
 
-
-
-                    if ((fragtransforms != null))// && (fragtransformid < fragtransforms.Length))
-                    {
-                        if (fragtransformid < fragtransforms.Length)
-                        {
-                            trans = fragtransforms[fragtransformid];
-                            trans.Row4 += fragoffset;
-                        }
-                        else
-                        { }
-                    }
-                    else if (!usepose) //when using the skeleton's matrices, they need to be transformed by parent
+                    if (!usepose) //when using the skeleton's matrices, they need to be transformed by parent
                     {
                         trans.Column4 = Vector4.UnitW;
                         short[] pinds = skeleton.ParentIndices;
@@ -317,15 +221,10 @@ namespace CodeWalker.Rendering
             }
 
             var lights = dd?.LightAttributes?.data_items;
-            if ((lights == null) && (fd != null) && (fd?.OwnerFragment?.Drawable == fd))
-            {
-                lights = fd.OwnerFragment.LightAttributes?.data_items;
-            }
             if (lights != null)
             {
                 InitLights(lights);
             }
-
 
             UpdateBoneTransforms();
         }
@@ -409,8 +308,10 @@ namespace CodeWalker.Rendering
 
                 return;
             }
-
-            Skeleton.UpdateBoneTransforms();
+            if (!AllModels.Any(x => x.IsPedProp))
+            {
+                Skeleton.UpdateBoneTransforms();
+            }
 
             var bones = Skeleton.Bones?.Items;
             var bonetransforms = Skeleton.BoneTransforms;
@@ -446,21 +347,6 @@ namespace CodeWalker.Rendering
                             { }
                         }
                     }
-
-                    //if (geom.isHair)
-                    //{
-                    //    var x = bones[100];
-                    //    if (EnableHairScale)
-                    //    {
-                    //        x.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-                    //    } 
-                    //    else
-                    //    {
-                    //        x.Scale = new Vector3(1.0f, 1.0f, 1.0f);
-                    //    }
-
-                    //}
-
                 }
             }
 
@@ -469,12 +355,13 @@ namespace CodeWalker.Rendering
 
         public void UpdatePropTransform() 
         {
-            if (Skeleton == null)
+            if (Skeleton == null || Skeleton.Bones.Items.Length == 0)
             {
                 // try to get skeleton
-                if (Key.Skeleton != null)
+                var ped = Key.Owner as Ped;
+                if (ped.Skeleton != null)
                 {
-                    Skeleton = Key.Skeleton;
+                    Skeleton = ped.Skeleton;
                 }
 
                 return;
@@ -1194,78 +1081,6 @@ namespace CodeWalker.Rendering
 
             VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, DrawableGeom.VertexData.VertexBytes);
 
-            //object v = DrawableGeom.VertexData.Vertices;
-            //switch (VertexType)
-            //{
-            //    case VertexType.Default:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypeDefault[]);
-            //        break; //P,N,C,T
-            //    case VertexType.DefaultEx:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypeDefaultEx[]);
-            //        break; //P,N,C,T,Ext
-            //    case VertexType.PNCCT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCT[]);
-            //        break;
-            //    case VertexType.PNCCTTTT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTTTT[]);
-            //        break;
-            //    case VertexType.PCCNCCTTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCCNCCTTX[]);
-            //        break;
-            //    case VertexType.PCCNCCT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCCNCCT[]);
-            //        break;
-            //    case VertexType.PNCTTTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCTTTX[]);
-            //        break;
-            //    case VertexType.PNCTTTX_2:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCTTTX_2[]);
-            //        break;
-            //    case VertexType.PNCTTTX_3:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCTTTX_3[]);
-            //        break;
-            //    case VertexType.PNCTTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCTTX[]);
-            //        break;
-            //    case VertexType.PNCCTTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTTX[]);
-            //        break;
-            //    case VertexType.PNCCTTX_2:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTTX_2[]);
-            //        break;
-            //    case VertexType.PNCCTTTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTTTX[]);
-            //        break;
-            //    case VertexType.PCCNCCTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCCNCCTX[]);
-            //        break;
-            //    case VertexType.PCCNCTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCCNCTX[]);
-            //        break;
-            //    case VertexType.PCCNCT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCCNCT[]);
-            //        break;
-            //    case VertexType.PNCCTT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTT[]);
-            //        break;
-            //    case VertexType.PNCCTX:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNCCTX[]);
-            //        break;
-            //    case VertexType.PTT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePTT[]);
-            //        break;
-            //    case VertexType.PNC:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePNC[]);
-            //        break;
-            //    case VertexType.PCT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePCT[]);
-            //        break;
-            //    case VertexType.PT:
-            //        VertexBuffer = Buffer.Create(device, BindFlags.VertexBuffer, v as VertexTypePT[]);
-            //        break;
-            //    default:
-            //        break;
-            //}
             if (VertexBuffer != null)
             {
                 VBBinding = new VertexBufferBinding(VertexBuffer, VertexStride, 0);

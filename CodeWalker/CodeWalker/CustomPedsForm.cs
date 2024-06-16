@@ -304,7 +304,11 @@ namespace CodeWalker
 
             var isProp = d.Name.StartsWith("p_");
             d.Owner = SelectedPed;
-            d.Skeleton = SelectedPed.Skeleton;
+
+            if(d.Skeleton == null || d.Skeleton.Bones.Items.Length == 0)
+            {
+                d.Skeleton = SelectedPed.Skeleton.Clone();
+            }
 
             if(liveTexturePath != null)
             {
@@ -555,19 +559,28 @@ namespace CodeWalker
             dnode.Tag = drawable;
             dnode.Checked = check;
 
-            if(name.Contains("Selected"))
+            if (name.Contains("Selected"))
             {
-                string drawableTypeName = name.Split(' ')[1].Trim('(', ')').Split('_')[0];
-                var sameName = ModelsTreeView.Nodes.Cast<TreeNode>().Where(n => n.Text.Contains(drawableTypeName) && !n.Text.Contains("Selected") && !n.Text.Contains("Saved")).ToList();
-                if (sameName.Count > 0)
+                string drawableTypeName;
+                string[] nameParts = name.Split(' ')[1].Trim('(', ')').Split('_');
+
+                if (nameParts.Length <= 1 || nameParts[0] != "p")
                 {
-                    foreach (var node in sameName)
+                    drawableTypeName = nameParts[0];
+                    var sameName = ModelsTreeView.Nodes.Cast<TreeNode>().Where(n =>
+                        n.Text.Contains(drawableTypeName) &&
+                        !n.Text.Contains("Selected") &&
+                        !n.Text.Contains("Saved")
+                    ).ToList();
+                    if (sameName.Count > 0)
                     {
-                        node.Checked = !node.Checked;
+                        foreach (var node in sameName)
+                        {
+                            node.Checked = !node.Checked;
+                        }
                     }
                 }
             }
-
 
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.High, "High Detail", true, dnode, tnode);
             AddDrawableModelsTreeNodes(drawable.DrawableModels?.Med, "Medium Detail", false, dnode, tnode);
@@ -903,20 +916,6 @@ namespace CodeWalker
             foreach (var item in compData.DrawblData3)
             {
                 c.Add(new ComponentComboItem(item));
-                //for (int alt = 0; alt <= item.NumAlternatives; alt++)
-                //{
-                //    if (item.TexData?.Length > 0)
-                //    {
-                //        for (int tex = 0; tex < item.TexData.Length; tex++)
-                //        {
-                //            c.Add(new ComponentComboItem(item, alt, tex));
-                //        }
-                //    }
-                //    else
-                //    {
-
-                //    }
-                //}
             }
         }
 
@@ -997,14 +996,6 @@ namespace CodeWalker
 
 
             Input.Update();
-
-            if (Input.xbenable)
-            {
-                //if (ControllerButtonJustPressed(GamepadButtonFlags.Start))
-                //{
-                //    SetControlMode(ControlMode == WorldControlMode.Free ? WorldControlMode.Ped : WorldControlMode.Free);
-                //}
-            }
 
             if (Input.ShiftPressed)
             {

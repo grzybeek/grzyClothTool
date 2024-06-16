@@ -1663,16 +1663,6 @@ namespace CodeWalker.Rendering
                 distance = (camrel + bscen).Length();
             }
 
-
-            //bool usehdtxd = renderhdtextures && ((dist - bsrad) <= arche._BaseArchetypeDef.hdTextureDist);
-            //var usehdtxd = false;
-            //if ((arch != null) && (renderhdtextures))
-            //{
-            //    usehdtxd = ((ent.Distance - arch.BSRadius) <= arch._BaseArchetypeDef.hdTextureDist);
-            //}
-
-
-
             if (rndbl.HasAnims)
             {
                 rndbl.UpdateAnims(currentRealTime);
@@ -1855,20 +1845,6 @@ namespace CodeWalker.Rendering
             YftFile yft = ped.Yft;// GameFileCache.GetYft(SelectedModelHash);
             if (yft != null)
             {
-                if (yft.Loaded)
-                {
-                    if (yft.Fragment != null)
-                    {
-                        //var f = yft.Fragment;
-                        //var txdhash = 0u;// SelectedVehicleHash;// yft.RpfFileEntry?.ShortNameHash ?? 0;
-                        //var namelower = yft.RpfFileEntry?.GetShortNameLower();
-                        //Archetype arch = null;// TryGetArchetype(hash);
-                        //Renderer.RenderFragment(arch, null, f, txdhash);
-                        //seldrwbl = f.Drawable;
-                    }
-                }
-
-
                 var vi = ped.Ymt?.VariationInfo;
                 if (vi != null)
                 {
@@ -1877,20 +1853,16 @@ namespace CodeWalker.Rendering
                         RenderPedComponent(ped, i);
                     }
                 }
-
             }
-
         }
 
         private void RenderPedComponent(Ped ped, int i)
         {
-            //var compData = ped.Ymt?.VariationInfo?.GetComponentData(i);
             var drawable = ped.Drawables[i];
             var texture = ped.Textures[i];
             var cloth = ped.Clothes[i];
             var expr = ped.Expressions[i];
 
-            //if (compData == null) return;
             if (drawable == null) return;
 
             var td = ped.Ytd?.TextureDict;
@@ -1928,7 +1900,6 @@ namespace CodeWalker.Rendering
                 }
             }
 
-
             bool drawFlag = true;
             if (!SelectionDrawableDrawFlags.TryGetValue(drawable, out drawFlag))
             { drawFlag = true; }
@@ -1937,8 +1908,6 @@ namespace CodeWalker.Rendering
             {
                 RenderDrawable(drawable, null, ped.RenderEntity, 0, td, texture, ac, cloth, expr);
             }
-
-
         }
 
         public void RenderCollisionMesh(Bounds bounds, YmapEntityDef entity)
@@ -2016,12 +1985,6 @@ namespace CodeWalker.Rendering
             {
                 texDict = arche.TextureDict.Hash;
                 clipDict = arche.ClipDict.Hash;
-
-                //texDictOrig = texDict;
-                //if (hdtxd)
-                //{
-                //    texDict = gameFileCache.TryGetHDTextureHash(texDict);
-                //}
             }
 
 
@@ -2129,13 +2092,7 @@ namespace CodeWalker.Rendering
                 if (cacheHD) rndbl.HDtxds = tryGetRenderableHDtxds.ToArray();
             }
 
-
-
-
-
             bool alltexsloaded = true;
-
-
             for (int mi = 0; mi < rndbl.AllModels.Length; mi++)
             {
                 var model = rndbl.AllModels[mi];
@@ -2145,13 +2102,10 @@ namespace CodeWalker.Rendering
                     continue; //filter out reflection proxy models...
                 }
 
-
                 foreach (var geom in model.Geometries)
                 {
                     if (geom.Textures != null)
                     {
-                        
-
                         for (int i = 0; i < geom.Textures.Length; i++)
                         {
                             if (diffOverride != null)
@@ -2284,15 +2238,7 @@ namespace CodeWalker.Rendering
                                 rdtex = renderableCache.GetRenderableTexture(ttex);
                             }
 
-                            //if ((rdtex != null) && (rdtex.IsLoaded == false))
-                            //{
-                            //    alltexsloaded = false;
-                            //}
-
-
                             geom.RenderableTextures[i] = rdtex;
-
-
 
                             RenderableTexture rhdtex = null;
                             if (renderhdtextures)
