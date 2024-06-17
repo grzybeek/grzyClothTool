@@ -624,7 +624,7 @@ public class BuildResourceHelper
             var drawable = allCompDrawablesArray[i];
             compInfos[i].pedXml_audioID = JenkHash.GenHash(drawable.Audio);
             compInfos[i].pedXml_audioID2 = JenkHash.GenHash("none"); //todo
-            compInfos[i].pedXml_expressionMods = new ArrayOfFloats5 { f0 = 0, f1 = 0, f2 = 0, f3 = 0, f4 = drawable.HighHeelsValue }; //expression mods
+            compInfos[i].pedXml_expressionMods = new ArrayOfFloats5 { f0 = 0, f1 = 0, f2 = 0, f3 = 0, f4 = drawable.EnableHighHeels ? drawable.HighHeelsValue : 0 }; //expression mods
             compInfos[i].flags = 0;
             compInfos[i].inclusions = 0;
             compInfos[i].exclusions = 0;
@@ -646,7 +646,7 @@ public class BuildResourceHelper
         {
             var prop = allPropDrawablesArray[i];
             props[i].audioId = JenkHash.GenHash(prop.Audio);
-            props[i].expressionMods = new ArrayOfFloats5 { f0 = -prop.HairScaleValue, f1 = 0, f2 = 0, f3 = 0, f4 = 0 };
+            props[i].expressionMods = new ArrayOfFloats5 { f0 = prop.EnableHairScale ? -prop.HairScaleValue : 0, f1 = 0, f2 = 0, f3 = 0, f4 = 0 };
 
             var texturesArray = prop.Textures.ToArray();
             var textures = new CPedPropTexData[texturesArray.Length];
@@ -683,7 +683,7 @@ public class BuildResourceHelper
             var propsOfType = allPropDrawablesArray.Where(x => x.TypeNumeric == uniqueProps[i].TypeNumeric);
             List<byte> items = propsOfType.Select(p => (byte)p.Textures.Count).ToList();
 
-            anchors[i].props = mb.AddByteArrayPtr(items.ToArray());
+            anchors[i].props = mb.AddByteArrayPtr([.. items]);
             anchors[i].anchor = ((eAnchorPoints)propsOfType.First().TypeNumeric);
         }
         propInfo.aAnchors = mb.AddItemArrayPtr(MetaName.CAnchorProps, anchors);
