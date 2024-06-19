@@ -40,24 +40,25 @@ namespace grzyClothTool
         {
             MaterialIconDataProvider.Instance = new CustomIconProvider(); // use custom icons
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+            DispatcherUnhandledException += DispatcherUnhandledExceptionHandler;
         }
 
         private static void UnhandledExceptionHandler(object sender, UnhandledExceptionEventArgs e)
         {
             Exception ex = (Exception)e.ExceptionObject;
 
-
             Show($"An error occurred: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly);
-
             File.WriteAllText("error.log", ex.ToString());
-
             Console.WriteLine("Unhandled exception: " + ex.ToString());
+        }
 
-            if (e.IsTerminating)
-            {
-                //todo: save
-                Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-            }
+        private void DispatcherUnhandledExceptionHandler(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            Show($"An error occurred: {e.Exception.Message}", "Error", CustomMessageBoxButtons.OKOnly);
+            File.WriteAllText("error.log", e.Exception.ToString());
+            Console.WriteLine("Dispatcher unhandled exception: " + e.Exception.ToString());
+
+            e.Handled = true;
         }
 
         private void ShowSplash()
