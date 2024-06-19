@@ -191,6 +191,8 @@
                                             <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelComboBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsProp}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelCheckBox IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" IsUpdated="SelectedDrawable_Updated" />
+                                            <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.SelectedDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.SelectedDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
+
                                             <StackPanel Orientation="Vertical" Margin="0">
                                                 <StackPanel.Style>
                                                     <Style TargetType="StackPanel">

@@ -13,6 +13,8 @@ using CodeWalker.GameFiles;
 using System.Linq;
 using grzyClothTool.Models.Texture;
 using System;
+using grzyClothTool.Controls;
+using System.Runtime.Serialization;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -144,6 +146,36 @@ public class GDrawable : INotifyPropertyChanged
     [JsonIgnore]
     public List<string> AvailableAudioList => EnumHelper.GetAudioList(TypeNumeric);
 
+    private ObservableCollection<SelectableItem> _selectedFlags = [];
+    public ObservableCollection<SelectableItem> SelectedFlags
+    {
+        get => _selectedFlags;
+        set
+        {
+            _selectedFlags = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Flags));
+            OnPropertyChanged(nameof(FlagsText));
+        }
+    }
+
+    [JsonIgnore]
+    public string FlagsText
+    {
+        get
+        {
+            var count = SelectedFlags.Count(i => i.IsSelected && i.Value != (int)Enums.DrawableFlags.NONE);
+
+            return count > 0 ? $"{Flags} ({count} selected)" : "NONE";
+        } 
+    }
+
+    [JsonIgnore]
+    public int Flags => SelectedFlags.Where(f => f.IsSelected).Sum(f => f.Value);
+
+    [JsonIgnore]
+    public List<SelectableItem> AvailableFlags => EnumHelper.GetFlags(Flags);
+
     public string RenderFlag { get; set; } = ""; // "" is the default value
 
     [JsonIgnore]
@@ -193,6 +225,15 @@ public class GDrawable : INotifyPropertyChanged
                 return t.Result;
             });
         }
+    }
+
+
+    //this will be called after deserialization
+    [OnDeserialized]
+    private void OnDeserialized(StreamingContext context)
+    {
+       
+        SetDrawableName();
     }
 
     protected GDrawable(bool isMale, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }

@@ -154,7 +154,10 @@ namespace grzyClothTool.Models
                     {
                         drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
 
-                        if(compInfo.Data.pedXml_expressionMods.f4 != 0)
+                        var list = EnumHelper.GetFlags((int)compInfo.Data.flags);
+                        drawable.SelectedFlags = list.ToObservableCollection();
+
+                        if (compInfo.Data.pedXml_expressionMods.f4 != 0)
                         {
                             drawable.EnableHighHeels = true;
                             drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
@@ -168,6 +171,9 @@ namespace grzyClothTool.Models
                         {
                             drawable.Audio = pedPropMetaData.Data.audioId.ToString();
                             drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
+
+                            var list = EnumHelper.GetFlags((int)pedPropMetaData.Data.propFlags);
+                            drawable.SelectedFlags = list.ToObservableCollection();
 
                             if (pedPropMetaData.Data.expressionMods.f0 != 0)
                             {

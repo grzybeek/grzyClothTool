@@ -15,6 +15,20 @@
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
         </ControlTemplate>
+
+        <DataTemplate x:Key="MultiSelectTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <CheckBox IsEnabled="False" IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Grid.Column="0" />
+                <TextBlock Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" Margin="5,0,0,2" Grid.Column="1" />
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="SingleSelectTemplate">
+            <TextBlock Text="{Binding}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        </DataTemplate>
     </UserControl.Resources>
 
     <ComboBox Name="MyComboBox"
@@ -24,8 +38,19 @@
               Foreground="{DynamicResource Brush950}"
               VerticalContentAlignment="Center"
               SelectedItem="{Binding SelectedItem, ElementName=MyModernLabelComboBox}"
-              ItemsSource="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"
-              HorizontalContentAlignment="Center">
+              HorizontalContentAlignment="Center"
+              IsEditable="False"
+              StaysOpenOnEdit="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}">
+        <ComboBox.Style>
+            <Style TargetType="ComboBox">
+                <Setter Property="ItemsSource" Value="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
+                        <Setter Property="ItemsSource" Value="{Binding ItemsSourceSelectable, ElementName=MyModernLabelComboBox}"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ComboBox.Style>
         <ComboBox.Template>
             <ControlTemplate TargetType="ComboBox">
                 <Border BorderThickness="1"
@@ -41,7 +66,12 @@
                                       VerticalContentAlignment="Center"
                                       HorizontalContentAlignment="Center"
                                       IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                            <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" />
+                            <StackPanel Orientation="Horizontal">
+                                <!-- IsMultiSelect mode -->
+                                <TextBlock Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding Text, ElementName=MyModernLabelComboBox}" VerticalAlignment="Center"/>
+                                <!-- single-select mode -->
+                                <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                            </StackPanel>
                         </ToggleButton>
 
                         <TextBlock x:Name="placeholder"
@@ -178,8 +208,25 @@
                 </ControlTemplate.Triggers>
             </ControlTemplate>
         </ComboBox.Template>
+        <ComboBox.ItemTemplate>
+            <DataTemplate>
+                <ContentControl Content="{Binding}">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="ContentTemplate" Value="{StaticResource SingleSelectTemplate}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource MultiSelectTemplate}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
+            </DataTemplate>
+        </ComboBox.ItemTemplate>
         <ComboBox.ItemContainerStyle>
             <Style TargetType="ComboBoxItem">
+                <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ComboBoxItem">

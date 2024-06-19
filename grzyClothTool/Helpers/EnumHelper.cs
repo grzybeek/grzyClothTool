@@ -1,4 +1,5 @@
-﻿using System;
+﻿using grzyClothTool.Controls;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static grzyClothTool.Enums;
@@ -130,6 +131,21 @@ public static class EnumHelper
             //head, hair, teef, decl
             _ => ["none"],
         };
+    }
+
+    public static List<SelectableItem> GetFlags(int selected = 0)
+    {
+        var flags = Enum.GetValues(typeof(DrawableFlags))
+                        .Cast<DrawableFlags>()
+                        .Where(flag => flag != DrawableFlags.NONE) // Exclude NONE flag
+                        .Select(flag =>
+                            new SelectableItem(
+                                flag.ToString(),
+                                (int)flag,
+                                (selected & (int)flag) == (int)flag
+                            )
+                        ).ToList();
+        return flags;
     }
 
     public static List<string> GetDrawableTypeList()

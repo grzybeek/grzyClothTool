@@ -625,7 +625,7 @@ public class BuildResourceHelper
             compInfos[i].pedXml_audioID = JenkHash.GenHash(drawable.Audio);
             compInfos[i].pedXml_audioID2 = JenkHash.GenHash("none"); //todo
             compInfos[i].pedXml_expressionMods = new ArrayOfFloats5 { f0 = 0, f1 = 0, f2 = 0, f3 = 0, f4 = drawable.EnableHighHeels ? drawable.HighHeelsValue : 0 }; //expression mods
-            compInfos[i].flags = 0;
+            compInfos[i].flags = (uint)drawable.Flags;
             compInfos[i].inclusions = 0;
             compInfos[i].exclusions = 0;
             compInfos[i].pedXml_vfxComps = ePedVarComp.PV_COMP_HEAD;
@@ -668,7 +668,7 @@ public class BuildResourceHelper
 
             props[i].texData = mb.AddItemArrayPtr(MetaName.CPedPropTexData, textures);
             props[i].renderFlags = renderFlag;
-            props[i].propFlags = 0;
+            props[i].propFlags = (uint)prop.Flags;
             props[i].flags = 0;
             props[i].anchorId = (byte)prop.TypeNumeric;
             props[i].propId = (byte)prop.Number;
