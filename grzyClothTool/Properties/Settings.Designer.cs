@@ -61,13 +61,37 @@ namespace grzyClothTool.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20000")]
-        public int PolygonCountLimit {
+        [global::System.Configuration.DefaultSettingValueAttribute("35000")]
+        public int PolygonLimitHigh {
             get {
-                return ((int)(this["PolygonCountLimit"]));
+                return ((int)(this["PolygonLimitHigh"]));
             }
             set {
-                this["PolygonCountLimit"] = value;
+                this["PolygonLimitHigh"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20000")]
+        public int PolygonLimitMed {
+            get {
+                return ((int)(this["PolygonLimitMed"]));
+            }
+            set {
+                this["PolygonLimitMed"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10000")]
+        public int PolygonLimitLow {
+            get {
+                return ((int)(this["PolygonLimitLow"]));
+            }
+            set {
+                this["PolygonLimitLow"] = value;
             }
         }
     }

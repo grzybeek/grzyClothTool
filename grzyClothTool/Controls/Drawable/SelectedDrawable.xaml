@@ -121,30 +121,35 @@
                                                                 </Style>
                                                             </icons:MaterialIcon.Style>
                                                         </icons:MaterialIcon>
-                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2" ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}">
-                                                            <icons:MaterialIcon.Style>
-                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </icons:MaterialIcon.Style>
-                                                        </icons:MaterialIcon>
-                                                        <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2" ToolTip="Texture not found. Most likely this .ytd is empty">
-                                                            <icons:MaterialIcon.Style>
-                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </icons:MaterialIcon.Style>
-                                                        </icons:MaterialIcon>
+                                                        <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}">
+                                                            <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
+                                                                <icons:MaterialIcon.Style>
+                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </icons:MaterialIcon.Style>
+                                                            </icons:MaterialIcon>
+                                                        </ContentControl>
+                                                        <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty">
+                                                            <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2">
+                                                                <icons:MaterialIcon.Style>
+                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </icons:MaterialIcon.Style>
+                                                            </icons:MaterialIcon>
+                                                        </ContentControl>
+                                                        
 
                                                         <TextBlock>
                                                             <TextBlock.Style>

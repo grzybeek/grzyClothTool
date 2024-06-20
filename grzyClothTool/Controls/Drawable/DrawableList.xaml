@@ -53,18 +53,20 @@
                                             </Style>
                                         </icons:MaterialIcon.Style>
                                     </icons:MaterialIcon>
-                                    <icons:MaterialIcon Kind="AlertCircleOutline" Width="12" Margin="5,1,0,0" ToolTip="{Binding Details.Tooltip}">
-                                        <icons:MaterialIcon.Style>
-                                            <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Details.IsWarning}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </icons:MaterialIcon.Style>
-                                    </icons:MaterialIcon>
+                                    <ContentControl ToolTip="{Binding Details.Tooltip}">
+                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="12" Margin="5,1,0,0">
+                                            <icons:MaterialIcon.Style>
+                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Details.IsWarning}" Value="True">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </icons:MaterialIcon.Style>
+                                        </icons:MaterialIcon>
+                                    </ContentControl>
                                     <TextBlock Padding="5, 0, 0, 0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">

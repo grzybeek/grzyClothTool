@@ -1,5 +1,6 @@
 ﻿using grzyClothTool.Helpers;
 using grzyClothTool.Models.Texture;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -63,10 +64,18 @@ public class GDrawableDetails : INotifyPropertyChanged
                 continue;
             }
 
-            if (model.PolyCount > SettingsHelper.Instance.PolygonCountLimit)
+            int polygonLimit = detailLevel switch
+            {
+                DetailLevel.High => SettingsHelper.Instance.PolygonLimitHigh,
+                DetailLevel.Med => SettingsHelper.Instance.PolygonLimitMed,
+                DetailLevel.Low => SettingsHelper.Instance.PolygonLimitLow,
+                _ => throw new InvalidOperationException("Unknown detail level")
+            };
+
+            if (model.PolyCount > polygonLimit)
             {
                 IsWarning = true;
-                Tooltip += $"[{detailLevel}] Polygon count exceeds the limit of {SettingsHelper.Instance.PolygonCountLimit}.\n";
+                Tooltip += $"[{detailLevel}] Polygon count exceeds the limit of {polygonLimit}.\n";
             }
         }
 

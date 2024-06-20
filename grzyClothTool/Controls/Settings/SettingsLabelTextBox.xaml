@@ -18,11 +18,16 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" TextWrapping="Wrap" Padding="0,0,0,1" Foreground="{DynamicResource Brush950}" Margin="5" FontWeight="Bold" Text="{Binding Label, ElementName=MyLabelTextBox}">
-            <TextBlock.RenderTransform>
-                <ScaleTransform ScaleX="1.25" ScaleY="1.25" />
-            </TextBlock.RenderTransform>
-        </TextBlock>
+        <TextBlock 
+            Grid.Row="0" 
+            TextWrapping="Wrap" 
+            Padding="0,0,0,1" 
+            Foreground="{DynamicResource Brush950}" 
+            Margin="5" 
+            FontWeight="Bold" 
+            Text="{Binding Label, ElementName=MyLabelTextBox}" 
+            FontSize="{Binding LabelFontSize, ElementName=MyLabelTextBox}"
+        />
 
         <TextBox Grid.Row="1" Margin="5,0,0,0" VerticalContentAlignment="Center" Grid.Column="0" Text="{Binding Text, ElementName=MyLabelTextBox}" IsEnabled="{Binding ButtonVisible, ElementName=MyLabelTextBox, Converter={StaticResource InverseBooleanConverter}}" />
         <Button Grid.Row="1" MinWidth="50" Margin="5,0,0,0" Grid.Column="1" Visibility="{Binding ButtonVisible, ElementName=MyLabelTextBox, Converter={StaticResource BooleanToVisibilityConverter}}" Click="Button_Click">Edit</Button>

@@ -14,6 +14,12 @@ namespace grzyClothTool.Controls
                 typeof(SettingsLabelTextBox),
                 new FrameworkPropertyMetadata("Unnamed Label"));
 
+        public static readonly DependencyProperty LabelFontSizeProperty = DependencyProperty
+            .Register("LabelFontSize",
+                    typeof(int),
+                    typeof(SettingsLabelTextBox),
+                    new FrameworkPropertyMetadata(15));
+
         public static readonly DependencyProperty TextProperty = DependencyProperty
             .Register("Text",
                     typeof(string),
@@ -55,6 +61,12 @@ namespace grzyClothTool.Controls
         {
             get { return (string)GetValue(LabelProperty); }
             set { SetValue(LabelProperty, value); }
+        }
+
+        public int LabelFontSize
+        {
+            get { return (int)GetValue(LabelFontSizeProperty); }
+            set { SetValue(LabelFontSizeProperty, value); }
         }
 
         public string Text

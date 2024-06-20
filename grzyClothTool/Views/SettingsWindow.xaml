@@ -99,7 +99,28 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
                             <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="{Binding GTAVPath, Mode=OneWay}" Description="GTAV path is required for 3D preview to work" Title="Select your GTA V Path" ButtonClick="GTAVPath_Click" />
-                            <c:SettingsLabelTextBox Margin="5" Label="Drawable polygon count limit" Description="Sets limit for drawable polygon count, if it exceeds this number it will display warning" Text="{Binding Path=Instance.PolygonCountLimit, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
+
+                            <GroupBox Margin="0,5" Height="120" Style="{DynamicResource FixedGroupBox}">
+                                <GroupBox.Header>
+                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="Drawable polygon count limit" />
+                                </GroupBox.Header>
+                                <Grid Margin="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Padding="5,2,5,5" FontStyle="Italic" FontWeight="Normal" Foreground="{DynamicResource Brush500}" Grid.Row="0" Grid.ColumnSpan="3" TextWrapping="Wrap">Sets limit for drawable polygon count, if it exceeds this number it will display warning</TextBlock>
+                                    <c:SettingsLabelTextBox Grid.Row="1" Grid.Column="0" Label="High LOD" LabelFontSize="12" Text="{Binding Path=Instance.PolygonLimitHigh, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
+                                    <c:SettingsLabelTextBox Grid.Row="1" Grid.Column="1" Label="Medium LOD" LabelFontSize="12" Text="{Binding Path=Instance.PolygonLimitMed, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
+                                    <c:SettingsLabelTextBox Grid.Row="1" Grid.Column="2" Label="Low LOD" LabelFontSize="12" Text="{Binding Path=Instance.PolygonLimitLow, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
+                                </Grid>
+                            </GroupBox>
                         </StackPanel>
                         <StackPanel Grid.Column="1">
                             <c:SettingsLabelCheckBox IsEnabled="false" Margin="5" Label="Load GTA5 file cache on tool startup" Text="Enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)" CheckBoxClick="CacheSettings_Click" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
