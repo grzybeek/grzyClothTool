@@ -11,10 +11,10 @@ using System.Threading.Tasks;
 using System.Threading;
 using CodeWalker.GameFiles;
 using System.Linq;
-using grzyClothTool.Models.Texture;
 using System;
 using grzyClothTool.Controls;
 using System.Runtime.Serialization;
+using grzyClothTool.Models.Texture;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -181,7 +181,7 @@ public class GDrawable : INotifyPropertyChanged
     [JsonIgnore]
     public static List<string> AvailableRenderFlagList => ["", "PRF_ALPHA", "PRF_DECAL", "PRF_CUTOUT"];
 
-    public ObservableCollection<GTexture> Textures { get; set; }
+    public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
     public GDrawable(string drawablePath, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
@@ -302,23 +302,37 @@ public class GDrawable : INotifyPropertyChanged
             return null;
         }
 
-        GDrawableDetails details = new()
-        {
-            EmbeddedTextures = yddFile.Drawables.First().ShaderGroup.TextureDictionary?.Textures?.Select(t =>
-            {
-                var textureDetails = new GTextureDetails
-                {
-                    Width = t.Width,
-                    Height = t.Height,
-                    Name = t.Name,
-                    MipMapCount = t.Levels,
-                    Compression = t.Format.ToString()
-                };
+        GDrawableDetails details = new();
 
-                textureDetails.Validate();
-                return textureDetails;
-            }).ToList() ?? []
-        };
+
+        //is it always 2 and 4?
+        var spec = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[3].Data as CodeWalker.GameFiles.Texture);
+        var normal = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[2].Data as CodeWalker.GameFiles.Texture);
+
+        foreach (GDrawableDetails.EmbeddedTextureType txtType in Enum.GetValues(typeof(GDrawableDetails.EmbeddedTextureType)))
+        {
+            var texture = txtType switch
+            {
+                GDrawableDetails.EmbeddedTextureType.Specular => spec,
+                GDrawableDetails.EmbeddedTextureType.Normal => normal,
+                _ => null
+            };
+
+            if (texture == null)
+            {
+                continue;
+            }
+
+            details.EmbeddedTextures[txtType] = new GTextureDetails
+            {
+                Width = texture.Width,
+                Height = texture.Height,
+                Name = texture.Name,
+                Type = txtType.ToString(),
+                MipMapCount = texture.Levels,
+                Compression = texture.Format.ToString()
+            };
+        }
 
         var drawableModels = yddFile.Drawables.First().DrawableModels;
         foreach (GDrawableDetails.DetailLevel detailLevel in Enum.GetValues(typeof(GDrawableDetails.DetailLevel)))

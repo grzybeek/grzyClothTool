@@ -18,6 +18,12 @@ public class GDrawableDetails : INotifyPropertyChanged
         Low
     }
 
+    public enum EmbeddedTextureType
+    {
+        Specular,
+        Normal
+    }
+
     public Dictionary<DetailLevel, GDrawableModel?> AllModels { get; set; } = new()
     {
         { DetailLevel.High, null },
@@ -25,7 +31,12 @@ public class GDrawableDetails : INotifyPropertyChanged
         { DetailLevel.Low, null }
     };
 
-    public List<GTextureDetails> EmbeddedTextures { get; set; } = [];
+    public Dictionary<EmbeddedTextureType, GTextureDetails?> EmbeddedTextures { get; set; } = new()
+    {
+        { EmbeddedTextureType.Specular, null },
+        { EmbeddedTextureType.Normal, null }
+    };
+
 
     private bool _isWarning;
     public bool IsWarning
@@ -60,7 +71,7 @@ public class GDrawableDetails : INotifyPropertyChanged
             var model = AllModels[detailLevel];
             if (model == null)
             {
-                Tooltip += $"Missing {detailLevel} LOD model.\n";
+                Tooltip += $"[{detailLevel}] Missing LOD model.\n";
                 continue;
             }
 
@@ -75,7 +86,29 @@ public class GDrawableDetails : INotifyPropertyChanged
             if (model.PolyCount > polygonLimit)
             {
                 IsWarning = true;
-                Tooltip += $"[{detailLevel}] Polygon count exceeds the limit of {polygonLimit}.\n";
+                Tooltip += $"[{detailLevel}] Polygon count of {model.PolyCount} exceeds the limit of {polygonLimit}.\n";
+            }
+        }
+
+        foreach (var key in EmbeddedTextures.Keys)
+        {
+            var txt = EmbeddedTextures[key];
+            if (txt == null)
+            {
+                Tooltip += $"Missing {key} texture.\n";
+                continue;
+            }
+
+            txt.Validate();
+            if (txt.IsOptimizeNeeded)
+            {
+                IsWarning = true;
+
+                var messages = txt.IsOptimizeNeededTooltip.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var message in messages)
+                {
+                    Tooltip += $"[Embedded {key}] {message}\n";
+                }
             }
         }
 
