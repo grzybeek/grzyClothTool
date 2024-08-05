@@ -305,7 +305,7 @@ public class GDrawable : INotifyPropertyChanged
         GDrawableDetails details = new();
 
 
-        //is it always 2 and 4?
+        //is it always 2 and 3?
         var spec = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[3].Data as CodeWalker.GameFiles.Texture);
         var normal = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[2].Data as CodeWalker.GameFiles.Texture);
 
