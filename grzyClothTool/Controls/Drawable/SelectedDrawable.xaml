@@ -79,6 +79,7 @@
                                             <c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
                                             <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
                                             <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
+                                            <c:ModernLabelComboBox Width="75" Label="Sex" SelectedItem="{Binding SelectedAddon.SelectedDrawable.SexName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableSex}" IsUpdated="DrawableSex_Changed" />
                                         </StackPanel>
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">

@@ -305,6 +305,25 @@ namespace grzyClothTool.Controls
             SaveHelper.SetUnsavedChanges(true);
         }
 
+        private void DrawableSex_Changed(object sender, UpdatedEventArgs e)
+        {
+            if (!e.IsUserInitiated)
+            {
+                return;
+            }
+
+            var newValue = e.DependencyPropertyChangedEventArgs.NewValue;
+            var oldValue = e.DependencyPropertyChangedEventArgs.OldValue;
+
+            if ((newValue == null || oldValue == null) || newValue == oldValue)
+            {
+                return;
+            }
+
+            SelectedDraw.ChangeDrawableSex(newValue.ToString());
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
         private async void ReplaceReserved_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog file = new()
