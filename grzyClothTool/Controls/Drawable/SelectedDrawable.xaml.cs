@@ -111,87 +111,84 @@ namespace grzyClothTool.Controls
 
         private void TexturePreview_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedTxt != null)
+            Button btn = sender as Button;
+            GTexture gtxt = (GTexture)btn.DataContext;
+
+            if (textureListBox != null)
             {
-                Button btn = sender as Button;
-                GTexture gtxt = (GTexture)btn.DataContext;
-
-                if (textureListBox != null)
-                {
-                    textureListBox.SelectedIndex = gtxt.TxtNumber;
-                }
-
-                MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
-                if (img == null)
-                {
-                    return;
-                }
-
-                int w = img.Width;
-                int h = img.Height;
-                byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
-
-                Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
-                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
-                bitmap.UnlockBits(bitmapData);
-
-                System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
-                BitmapSource bitmapSource = BitmapSource.Create(
-                    bitmap.Width,
-                    bitmap.Height,
-                    bitmap.HorizontalResolution,
-                    bitmap.VerticalResolution,
-                    PixelFormats.Bgra32,
-                    null,
-                    pixels,
-                    bitmap.Width * 4
-                );
-
-                imageControl.Source = bitmapSource;
-
-                TextBlock textBlock = new()
-                {
-                    Text = $"{gtxt.DisplayName} ({w}x{h})",
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(5)
-                };
-
-                StackPanel stackPanel = new();
-                stackPanel.Children.Add(textBlock);
-                stackPanel.Children.Add(imageControl);
-
-                Border border = new()
-                {
-                    CornerRadius = new CornerRadius(15),
-                    BorderThickness = new Thickness(2),
-                    BorderBrush = System.Windows.Media.Brushes.Black,
-
-                    Background = System.Windows.Media.Brushes.White,
-                    Child = stackPanel
-                };
-
-                Popup popup = new()
-                {
-                    Width = 400,
-                    Height = 350,
-                    Placement = PlacementMode.Mouse,
-                    StaysOpen = false,
-                    Child = border,
-                    AllowsTransparency = true,
-
-                    IsOpen = true
-                };
-                popup.MouseMove += (s, args) =>
-                {
-                    popup.IsOpen = false;
-                };
-
-                popup.Closed += (s, args) =>
-                {
-                    bitmap.Dispose();
-                };
+                textureListBox.SelectedIndex = gtxt.TxtNumber;
             }
+
+            MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
+            if (img == null)
+            {
+                return;
+            }
+
+            int w = img.Width;
+            int h = img.Height;
+            byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
+
+            Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+            Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+            bitmap.UnlockBits(bitmapData);
+
+            System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
+            BitmapSource bitmapSource = BitmapSource.Create(
+                bitmap.Width,
+                bitmap.Height,
+                bitmap.HorizontalResolution,
+                bitmap.VerticalResolution,
+                PixelFormats.Bgra32,
+                null,
+                pixels,
+                bitmap.Width * 4
+            );
+
+            imageControl.Source = bitmapSource;
+
+            TextBlock textBlock = new()
+            {
+                Text = $"{gtxt.DisplayName} ({w}x{h})",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+
+            StackPanel stackPanel = new();
+            stackPanel.Children.Add(textBlock);
+            stackPanel.Children.Add(imageControl);
+
+            Border border = new()
+            {
+                CornerRadius = new CornerRadius(15),
+                BorderThickness = new Thickness(2),
+                BorderBrush = System.Windows.Media.Brushes.Black,
+
+                Background = System.Windows.Media.Brushes.White,
+                Child = stackPanel
+            };
+
+            Popup popup = new()
+            {
+                Width = 400,
+                Height = 350,
+                Placement = PlacementMode.Mouse,
+                StaysOpen = false,
+                Child = border,
+                AllowsTransparency = true,
+
+                IsOpen = true
+            };
+            popup.MouseMove += (s, args) =>
+            {
+                popup.IsOpen = false;
+            };
+
+            popup.Closed += (s, args) =>
+            {
+                bitmap.Dispose();
+            };
         }
 
         // Used to notify CW ped viewer of changes to selected drawable
