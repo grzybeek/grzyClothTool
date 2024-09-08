@@ -34,23 +34,30 @@
 
 
             <MenuItem Header="_Project">
+                <MenuItem Header="_New Project" Click="NewProject_Click" />
                 <MenuItem Header="_Open Addon" Click="OpenProject_Click" />
-                <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
-                    <MenuItem.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock MouseUp="OpenSave_Click">
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="{}Auto-save ({0:dd.MM.yyyy HH:mm:ss})">
-                                        <Binding Path="SaveDate" />
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                                <TextBlock.Tag>
-                                    <Binding />
-                                </TextBlock.Tag>
-                            </TextBlock>
-                        </DataTemplate>
-                    </MenuItem.ItemTemplate>
+                <MenuItem Header="_Open Saves">
+                    <MenuItem Header="_Open Auto-Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
+                        <MenuItem.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock MouseUp="OpenSave_Click">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}Auto-save ({0:dd.MM.yyyy HH:mm:ss})">
+                                            <Binding Path="SaveDate" />
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                    <TextBlock.Tag>
+                                        <Binding />
+                                    </TextBlock.Tag>
+                                </TextBlock>
+                            </DataTemplate>
+                        </MenuItem.ItemTemplate>
+                    </MenuItem>
+                    <MenuItem Header="_Open File" Click="OpenSaveFile_Click" />
                 </MenuItem>
+                <MenuItem Header="_Save" Click="SaveProject_Click" />
+                <Separator />
+                <MenuItem Header="_Add Addon" Click="AddProject_Click" />
             </MenuItem>
             <MenuItem Header="_Settings" Tag="Settings" Click="Navigation_Click" />
             <MenuItem Header="_View" Tag="View">

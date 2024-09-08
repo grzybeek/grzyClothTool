@@ -5,6 +5,7 @@ using Material.Icons;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -99,6 +100,25 @@ namespace grzyClothTool
             _navigationHelper.Navigate(tag);
         }
 
+        private void NewProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (!SaveHelper.CheckUnsavedChangesMessage())
+            {
+                return;
+            }
+            
+            SaveHelper.SavingPaused = true;
+            var timer = new Stopwatch();
+            timer.Start();
+
+            AddonManager.Addons = [];
+
+            timer.Stop();
+            LogHelper.Log($"New project in {timer.Elapsed}");
+            SaveHelper.SetUnsavedChanges(false);
+            SaveHelper.SavingPaused = false;
+        }
+
         private async void OpenProject_Click(object sender, RoutedEventArgs e)
         {
             if (!SaveHelper.CheckUnsavedChangesMessage())
@@ -133,6 +153,33 @@ namespace grzyClothTool
             }
         }
 
+        private async void AddProject_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog metaFiles = new()
+            {
+                Title = "Select .meta file(s)",
+                Multiselect = true,
+                Filter = "Meta files (*.meta)|*.meta"
+            };
+
+            if (metaFiles.ShowDialog() == true)
+            {
+                SaveHelper.SavingPaused = true;
+                var timer = new Stopwatch();
+                timer.Start();
+
+                foreach (var dir in metaFiles.FileNames)
+                {
+                    await AddonManager.LoadAddon(dir);
+                }
+
+                timer.Stop();
+                LogHelper.Log($"Added addon in {timer.Elapsed}");
+                SaveHelper.SetUnsavedChanges(true);
+                SaveHelper.SavingPaused = false;
+            }
+        }
+
         private async void OpenSave_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is TextBlock textBlock && textBlock.Tag is SaveFile saveFile)
@@ -143,6 +190,42 @@ namespace grzyClothTool
                 }
 
                 await SaveHelper.LoadAsync(saveFile);
+            }
+        }
+
+        private async void OpenSaveFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (!SaveHelper.CheckUnsavedChangesMessage())
+            {
+                return;
+            }
+
+            OpenFileDialog file = new()
+            {
+                Title = "Select .json file",
+                Multiselect = false,
+                Filter = "JSON files (*.json)|*.json"
+            };
+
+            if (file.ShowDialog() == true)
+            {
+                await SaveHelper.LoadAsync(SaveHelper.GetFileAsSaveFile(file.FileName));
+            }
+        }
+
+        private async void SaveProject_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFolderDialog folder = new()
+            {
+                Title = "Select save destination folder",
+                Multiselect = false
+            };
+
+            if (folder.ShowDialog() == true)
+            {
+                var filename = $"save_{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}.json";
+                var path = Path.Combine(folder.FolderName, filename);
+                await SaveHelper.SaveAsync(path);
             }
         }
 

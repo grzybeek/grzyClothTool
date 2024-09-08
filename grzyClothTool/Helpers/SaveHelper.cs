@@ -16,6 +16,7 @@ namespace grzyClothTool.Helpers;
 
 public class SaveFile
 {
+    public string FullPath { get; set; }
     public string FileName { get; set; }
     public DateTime SaveDate { get; set; }
 }
@@ -44,7 +45,7 @@ public static class SaveHelper
     public static void Init()
     {
         _timer = new Timer(60000);
-        _timer.Elapsed += async (sender, e) => await SaveAsync();
+        _timer.Elapsed += async (sender, e) => await AutoSaveAsync();
         _timer.Start();
 
         var latestSaveFile = Directory.EnumerateFiles(SavesPath, "save_*.json")
@@ -63,10 +64,15 @@ public static class SaveHelper
         }
     }
 
-    public static async Task SaveAsync()
+    public static async Task AutoSaveAsync()
     {
         if (!HasUnsavedChanges || SavingPaused) return;
 
+        await SaveAsync(null);
+    }
+
+    public static async Task SaveAsync(string path)
+    {
         await _semaphore.WaitAsync();
 
         try
@@ -76,16 +82,23 @@ public static class SaveHelper
             LogHelper.Log("Started saving...");
 
             var json = JsonConvert.SerializeObject(MainWindow.AddonManager, Formatting.Indented);
-            var filename = $"save_{_saveCounter}.json";
-            var path = Path.Combine(SavesPath, filename);
+            if (path == null)
+            {
+                var filename = $"save_{_saveCounter}.json";
+                _saveCounter = (_saveCounter + 1) % 10;
+                path = Path.Combine(SavesPath, filename);
+            }
 
             await File.WriteAllTextAsync(path, json);
 
             LogHelper.Log($"Saved in {timer.ElapsedMilliseconds}ms");
-            _saveCounter = (_saveCounter + 1) % 10;
 
             SaveCreated?.Invoke();
             SetUnsavedChanges(false);
+        }
+        catch (Exception e)
+        {
+            LogHelper.Log("ERROR: Failed to create save file... " + e.Message);
         }
         finally
         {
@@ -131,9 +144,7 @@ public static class SaveHelper
 
     public static async Task LoadAsync(SaveFile save)
     {
-        var path = Path.Combine(SavesPath, $"{save.FileName}.json");
-
-        var json = await File.ReadAllTextAsync(path);
+        var json = await File.ReadAllTextAsync(save.FullPath);
         var addonManager = JsonConvert.DeserializeObject<AddonManager>(json);
 
         MainWindow.AddonManager.Addons.Clear();
@@ -143,19 +154,26 @@ public static class SaveHelper
         }
 
         LogHelper.Log($"Loaded save: {save.SaveDate}");
+        SetUnsavedChanges(false);
     }
 
     public static ObservableCollection<SaveFile> GetSaveFiles()
     {
         var files = Directory.EnumerateFiles(SavesPath, "*.json")
-            .Select(file => new SaveFile
-            {
-                FileName = Path.GetFileNameWithoutExtension(file),
-                SaveDate = File.GetLastWriteTime(file)
-            })
+            .Select(GetFileAsSaveFile)
             .ToObservableCollection();
 
         return files;
+    }
+
+    public static SaveFile GetFileAsSaveFile(string file)
+    {
+        return new SaveFile
+        {
+            FullPath = file,
+            FileName = Path.GetFileNameWithoutExtension(file),
+            SaveDate = File.GetLastWriteTime(file)
+        };
     }
 
 }
