@@ -53,7 +53,7 @@
                                             </Style>
                                         </icons:MaterialIcon.Style>
                                     </icons:MaterialIcon>
-                                    <ContentControl ToolTip="{Binding Details.Tooltip}">
+                                    <ContentControl ToolTip="{Binding Details.Tooltip}" ToolTipService.InitialShowDelay="0">
                                         <icons:MaterialIcon Kind="AlertCircleOutline" Width="12" Margin="5,1,0,0">
                                             <icons:MaterialIcon.Style>
                                                 <Style TargetType="{x:Type icons:MaterialIcon}">

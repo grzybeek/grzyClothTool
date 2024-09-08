@@ -121,7 +121,7 @@
                                                                 </Style>
                                                             </icons:MaterialIcon.Style>
                                                         </icons:MaterialIcon>
-                                                        <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}">
+                                                        <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
                                                             <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
                                                                 <icons:MaterialIcon.Style>
                                                                     <Style TargetType="{x:Type icons:MaterialIcon}">
@@ -135,7 +135,7 @@
                                                                 </icons:MaterialIcon.Style>
                                                             </icons:MaterialIcon>
                                                         </ContentControl>
-                                                        <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty">
+                                                        <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty" ToolTipService.InitialShowDelay="0">
                                                             <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2">
                                                                 <icons:MaterialIcon.Style>
                                                                     <Style TargetType="{x:Type icons:MaterialIcon}">
