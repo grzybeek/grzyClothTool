@@ -7,10 +7,13 @@ using ImageMagick;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -321,6 +324,54 @@ namespace grzyClothTool.Controls
                 var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(SelectedDraw);
                 MainWindow.AddonManager.SelectedAddon.Drawables[index] = newDrawable;
                 SaveHelper.SetUnsavedChanges(true);
+            }
+        }
+
+        private void ContentControl_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.None;
+            e.Handled = true;
+
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (!files.Any(file => Directory.Exists(file) || Path.GetExtension(file) == ".ytd")) return;
+
+            e.Effects = DragDropEffects.Copy;
+        }
+
+        private async void ContentControl_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+            SaveHelper.SavingPaused = true;
+            var timer = new Stopwatch();
+            timer.Start();
+
+            await AddFiles(files);
+
+            timer.Stop();
+            LogHelper.Log($"Added textures in {timer.Elapsed}");
+            SaveHelper.SetUnsavedChanges(true);
+            SaveHelper.SavingPaused = false;
+        }
+
+        private async Task AddFiles(string[] files)
+        {
+            foreach (string file in files)
+            {
+                if (Directory.Exists(file))
+                {
+                    await AddFiles(Directory.GetFiles(file));
+                    await AddFiles(Directory.GetDirectories(file));
+                }
+                else if (Path.GetExtension(file) == ".ytd")
+                {
+                    var gtxt = new GTexture(file, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedDraw.Textures.Count, SelectedDraw.HasSkin, SelectedDraw.IsProp);
+                    SelectedDraw.Textures.Add(gtxt);
+                }
             }
         }
     }

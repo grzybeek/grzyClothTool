@@ -22,6 +22,8 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using System.Windows.Input;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace grzyClothTool.Views
 {
@@ -354,5 +356,64 @@ namespace grzyClothTool.Views
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         }
+
+        private void TabControl_DragOver(object sender, System.Windows.DragEventArgs e)
+        {
+            e.Effects = System.Windows.DragDropEffects.None;
+            e.Handled = true;
+
+            if (!e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
+            if (!files.Any(file => Directory.Exists(file) || Path.GetExtension(file) == ".meta" || Path.GetExtension(file) == ".ydd")) return;
+
+            e.Effects = System.Windows.DragDropEffects.Copy;
+        }
+
+        private async void TabControl_Drop(object sender, System.Windows.DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(System.Windows.DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(System.Windows.DataFormats.FileDrop);
+
+            SaveHelper.SavingPaused = true;
+            var timer = new Stopwatch();
+            timer.Start();
+
+            await AddFiles(files);
+
+            timer.Stop();
+            LogHelper.Log($"Added drawables in {timer.Elapsed}");
+            SaveHelper.SetUnsavedChanges(true);
+            SaveHelper.SavingPaused = false;
+        }
+
+        private async Task AddFiles(string[] files)
+        {
+            foreach (string file in files)
+            {
+                if (Directory.Exists(file))
+                {
+                    var subFiles = Directory.GetFiles(file);
+                    await AddFiles(subFiles);
+
+                    if (!subFiles.Any(f => Path.GetExtension(f) == ".meta"))
+                    {
+                        await AddFiles(Directory.GetDirectories(file));
+                    }
+                }
+                else if (Path.GetExtension(file) == ".meta")
+                {
+                    await MainWindow.AddonManager.LoadAddon(file);
+                }
+                else if (Path.GetExtension(file) == ".ydd")
+                {
+                    await MainWindow.AddonManager.AddDrawables([file], !IsFemaleRegex().IsMatch(file));
+                }
+            }
+        }
+
+        [GeneratedRegex(@"_f_")]
+        private static partial Regex IsFemaleRegex();
     }
 }

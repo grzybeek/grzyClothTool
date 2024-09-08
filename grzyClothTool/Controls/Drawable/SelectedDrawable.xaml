@@ -45,7 +45,7 @@
         </Style>
 
     </UserControl.Resources>
-    <ContentControl Content="{Binding SelectedAddon.SelectedDrawable}">
+    <ContentControl Content="{Binding SelectedAddon.SelectedDrawable}" DragOver="ContentControl_DragOver" Drop="ContentControl_Drop" AllowDrop="True">
         <ContentControl.Style>
             <Style TargetType="ContentControl">
                 <Setter Property="Template">

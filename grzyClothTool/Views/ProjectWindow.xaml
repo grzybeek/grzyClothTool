@@ -21,7 +21,7 @@
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
-        <TabControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding Addons}" SelectedIndex="0" SelectionChanged="TabControl_SelectionChanged" Background="{DynamicResource Brush50}" BorderBrush="{DynamicResource Brush300}">
+        <TabControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding Addons}" SelectedIndex="0" SelectionChanged="TabControl_SelectionChanged" Background="{DynamicResource Brush50}" BorderBrush="{DynamicResource Brush300}" Drop="TabControl_Drop" AllowDrop="True" DragOver="TabControl_DragOver">
             <TabControl.Resources>
                 <!-- Style for the Tab Headers -->
                 <Style TargetType="{x:Type TabItem}">
