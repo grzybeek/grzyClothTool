@@ -127,6 +127,11 @@ namespace grzyClothTool.Views
                 return;
             }
 
+            Delete_SelectedDrawable_Event(sender, new RoutedEventArgs());
+        }
+
+        private void Delete_SelectedDrawable_Event(object sender, RoutedEventArgs e)
+        {
             switch (Keyboard.Modifiers)
             {
                 case ModifierKeys.Shift:
@@ -139,7 +144,7 @@ namespace grzyClothTool.Views
                     break;
                 default:
                     // Only Delete was pressed, show the message box
-                    Delete_SelectedDrawable(sender, new RoutedEventArgs());
+                    Delete_SelectedDrawable(sender, e);
                     break;
             }
         }
