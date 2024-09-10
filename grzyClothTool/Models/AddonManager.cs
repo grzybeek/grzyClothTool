@@ -116,7 +116,7 @@ namespace grzyClothTool.Models
                 return;
             }
 
-            var isMale = addonName.Contains("mp_m_freemode_01");
+            var isMale = !addonName.Contains('_') || !(addonName.Split("_")[1] == "f");
 
             var ymt = new PedFile();
             RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);
