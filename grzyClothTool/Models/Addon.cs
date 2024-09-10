@@ -3,9 +3,11 @@ using grzyClothTool.Models.Texture;
 using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 namespace grzyClothTool.Models;
 
@@ -68,6 +70,7 @@ public class Addon : INotifyPropertyChanged
         Name = projectName;
 
         Drawables = [];
+        InitAfterLoading();
 
         if (projectName == "design")
         {
@@ -84,6 +87,39 @@ public class Addon : INotifyPropertyChanged
 
             SelectedDrawable = Drawables.First();
         }
+    }
+
+    [OnDeserialized]
+    internal void OnDeserialized(StreamingContext context)
+    {
+        InitAfterLoading();
+    }
+
+    private void InitAfterLoading()
+    {
+        Drawables.CollectionChanged += async (s, e) =>
+        {
+            if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.Count > 0)
+            {
+                foreach (var oldItem in e.OldItems)
+                {
+                    if (oldItem is GDrawable drawable)
+                    {
+                        await drawable.RemoveDuplicate();
+                    }
+                }
+            }
+            if (e.Action == NotifyCollectionChangedAction.Replace && e.NewItems?.Count > 0 && e.NewItems?.Count == e.OldItems?.Count)
+            {
+                for (int i = 0; i < e.NewItems.Count; ++i)
+                {
+                    if (e.NewItems[i] is GDrawableReserved newItem && e.OldItems[i] is GDrawable oldItem && oldItem is not GDrawableReserved)
+                    {
+                        await oldItem.RemoveDuplicate();
+                    }
+                }
+            }
+        };
     }
 
     public int GetNextDrawableNumber(int typeNumeric, bool isProp, bool isMale)

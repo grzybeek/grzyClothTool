@@ -144,6 +144,8 @@ public static class SaveHelper
 
     public static async Task LoadAsync(SaveFile save)
     {
+        MainWindow.AddonManager.ResetDuplicateSearch();
+
         var json = await File.ReadAllTextAsync(save.FullPath);
         var addonManager = JsonConvert.DeserializeObject<AddonManager>(json);
 

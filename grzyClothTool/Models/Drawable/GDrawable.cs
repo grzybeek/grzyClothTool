@@ -15,6 +15,8 @@ using System;
 using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
+using System.Security.Cryptography;
+using System.Collections.Specialized;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -22,6 +24,7 @@ namespace grzyClothTool.Models.Drawable;
 public class GDrawable : INotifyPropertyChanged
 {
     private readonly static SemaphoreSlim _semaphore = new(3);
+    private readonly static SemaphoreSlim _semaphoreDublicateCheck = new(1);
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -144,6 +147,57 @@ public class GDrawable : INotifyPropertyChanged
     }
 
     [JsonIgnore]
+    internal static Tuple<Dictionary<string, List<GDrawable>>, Dictionary<string, List<GDrawable>>> hashes = Tuple.Create(new Dictionary<string, List<GDrawable>>(), new Dictionary<string, List<GDrawable>>());
+
+    [JsonIgnore]
+    private bool _isDuplicate = false;
+
+    [JsonIgnore]
+    public bool IsDuplicate
+    {
+        get => SettingsHelper.Instance.DisplayHashDuplicate && _isDuplicate;
+        set
+        {
+            _isDuplicate = value;
+            OnPropertyChanged(nameof(IsDuplicate));
+        }
+    }
+
+    [JsonIgnore]
+    private List<GDrawable> _isDuplicateName = [];
+
+    [JsonIgnore]
+    public string IsDuplicateName
+    {
+        get
+        {
+            if (IsDuplicate == false)
+            {
+                return "";
+            }
+            var namedDuplicateList = _isDuplicateName.Select(drawable => {
+                Addon? addon = MainWindow.AddonManager.Addons.FirstOrDefault(a => a?.Drawables?.Contains(drawable) == true, null);
+                if (addon == null)
+                {
+                    return "Not found: " + drawable.Name;
+                }
+                return addon.Name + "/" + drawable.Name;
+            });
+            return string.Join(", ", namedDuplicateList);
+        }
+    }
+
+    [JsonIgnore]
+    public List<GDrawable> IsDuplicateNameSetter
+    {
+        set
+        {
+            _isDuplicateName = value;
+            OnPropertyChanged(nameof(_isDuplicateName));
+        }
+    }
+
+    [JsonIgnore]
     public List<string> AvailableAudioList => EnumHelper.GetAudioList(TypeNumeric);
 
     private ObservableCollection<SelectableItem> _selectedFlags = [];
@@ -183,6 +237,9 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
+    [JsonIgnore]
+    public Task DrawableDetailsTask { get; set; } = Task.CompletedTask;
+
     public GDrawable(string drawablePath, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
@@ -198,33 +255,64 @@ public class GDrawable : INotifyPropertyChanged
         Audio = "none";
         SetDrawableName();
 
-        if (FilePath != null)
-        {
-            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl(FilePath).ContinueWith(t =>
+        Load();
+    }
+
+    private void Load()
+    {
+        DrawableDetailsTask = Task.Run(async () => {
+            try
             {
-                if (t.IsFaulted)
+                if (FilePath != null)
                 {
-                    Console.WriteLine(t.Exception);
-                    //todo: add some warning that it couldn't load
-                    IsLoading = true;
-                    return null;
-                }
-
-                if (t.Status == TaskStatus.RanToCompletion)
-                {
-                    if (t.Result == null)
+                    var gDrawableDetails = await LoadDrawableDetailsWithConcurrencyControl(FilePath);
+                    if (gDrawableDetails != null)
                     {
-                        return null;
+                        Details = gDrawableDetails;
+                        OnPropertyChanged(nameof(Details));
+                        await InitAfterLoading();
                     }
-
-                    Details = t.Result;
-                    OnPropertyChanged(nameof(Details));
-                    IsLoading = false;
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                //todo: add some warning that it couldn't load
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        });
+    }
 
-                return t.Result;
-            });
-        }
+    private async Task InitAfterLoading()
+    {
+        Textures.CollectionChanged += async (s, e) =>
+        {
+            await DrawableDetailsTask;
+            if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.Count > 0)
+            {
+                foreach (var newItem in e.NewItems)
+                {
+                    if (newItem is GTexture texture)
+                    {
+                        await texture.CheckForDuplicate(Details.Hash, Sex);
+                    }
+                }
+            }
+            if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems?.Count > 0)
+            {
+                foreach (var oldItem in e.OldItems)
+                {
+                    if (oldItem is GTexture texture)
+                    {
+                        await texture.RemoveDuplicate(Details.Hash, Sex);
+                    }
+                }
+            }
+        };
+        await CheckForDuplicate();
     }
 
 
@@ -232,8 +320,17 @@ public class GDrawable : INotifyPropertyChanged
     [OnDeserialized]
     private void OnDeserialized(StreamingContext context)
     {
-       
+
         SetDrawableName();
+        if (IsLoading)
+        {
+            Load();
+        }
+        else
+        {
+            DrawableDetailsTask = Task.CompletedTask;
+            _ = InitAfterLoading();
+        }
     }
 
     protected GDrawable(bool isMale, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
@@ -303,6 +400,7 @@ public class GDrawable : INotifyPropertyChanged
         }
 
         GDrawableDetails details = new();
+        details.Hash = string.Concat(MD5.HashData(bytes).Select(x => x.ToString("X2")));
 
 
         //is it always 2 and 4?
@@ -356,5 +454,86 @@ public class GDrawable : INotifyPropertyChanged
 
         details.Validate();
         return details;
+    }
+
+    public async Task CheckForDuplicate()
+    {
+        if (!SettingsHelper.Instance.DisplayHashDuplicate) return;
+        if (Details == null) return;
+        await _semaphoreDublicateCheck.WaitAsync();
+        List<Task> promises = [];
+        try
+        {
+            IsDuplicate = false;
+            if (Details.Hash != "")
+            {
+                var sexHashes = Sex ? hashes.Item1 : hashes.Item2;
+                if (sexHashes.TryGetValue(Details.Hash, out List<GDrawable>? duplicates))
+                {
+                    if (!duplicates.Contains(this))
+                    {
+                        duplicates.Add(this);
+                        foreach (GDrawable drawable in duplicates)
+                        {
+                            if (drawable == this) continue;
+                            promises.Add(drawable.CheckForDuplicate());
+                        }
+                    }
+                    if (duplicates.Any(h => h != this))
+                    {
+                        IsDuplicate = true;
+                        IsDuplicateNameSetter = duplicates.FindAll(dup => dup != this);
+                    }
+                }
+                else
+                {
+                    sexHashes.Add(Details.Hash, [this]);
+                }
+            }
+        }
+        finally
+        {
+            _semaphoreDublicateCheck.Release();
+            await Task.WhenAll(promises);
+        }
+
+        foreach (GTexture texture in Textures)
+        {
+            await texture.CheckForDuplicate(Details.Hash, Sex);
+        }
+    }
+
+    public async Task RemoveDuplicate()
+    {
+        if (!SettingsHelper.Instance.DisplayHashDuplicate) return;
+        await DrawableDetailsTask;
+        if (Details == null) return;
+        await _semaphoreDublicateCheck.WaitAsync();
+        List<Task> promises = [];
+        try
+        {
+            var sexHashes = Sex ? hashes.Item1 : hashes.Item2;
+            if (sexHashes.TryGetValue(Details.Hash, out List<GDrawable>? duplicates))
+            {
+                duplicates.Remove(this);
+                var oldList = duplicates;
+
+                // refresh duplicates
+                sexHashes.Remove(Details.Hash);
+                foreach (GDrawable duplicate in oldList)
+                {
+                    promises.Add(duplicate.CheckForDuplicate());
+                }
+            }
+            foreach (GTexture texture in Textures)
+            {
+                promises.Add(texture.RemoveDuplicate(Details.Hash, Sex));
+            }
+        }
+        finally
+        {
+            _semaphoreDublicateCheck.Release();
+            await Task.WhenAll(promises);
+        }
     }
 }
