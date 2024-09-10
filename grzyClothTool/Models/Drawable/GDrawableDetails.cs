@@ -60,6 +60,28 @@ public class GDrawableDetails : INotifyPropertyChanged
         }
     }
 
+    private string _hash = "";
+    public string Hash
+    {
+        get => _hash;
+        set
+        {
+            value ??= "";
+            _hash = value.PadRight(8, '0');
+            HashColor = "#FF" + (Convert.ToInt64(_hash[..8], 16) & 0xEFEFEF).ToString("X6");
+        }
+    }
+
+    private string _hashColor = "#FFFF0000";
+    public string HashColor
+    {
+        get => _hashColor;
+        set
+        {
+            _hashColor = value;
+        }
+    }
+
     public void Validate()
     {
         // reset values

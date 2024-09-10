@@ -171,6 +171,21 @@
                                                     </StackPanel>
 
 
+                                                    <Ellipse x:Name="DuplicateDot" Width="13" Height="13" StrokeThickness="1" Margin="0, 0, 4, 0" HorizontalAlignment="Right" ToolTipService.InitialShowDelay="0">
+                                                        <Ellipse.ToolTip>
+                                                            <TextBlock Text="{Binding IsDuplicateName}"/>
+                                                        </Ellipse.ToolTip>
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="{x:Type Ellipse}">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsDuplicate}" Value="True">
+                                                                        <Setter Property="Fill" Value="{Binding TxtDetails.HashColor}" />
+                                                                        <Setter Property="Stroke" Value="{DynamicResource Brush950}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
                                                     <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
                                                     <Grid.ContextMenu>
                                                         <ContextMenu>

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace grzyClothTool.Helpers;
 
@@ -21,6 +23,27 @@ public class SettingsHelper : INotifyPropertyChanged
                 Properties.Settings.Default.DisplaySelectedDrawablePath = value;
                 Properties.Settings.Default.Save();
                 OnPropertyChanged(nameof(DisplaySelectedDrawablePath));
+            }
+        }
+    }
+
+    private bool _displayHashDuplicate;
+    public bool DisplayHashDuplicate
+    {
+        get => _displayHashDuplicate;
+        set
+        {
+            if (_displayHashDuplicate != value)
+            {
+                _displayHashDuplicate = value;
+                Properties.Settings.Default.DisplayHashDuplicate = value;
+                Properties.Settings.Default.Save();
+                OnPropertyChanged(nameof(_displayHashDuplicate));
+                MainWindow.AddonManager.ResetDuplicateSearch();
+                if (value == true)
+                {
+                    _ = FindDuplicates();
+                }
             }
         }
     }
@@ -49,6 +72,7 @@ public class SettingsHelper : INotifyPropertyChanged
     private SettingsHelper()
     {
         DisplaySelectedDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;
+        DisplayHashDuplicate = Properties.Settings.Default.DisplayHashDuplicate;
         PolygonLimitHigh = Properties.Settings.Default.PolygonLimitHigh;
         PolygonLimitMed = Properties.Settings.Default.PolygonLimitMed;
         PolygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
@@ -72,6 +96,23 @@ public class SettingsHelper : INotifyPropertyChanged
                 }
             }
         }
+    }
+
+    private async Task FindDuplicates()
+    {
+        List<Task> promises = [];
+        foreach (var addon in MainWindow.AddonManager.Addons)
+        {
+            foreach (var drawable in addon.Drawables)
+            {
+                promises.Add(new Task(async () =>
+                {
+                    await drawable.DrawableDetailsTask;
+                    await drawable.CheckForDuplicate();
+                }));
+            }
+        }
+        await Task.WhenAll(promises);
     }
 
     protected void OnPropertyChanged(string propertyName)

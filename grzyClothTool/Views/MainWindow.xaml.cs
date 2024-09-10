@@ -121,6 +121,7 @@ namespace grzyClothTool
 
                 // Opening existing addon, should clear everything and add new opened ones
                 AddonManager.Addons = [];
+                AddonManager.ResetDuplicateSearch();
                 foreach (var dir in metaFiles.FileNames)
                 {
                     await AddonManager.LoadAddon(dir);

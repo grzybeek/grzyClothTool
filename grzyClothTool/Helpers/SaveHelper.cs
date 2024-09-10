@@ -131,6 +131,8 @@ public static class SaveHelper
 
     public static async Task LoadAsync(SaveFile save)
     {
+        MainWindow.AddonManager.ResetDuplicateSearch();
+
         var path = Path.Combine(SavesPath, $"{save.FileName}.json");
 
         var json = await File.ReadAllTextAsync(path);

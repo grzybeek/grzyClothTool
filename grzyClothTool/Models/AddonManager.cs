@@ -2,6 +2,8 @@
 using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
+using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Texture;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -78,6 +80,12 @@ namespace grzyClothTool.Models
 
         public AddonManager()
         {
+        }
+
+        public void ResetDuplicateSearch()
+        {
+            GDrawable.hashes = Tuple.Create(new Dictionary<string, List<GDrawable>>(), new Dictionary<string, List<GDrawable>>());
+            GTexture.hashes = Tuple.Create(new Dictionary<string, Dictionary<string, List<GTexture>>>(), new Dictionary<string, Dictionary<string, List<GTexture>>>());
         }
 
         public void CreateAddon()

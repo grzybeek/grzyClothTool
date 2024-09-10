@@ -69,17 +69,22 @@
                                     </ContentControl>
                                     <TextBlock Padding="5, 0, 0, 0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
                                 </StackPanel>
-                                <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">
-                                    <Rectangle x:Name="ReservedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Reserved drawable">
-                                        <Rectangle.Clip>
-                                            <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
-                                        </Rectangle.Clip>
-                                    </Rectangle>
-                                    <Rectangle x:Name="SelectedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Currently selected drawable">
-                                        <Rectangle.Clip>
-                                            <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
-                                        </Rectangle.Clip>
-                                    </Rectangle>
+                                <StackPanel Orientation="Horizontal" Grid.Column="3" HorizontalAlignment="Right">
+                                    <Ellipse x:Name="DuplicateDot" Width="13" Height="13" StrokeThickness="1" Margin="0, 0, 4, 0" HorizontalAlignment="Right" ToolTipService.InitialShowDelay="0">
+                                        <Ellipse.ToolTip>
+                                            <TextBlock Text="{Binding IsDuplicateName}"/>
+                                        </Ellipse.ToolTip>
+                                    </Ellipse>
+                                    <Ellipse x:Name="ReservedDot" Width="13" Height="13" Margin="0, 0, 4, 0" HorizontalAlignment="Right" ToolTipService.InitialShowDelay="0">
+                                        <Ellipse.ToolTip>
+                                            <TextBlock Text="Reserved drawable"/>
+                                        </Ellipse.ToolTip>
+                                    </Ellipse>
+                                    <Ellipse x:Name="SelectedDot" Width="13" Height="13" Margin="0, 0, 4, 0" HorizontalAlignment="Right" ToolTipService.InitialShowDelay="0">
+                                        <Ellipse.ToolTip>
+                                            <TextBlock Text="Currently selected drawable"/>
+                                        </Ellipse.ToolTip>
+                                    </Ellipse>
                                 </StackPanel>
                                 
                             </Grid>
@@ -95,6 +100,11 @@
                             <DataTrigger Binding="{Binding IsReserved}" Value="True">
                                 <Setter Property="FontStyle" Value="Italic" />
                                 <Setter Property="Fill" Value="#FFF58F38" TargetName="ReservedDot" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsDuplicate}" Value="True">
+                                <Setter Property="FontStyle" Value="Italic" />
+                                <Setter Property="Fill" Value="{Binding Details.HashColor}" TargetName="DuplicateDot" />
+                                <Setter Property="Stroke" Value="{DynamicResource Brush950}" TargetName="DuplicateDot" />
                             </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
