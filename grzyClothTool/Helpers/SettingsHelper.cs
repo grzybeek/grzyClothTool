@@ -105,7 +105,7 @@ public class SettingsHelper : INotifyPropertyChanged
         {
             foreach (var drawable in addon.Drawables)
             {
-                promises.Add(new Task(async () =>
+                promises.Add(Task.Run(async () =>
                 {
                     await drawable.DrawableDetailsTask;
                     await drawable.CheckForDuplicate();
