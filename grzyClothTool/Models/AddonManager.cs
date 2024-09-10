@@ -93,11 +93,8 @@ namespace grzyClothTool.Models
             var dirPath = Path.GetDirectoryName(path);
             var addonName = Path.GetFileNameWithoutExtension(path);
 
-            // regex pattern to find components and props
-            string pattern = $@"^(mp_[mf]_freemode_01)(_p)?.*?\^";
-
             var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
-                .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
+                .Where(x => x.Contains(addonName + "^") || x.Contains(addonName + "_p^p_") || (x.Contains("_p_") && x.Replace("_p_", "_").Contains(addonName + "^p_")))
                 .ToArray();
 
             var ymtFile = Directory.GetFiles(dirPath, "*.ymt", SearchOption.AllDirectories)
