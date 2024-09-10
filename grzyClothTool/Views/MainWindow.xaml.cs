@@ -112,6 +112,7 @@ namespace grzyClothTool
             timer.Start();
 
             AddonManager.Addons = [];
+            AddonManager.ResetDuplicateSearch();
 
             timer.Stop();
             LogHelper.Log($"New project in {timer.Elapsed}");
