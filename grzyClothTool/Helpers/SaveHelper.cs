@@ -45,7 +45,7 @@ public static class SaveHelper
     public static void Init()
     {
         _timer = new Timer(60000);
-        _timer.Elapsed += async (sender, e) => await AutoSaveAsync();
+        _timer.Elapsed += async (sender, e) => await SaveAsync();
         _timer.Start();
 
         var latestSaveFile = Directory.EnumerateFiles(SavesPath, "save_*.json")
@@ -64,7 +64,7 @@ public static class SaveHelper
         }
     }
 
-    public static async Task AutoSaveAsync()
+    public static async Task SaveAsync()
     {
         if (!HasUnsavedChanges || SavingPaused) return;
 
