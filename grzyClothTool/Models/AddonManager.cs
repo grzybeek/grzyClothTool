@@ -152,7 +152,7 @@ namespace grzyClothTool.Models
 
             foreach (var drawable in drawablesAdded)
             {
-                var number = drawablesAdded.FindAll(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex).FindIndex(x => x == drawable);
+                var number = drawablesAdded.FindAll(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex).IndexOf(drawable);
                 var key = (drawable.TypeNumeric, number);
                     if (compInfoDict.TryGetValue(key, out MCComponentInfo compInfo))
                     {
