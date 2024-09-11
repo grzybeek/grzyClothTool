@@ -94,5 +94,17 @@ namespace grzyClothTool.Properties {
                 this["PolygonLimitLow"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool MarkNewDrawables {
+            get {
+                return ((bool)(this["MarkNewDrawables"]));
+            }
+            set {
+                this["MarkNewDrawables"] = value;
+            }
+        }
     }
 }

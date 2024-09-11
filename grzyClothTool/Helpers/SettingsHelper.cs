@@ -52,6 +52,7 @@ public class SettingsHelper : INotifyPropertyChanged
         PolygonLimitHigh = Properties.Settings.Default.PolygonLimitHigh;
         PolygonLimitMed = Properties.Settings.Default.PolygonLimitMed;
         PolygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
+        MarkNewDrawables = Properties.Settings.Default.MarkNewDrawables;
     }
 
     private void SetPolygonLimit(ref int field, int value, string propertyName)
@@ -70,6 +71,23 @@ public class SettingsHelper : INotifyPropertyChanged
                 {
                     drawable.Details.Validate();
                 }
+            }
+        }
+    }
+
+    private bool _markNewDrawables;
+
+    public bool MarkNewDrawables
+    {
+        get => _markNewDrawables;
+        set
+        {
+            if (_markNewDrawables != value)
+            {
+                _markNewDrawables = value;
+                Properties.Settings.Default.MarkNewDrawables = value;
+                Properties.Settings.Default.Save();
+                OnPropertyChanged(nameof(MarkNewDrawables));
             }
         }
     }

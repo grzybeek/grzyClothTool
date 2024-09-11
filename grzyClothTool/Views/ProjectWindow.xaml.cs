@@ -251,6 +251,8 @@ namespace grzyClothTool.Views
                 SelDrawable.SelectedIndex = 0;
             }
 
+            Addon.SelectedDrawable.IsNew = false;
+
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
             SendDrawableUpdateToCodewalkerPreview(e);
         }

@@ -27,6 +27,20 @@ public class GDrawable : INotifyPropertyChanged
 
     public string FilePath { get; set; }
 
+    private bool _isNew;
+    public bool IsNew
+    {
+        get => _isNew;
+        set
+        {
+            if (_isNew != value)
+            {
+                _isNew = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private string _name;
     public string Name
     {
@@ -194,6 +208,7 @@ public class GDrawable : INotifyPropertyChanged
         HasSkin = hasSkin;
         Sex = isMale;
         IsProp = isProp;
+        IsNew = true;
 
         Audio = "none";
         SetDrawableName();

@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              xmlns:models="clr-namespace:grzyClothTool.Models"
+             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="MyDrawableList"
              mc:Ignorable="d">
@@ -88,6 +89,14 @@
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="{DynamicResource Brush200}" TargetName="Border"/>
                             </Trigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}}" Value="True"/>
+                                    <Condition Binding="{Binding IsNew}" Value="True"/>
+                                </MultiDataTrigger.Conditions>
+
+                                <Setter Property="Fill" Value="#F5E025" TargetName="SelectedDot" />
+                            </MultiDataTrigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="FontWeight" Value="Bold" />
                                 <Setter Property="Fill" Value="LimeGreen" TargetName="SelectedDot" />
