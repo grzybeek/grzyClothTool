@@ -38,7 +38,7 @@ public class SettingsHelper : INotifyPropertyChanged
                 _displayHashDuplicate = value;
                 Properties.Settings.Default.DisplayHashDuplicate = value;
                 Properties.Settings.Default.Save();
-                OnPropertyChanged(nameof(_displayHashDuplicate));
+                OnPropertyChanged(nameof(DisplayHashDuplicate));
                 MainWindow.AddonManager.ResetDuplicateSearch();
                 if (value == true)
                 {
