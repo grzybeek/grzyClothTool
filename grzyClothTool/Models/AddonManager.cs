@@ -148,13 +148,12 @@ namespace grzyClothTool.Models
                 }
             }
             
-            await AddDrawables(yddFiles, isMale);
+            var drawablesAdded = await AddDrawables(yddFiles, isMale);
 
-            foreach (var addon in Addons)
+            foreach (var drawable in drawablesAdded)
             {
-                foreach (var drawable in addon.Drawables)
-                {
-                    var key = (drawable.TypeNumeric, drawable.Number);
+                var number = drawablesAdded.FindAll(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex).FindIndex(x => x == drawable);
+                var key = (drawable.TypeNumeric, number);
                     if (compInfoDict.TryGetValue(key, out MCComponentInfo compInfo))
                     {
                         drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
@@ -171,7 +170,7 @@ namespace grzyClothTool.Models
 
                     if (drawable.IsProp)
                     {
-                        var propKey = (drawable.TypeNumeric, drawable.Number);
+                    var propKey = (drawable.TypeNumeric, number);
                         if (pedPropMetaDataDict.TryGetValue(propKey, out MCPedPropMetaData pedPropMetaData))
                         {
                             drawable.Audio = pedPropMetaData.Data.audioId.ToString();
@@ -191,11 +190,10 @@ namespace grzyClothTool.Models
                     }
                 }
             }
-        }
 
-        public async Task AddDrawables(string[] filePaths, bool isMale)
+        public async Task<List<GDrawable>> AddDrawables(string[] filePaths, bool isMale)
         {
-
+            List<GDrawable> drawablesAdded = [];
             Regex alternateRegex = new(@"_\w_\d+\.ydd$");
             foreach (var filePath in filePaths)
             {
@@ -250,6 +248,7 @@ namespace grzyClothTool.Models
 
                 // Add the drawable to the current Addon
                 currentAddon.Drawables.Add(drawable);
+                drawablesAdded.Add(drawable);
 
                 //set HasMale/HasFemale/HasProps only once adding first drawable
                 if (isMale && !currentAddon.HasMale) currentAddon.HasMale = true;
@@ -262,6 +261,8 @@ namespace grzyClothTool.Models
             {
                 addon.Drawables.Sort();
             }
+
+            return drawablesAdded;
         }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
