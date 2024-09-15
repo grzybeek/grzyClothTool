@@ -52,6 +52,7 @@ public class SettingsHelper : INotifyPropertyChanged
         _polygonLimitMed = Properties.Settings.Default.PolygonLimitMed;
         _polygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
         _autoDeleteFiles = Properties.Settings.Default.AutoDeleteFiles;
+        _markNewDrawables = Properties.Settings.Default.MarkNewDrawables;
     }
 
     private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)
@@ -74,6 +75,13 @@ public class SettingsHelper : INotifyPropertyChanged
                 }
             }
         }
+    }
+
+    private bool _markNewDrawables;
+    public bool MarkNewDrawables
+    {
+        get => _markNewDrawables;
+        set => SetProperty(ref _markNewDrawables, value, nameof(MarkNewDrawables));
     }
 
     protected void OnPropertyChanged(string propertyName)
