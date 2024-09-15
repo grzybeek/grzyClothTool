@@ -100,6 +100,7 @@
                                 </MultiDataTrigger.Conditions>
 
                                 <Setter Property="Fill" Value="#F5E025" TargetName="SelectedDot" />
+                                <Setter Property="ToolTip" Value="Newly added drawable" TargetName="SelectedDot" />
                             </MultiDataTrigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="FontWeight" Value="Bold" />

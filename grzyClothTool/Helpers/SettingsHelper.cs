@@ -78,7 +78,7 @@ public class SettingsHelper : INotifyPropertyChanged
     }
 
     private bool _markNewDrawables;
-    public bool AutoDeleteFiles
+    public bool MarkNewDrawables
     {
         get => _markNewDrawables;
         set => SetProperty(ref _markNewDrawables, value, nameof(MarkNewDrawables));
