@@ -93,8 +93,12 @@ namespace grzyClothTool.Models
             var dirPath = Path.GetDirectoryName(path);
             var addonName = Path.GetFileNameWithoutExtension(path);
 
-            // regex pattern to find components and props
-            string pattern = $@"^(mp_[mf]_freemode_01)(_p)?.*?\^";
+            // Determine if the addonName indicates male or female
+            bool isMale = addonName.Contains("mp_m_freemode_01");
+
+            // Build the appropriate regex pattern based on whether it's male or female
+            string genderSpecificPart = isMale ? "mp_m_freemode_01" : "mp_f_freemode_01";
+            string pattern = $@"^{genderSpecificPart}(_p)?.*?\^";
 
             var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
                 .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
@@ -115,8 +119,6 @@ namespace grzyClothTool.Models
                 CustomMessageBox.Show($"No .ymt file found for selected .meta file ({Path.GetFileName(path)})", "Error");
                 return;
             }
-
-            var isMale = addonName.Contains("mp_m_freemode_01");
 
             var ymt = new PedFile();
             RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);

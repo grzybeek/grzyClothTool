@@ -15,6 +15,11 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
                         <Border x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
@@ -81,7 +86,6 @@
                                         </Rectangle.Clip>
                                     </Rectangle>
                                 </StackPanel>
-                                
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
