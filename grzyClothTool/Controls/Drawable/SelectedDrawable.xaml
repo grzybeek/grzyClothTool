@@ -63,9 +63,13 @@
                                         <RowDefinition Height="30" />
                                     </Grid.RowDefinitions>
                                     <StackPanel Orientation="Vertical" Margin="0" IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" >
-                                        <TextBlock Padding="5,0,0,0" FontStyle="Italic" Text="{Binding SelectedAddon.SelectedDrawable.FilePath}" TextWrapping="Wrap" Foreground="{DynamicResource Brush500}">
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
+                                        <TextBox FontStyle="Italic" Text="{Binding SelectedAddon.SelectedDrawable.FilePath}" 
+                                             TextWrapping="Wrap" Foreground="{DynamicResource Brush500}"
+                                             Background="Transparent" BorderThickness="0" IsReadOnly="True"
+                                             Cursor="Arrow"
+                                             IsReadOnlyCaretVisible="False">
+                                            <TextBox.Style>
+                                                <Style TargetType="TextBox">
                                                     <Setter Property="Visibility" Value="Collapsed" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" Value="True">
@@ -73,8 +77,8 @@
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
+                                            </TextBox.Style>
+                                        </TextBox>
                                         <StackPanel Orientation="Horizontal" Margin="2">
                                             <c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />
                                             <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
