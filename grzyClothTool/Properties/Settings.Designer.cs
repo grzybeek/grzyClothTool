@@ -94,5 +94,17 @@ namespace grzyClothTool.Properties {
                 this["PolygonLimitLow"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoDeleteFiles {
+            get {
+                return ((bool)(this["AutoDeleteFiles"]));
+            }
+            set {
+                this["AutoDeleteFiles"] = value;
+            }
+        }
     }
 }
