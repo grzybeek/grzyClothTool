@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
 using grzyClothTool.Views;
+using ImageMagick;
 
 namespace grzyClothTool.Helpers;
 
@@ -139,5 +140,44 @@ public static class FileHelper
         }
 
         return (false, -1);
+    }
+
+    public static async Task SaveTexturesAsync(List<GTexture> textures, string folderPath, string format)
+    {
+
+        // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+
+        // Map the format to file extension and MagickImage format. Throw an exception for unsupported formats
+        var (fileExtension, imageFormat) = format.ToUpper() switch
+        {
+            "DDS" => (".dds", MagickFormat.Dds),
+            "PNG" => (".png", MagickFormat.Png),
+            _ => throw new ArgumentException($"Unsupported format: {format}", nameof(format))
+        };
+
+        // Process each texture asynchronously and save it to the specified folder
+        var tasks = textures.Select(async texture =>
+        {
+            string filePath = Path.Combine(folderPath, $"{texture.DisplayName}{fileExtension}");
+            using var image = ImgHelper.GetImage(texture.FilePath);
+            image.Format = imageFormat;
+
+            try
+            {
+                await File.WriteAllBytesAsync(filePath, image.ToByteArray());
+            }
+            catch (Exception ex)
+            {
+                // Log the error and continue processing other textures
+                LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}", LogType.Error);
+            }
+        });
+
+        await Task.WhenAll(tasks);
     }
 }
