@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Models.Drawable;
+﻿using grzyClothTool.Helpers;
+using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.ObjectModel;
 using System.Windows;
@@ -48,6 +49,12 @@ namespace grzyClothTool.Controls
         private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void OpenFileLocation_Click(object sender, RoutedEventArgs e)
+        {
+            var drawable = DrawableListSelectedValue as GDrawable;
+            FileHelper.OpenFileLocation(drawable.FilePath);
         }
     }
 }

@@ -291,6 +291,14 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private void OpenFileLocation_Click(object sender, RoutedEventArgs e)
+        {
+            if(SelectedTxt != null)
+            {
+                FileHelper.OpenFileLocation(SelectedTxt.FilePath);
+            }
+        }
+
         private void DrawableType_Changed(object sender, UpdatedEventArgs e)
         {
             if (!e.IsUserInitiated)

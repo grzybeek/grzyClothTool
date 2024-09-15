@@ -19,6 +19,7 @@
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
+                                    <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
                                 </ContextMenu>
                             </Border.ContextMenu>
                             <Grid>

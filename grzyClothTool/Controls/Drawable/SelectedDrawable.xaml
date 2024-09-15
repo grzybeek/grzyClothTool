@@ -182,6 +182,7 @@
                                                             <MenuItem Header="Optimize texture" Click="OptimizeTexture_Click" />
                                                             <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
                                                             <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
+                                                            <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
                                                         </ContextMenu>
                                                     </Grid.ContextMenu>
                                                 </Grid>

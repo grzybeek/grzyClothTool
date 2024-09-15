@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
 using grzyClothTool.Views;
@@ -64,6 +66,18 @@ public static class FileHelper
         using var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
         using var destinationStream = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
         await sourceStream.CopyToAsync(destinationStream);
+    }
+
+    public static void OpenFileLocation(string path)
+    {
+        try
+        {
+            Process.Start("explorer.exe", $"/select, \"{path}\"");
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"An error occurred while trying to open the file location: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     public static List<string> FindMatchingTextures(string filePath, string name, bool isProp)
