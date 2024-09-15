@@ -258,6 +258,7 @@ namespace grzyClothTool.Views
             {
                 Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
                 SelDrawable.SelectedIndex = 0;
+                SelDrawable.SelectedTextures = new List<GTexture>() { Addon.SelectedTexture };
             }
 
             Addon.SelectedDrawable.IsNew = false;

@@ -28,7 +28,7 @@ namespace grzyClothTool.Views
                 OnPropertyChanged();
             }
         }
-
+        public string TextureName { get; set; }
         public bool MultipleTexturesSelected { get; set; }
         public int SelectedTextureCount { get; set; }
 
@@ -159,6 +159,11 @@ namespace grzyClothTool.Views
 
             MultipleTexturesSelected = multipleTexturesSelected;
             SelectedTextureCount = txts.Count;
+
+            if (!multipleTexturesSelected)
+            {
+                TextureName = txts[0].DisplayName;
+            }
         }
 
         public static GTextureDetails GetTextureDetails(GTexture gtxt)

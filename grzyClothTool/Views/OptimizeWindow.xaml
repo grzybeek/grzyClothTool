@@ -28,7 +28,7 @@
                         <TextBlock>
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="{Binding Texture.DisplayName}" />
+                                    <Setter Property="Text" Value="{Binding TextureName}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding MultipleTexturesSelected}" Value="True">
                                             <Setter Property="Text" Value="{Binding SelectedTextureCount, StringFormat='Selected {0} textures'}" />
@@ -101,7 +101,7 @@
                         <TextBlock>
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="{Binding Texture.DisplayName}" />
+                                    <Setter Property="Text" Value="{Binding TextureName}" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding MultipleTexturesSelected}" Value="True">
                                             <Setter Property="Text" Value="{Binding SelectedTextureCount, StringFormat='Selected {0} textures'}" />
