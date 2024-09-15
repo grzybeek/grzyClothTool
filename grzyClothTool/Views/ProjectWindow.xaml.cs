@@ -168,6 +168,15 @@ namespace grzyClothTool.Views
             Addon.Drawables.Remove(drawable);
             Addon.Drawables.Sort(true);
             SaveHelper.SetUnsavedChanges(true);
+
+            if (SettingsHelper.Instance.AutoDeleteFiles)
+            {
+                foreach (var texture in drawable.Textures)
+                {
+                    File.Delete(texture.FilePath);
+                }
+                File.Delete(drawable.FilePath);
+            }
         }
 
         private void ReplaceDrawable(GDrawable drawable)

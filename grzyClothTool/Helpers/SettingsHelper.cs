@@ -1,11 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 
 namespace grzyClothTool.Helpers;
 
 public class SettingsHelper : INotifyPropertyChanged
 {
-    private static SettingsHelper _instance;
-    public static SettingsHelper Instance => _instance ??= new();
+    private static readonly Lazy<SettingsHelper> _instance = new(() => new SettingsHelper());
+    public static SettingsHelper Instance => _instance.Value;
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -13,83 +14,74 @@ public class SettingsHelper : INotifyPropertyChanged
     public bool DisplaySelectedDrawablePath
     {
         get => _displaySelectedDrawablePath;
-        set
-        {
-            if (_displaySelectedDrawablePath != value)
-            {
-                _displaySelectedDrawablePath = value;
-                Properties.Settings.Default.DisplaySelectedDrawablePath = value;
-                Properties.Settings.Default.Save();
-                OnPropertyChanged(nameof(DisplaySelectedDrawablePath));
-            }
-        }
+        set => SetProperty(ref _displaySelectedDrawablePath, value, nameof(DisplaySelectedDrawablePath));
     }
 
     private int _polygonLimitHigh;
     public int PolygonLimitHigh
     {
         get => _polygonLimitHigh;
-        set => SetPolygonLimit(ref _polygonLimitHigh, value, nameof(PolygonLimitHigh));
+        set => SetProperty(ref _polygonLimitHigh, value, nameof(PolygonLimitHigh), revalidateDrawables: true);
     }
 
     private int _polygonLimitMed;
     public int PolygonLimitMed
     {
         get => _polygonLimitMed;
-        set => SetPolygonLimit(ref _polygonLimitMed, value, nameof(PolygonLimitMed));
+        set => SetProperty(ref _polygonLimitMed, value, nameof(PolygonLimitMed), revalidateDrawables: true);
     }
 
     private int _polygonLimitLow;
     public int PolygonLimitLow
     {
         get => _polygonLimitLow;
-        set => SetPolygonLimit(ref _polygonLimitLow, value, nameof(PolygonLimitLow));
+        set => SetProperty(ref _polygonLimitLow, value, nameof(PolygonLimitLow), revalidateDrawables: true);
+    }
+
+    private bool _autoDeleteFiles;
+    public bool AutoDeleteFiles
+    {
+        get => _autoDeleteFiles;
+        set => SetProperty(ref _autoDeleteFiles, value, nameof(AutoDeleteFiles));
     }
 
     private SettingsHelper()
     {
-        DisplaySelectedDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;
-        PolygonLimitHigh = Properties.Settings.Default.PolygonLimitHigh;
-        PolygonLimitMed = Properties.Settings.Default.PolygonLimitMed;
-        PolygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
-        MarkNewDrawables = Properties.Settings.Default.MarkNewDrawables;
+        _displaySelectedDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;
+        _polygonLimitHigh = Properties.Settings.Default.PolygonLimitHigh;
+        _polygonLimitMed = Properties.Settings.Default.PolygonLimitMed;
+        _polygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
+        _autoDeleteFiles = Properties.Settings.Default.AutoDeleteFiles;
+        _markNewDrawables = Properties.Settings.Default.MarkNewDrawables;
     }
 
-    private void SetPolygonLimit(ref int field, int value, string propertyName)
+    private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)
     {
-        if (field != value)
+        if (!Equals(field, value))
         {
             field = value;
             Properties.Settings.Default[propertyName] = value;
             Properties.Settings.Default.Save();
             OnPropertyChanged(propertyName);
 
-            // re-validate all drawables
-            foreach (var addon in MainWindow.AddonManager.Addons)
+            if (revalidateDrawables)
             {
-                foreach (var drawable in addon.Drawables)
+                foreach (var addon in MainWindow.AddonManager.Addons)
                 {
-                    drawable.Details.Validate();
+                    foreach (var drawable in addon.Drawables)
+                    {
+                        drawable.Details.Validate();
+                    }
                 }
             }
         }
     }
 
     private bool _markNewDrawables;
-
-    public bool MarkNewDrawables
+    public bool AutoDeleteFiles
     {
         get => _markNewDrawables;
-        set
-        {
-            if (_markNewDrawables != value)
-            {
-                _markNewDrawables = value;
-                Properties.Settings.Default.MarkNewDrawables = value;
-                Properties.Settings.Default.Save();
-                OnPropertyChanged(nameof(MarkNewDrawables));
-            }
-        }
+        set => SetProperty(ref _markNewDrawables, value, nameof(MarkNewDrawables));
     }
 
     protected void OnPropertyChanged(string propertyName)

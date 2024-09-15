@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -238,6 +239,11 @@ namespace grzyClothTool.Controls
                 foreach (var texture in SelectedTextures)
                 {
                     SelectedDraw.Textures.Remove(texture);
+
+                    if (SettingsHelper.Instance.AutoDeleteFiles)
+                    {
+                        File.Delete(texture.FilePath);
+                    }
                 }
                 SelectedDraw.Textures.ReassignNumbers();
 

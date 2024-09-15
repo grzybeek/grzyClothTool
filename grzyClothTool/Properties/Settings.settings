@@ -20,6 +20,9 @@
     <Setting Name="PolygonLimitLow" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">10000</Value>
     </Setting>
+    <Setting Name="AutoDeleteFiles" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
 	<Setting Name="MarkNewDrawables" Type="System.Boolean" Scope="User">
 	  <Value Profile="(Default)">False</Value>
 	</Setting>

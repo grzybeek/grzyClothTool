@@ -44,5 +44,10 @@ namespace grzyClothTool.Controls
         {
             DrawableListKeyDown?.Invoke(sender, e);
         }
+
+        private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using static grzyClothTool.Controls.CustomMessageBox;
 
 namespace grzyClothTool.Controls
 {
@@ -33,13 +34,17 @@ namespace grzyClothTool.Controls
                     typeof(SettingsLabelCheckBox),
                     new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
-        // generate ischecked property
         public static readonly DependencyProperty IsCheckedProperty = DependencyProperty
             .Register("IsChecked",
             typeof(bool),
             typeof(SettingsLabelCheckBox),
             new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+        public static readonly DependencyProperty DisplayWarningProperty = DependencyProperty
+            .Register("DisplayWarning",
+            typeof(string),
+            typeof(SettingsLabelCheckBox),
+            new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public static readonly RoutedEvent CheckBoxClickEvent = EventManager.RegisterRoutedEvent("CheckBoxClick", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(SettingsLabelCheckBox));
 
@@ -73,6 +78,12 @@ namespace grzyClothTool.Controls
             set { SetValue(IsCheckedProperty, value); }
         }
 
+        public string DisplayWarning
+        {
+            get { return (string)GetValue(DisplayWarningProperty); }
+            set { SetValue(DisplayWarningProperty, value); }
+        }
+
         public event RoutedEventHandler CheckBoxClick
         {
             add { AddHandler(CheckBoxClickEvent, value); }
@@ -82,6 +93,21 @@ namespace grzyClothTool.Controls
         private void CheckBox_Click(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = (CheckBox)sender;
+            bool isChecked = checkBox.IsChecked == true;
+
+            if (isChecked && !string.IsNullOrEmpty(DisplayWarning))
+            {
+                CustomMessageBoxResult result = Show(DisplayWarning, "Warning", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Warning);
+                if (result == CustomMessageBoxResult.OK)
+                {
+                    checkBox.IsChecked = true;
+                }
+                else
+                {
+                    checkBox.IsChecked = false;
+                }
+            }
+
             RaiseEvent(new CheckBoxClickEventArgs(CheckBoxClickEvent, this, checkBox.IsChecked == true));
         }
 
