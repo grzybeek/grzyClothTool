@@ -27,6 +27,20 @@ public class GDrawable : INotifyPropertyChanged
 
     public string FilePath { get; set; }
 
+    private bool _isNew;
+    public bool IsNew
+    {
+        get => _isNew;
+        set
+        {
+            if (_isNew != value)
+            {
+                _isNew = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     private string _name;
     public string Name
     {
@@ -60,13 +74,40 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
+    private string _sexName;
+    public string SexName
+    {
+        get
+        {
+            _sexName ??= EnumHelper.GetSex(Sex);
+            return _sexName;
+        }
+        set
+        {
+            _sexName = value;
+        }
+    }
+
     [JsonIgnore]
     public List<string> AvailableTypes => IsProp ? EnumHelper.GetPropTypeList() : EnumHelper.GetDrawableTypeList();
+
+    [JsonIgnore]
+    public static List<string> AvailableSex => EnumHelper.GetSexTypeList();
 
     /// <returns>
     /// true(1) = male ped, false(0) = female ped
     /// </returns>
-    public bool Sex { get; set; }
+    private bool _sex;
+    public bool Sex
+    {
+        get => _sex;
+        set
+        {
+            _sex = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool IsProp { get; set; }
     public bool IsComponent => !IsProp;
 
@@ -194,6 +235,7 @@ public class GDrawable : INotifyPropertyChanged
         HasSkin = hasSkin;
         Sex = isMale;
         IsProp = isProp;
+        IsNew = true;
 
         Audio = "none";
         SetDrawableName();
@@ -270,6 +312,32 @@ public class GDrawable : INotifyPropertyChanged
         MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;
 
         MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
+    }
+
+    public void ChangeDrawableSex(string newSex)
+    {
+        // transform new sex to bool
+        var isMale = newSex == "male";
+        var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
+        var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
+    
+        // adjust drawable number and change sex
+        Number = MainWindow.AddonManager.SelectedAddon.GetNextDrawableNumber(TypeNumeric, IsProp, isMale);
+        Sex = isMale;
+
+        SetDrawableName();
+
+        // add new drawable with new number and sex
+        MainWindow.AddonManager.SelectedAddon.Drawables.Add(this);
+
+        // replace drawable with reserved in the same place
+        MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;
+
+        MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
+
+        // This might not be needed - adding just in case someone is bulk-adding clothes, without specifying the sex
+        if (isMale && !MainWindow.AddonManager.SelectedAddon.HasMale) MainWindow.AddonManager.SelectedAddon.HasMale = true;
+        if (!isMale && !MainWindow.AddonManager.SelectedAddon.HasFemale) MainWindow.AddonManager.SelectedAddon.HasFemale = true;
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)

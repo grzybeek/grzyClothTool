@@ -23,5 +23,8 @@
     <Setting Name="AutoDeleteFiles" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+	<Setting Name="MarkNewDrawables" Type="System.Boolean" Scope="User">
+	  <Value Profile="(Default)">False</Value>
+	</Setting>
   </Settings>
 </SettingsFile>

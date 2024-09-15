@@ -6,6 +6,12 @@ namespace grzyClothTool
 {
     public class Enums
     {
+
+        public enum Sex
+        {
+            female = 0,
+            male = 1
+        }
         public enum ComponentNumbers
         {
             head = 0,

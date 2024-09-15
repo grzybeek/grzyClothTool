@@ -7,11 +7,13 @@ using ImageMagick;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -308,6 +310,25 @@ namespace grzyClothTool.Controls
             SaveHelper.SetUnsavedChanges(true);
         }
 
+        private void DrawableSex_Changed(object sender, UpdatedEventArgs e)
+        {
+            if (!e.IsUserInitiated)
+            {
+                return;
+            }
+
+            var newValue = e.DependencyPropertyChangedEventArgs.NewValue;
+            var oldValue = e.DependencyPropertyChangedEventArgs.OldValue;
+
+            if ((newValue == null || oldValue == null) || newValue == oldValue)
+            {
+                return;
+            }
+
+            SelectedDraw.ChangeDrawableSex(newValue.ToString());
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
         private async void ReplaceReserved_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog file = new()
@@ -324,6 +345,54 @@ namespace grzyClothTool.Controls
                 var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(SelectedDraw);
                 MainWindow.AddonManager.SelectedAddon.Drawables[index] = newDrawable;
                 SaveHelper.SetUnsavedChanges(true);
+            }
+        }
+
+        private async void ExportTexture_Click(object sender, RoutedEventArgs e)
+        {
+            if (SelectedTextures == null)
+            {
+                return;
+            }
+
+            // Using tags to pass parameters. While functional, a cleaner approach (e.g., CommandParameter) may be preferred
+            MenuItem menuItem = sender as MenuItem;
+            var format = menuItem?.Tag?.ToString();
+
+
+            // Make sure we got any format
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return;
+            }
+
+            OpenFolderDialog folder = new()
+            {
+                Title = $"Select the folder to export textures as {format.ToUpper()}",
+                Multiselect = false // Single folder selection
+            };
+
+            if (folder.ShowDialog() == true)
+            {
+                string folderPath = folder.FolderName;
+
+                // Copy the textures to avoid accessing "SelectedTextures" from a background thread
+                var texturesToExport = new List<GTexture>(SelectedTextures);
+
+                var timer = new Stopwatch();
+                timer.Start();
+
+                LogHelper.Log("Started export...");
+
+                try
+                {
+                    await Task.Run(() => FileHelper.SaveTexturesAsync(texturesToExport, folderPath, format));
+                    LogHelper.Log($"Exported {texturesToExport.Count} texture(s) in {timer.ElapsedMilliseconds}ms");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"An error occurred during export: {ex.Message}", "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }
