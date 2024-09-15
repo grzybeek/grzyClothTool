@@ -58,7 +58,7 @@
                                             </Style>
                                         </icons:MaterialIcon.Style>
                                     </icons:MaterialIcon>
-                                    <ContentControl ToolTip="{Binding Details.Tooltip}">
+                                    <ContentControl ToolTip="{Binding Details.Tooltip}" ToolTipService.InitialShowDelay="0">
                                         <icons:MaterialIcon Kind="AlertCircleOutline" Width="12" Margin="5,1,0,0">
                                             <icons:MaterialIcon.Style>
                                                 <Style TargetType="{x:Type icons:MaterialIcon}">
@@ -75,12 +75,12 @@
                                     <TextBlock Padding="5, 0, 0, 0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
                                 </StackPanel>
                                 <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">
-                                    <Rectangle x:Name="ReservedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Reserved drawable">
+                                    <Rectangle x:Name="ReservedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Reserved drawable" ToolTipService.InitialShowDelay="0">
                                         <Rectangle.Clip>
                                             <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
                                         </Rectangle.Clip>
                                     </Rectangle>
-                                    <Rectangle x:Name="SelectedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Currently selected drawable">
+                                    <Rectangle x:Name="SelectedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Currently selected drawable" ToolTipService.InitialShowDelay="0">
                                         <Rectangle.Clip>
                                             <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
                                         </Rectangle.Clip>
