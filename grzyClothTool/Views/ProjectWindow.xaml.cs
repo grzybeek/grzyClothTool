@@ -22,6 +22,7 @@ using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using System.Windows.Input;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
+using System.Threading.Tasks;
 
 namespace grzyClothTool.Views
 {
@@ -229,7 +230,7 @@ namespace grzyClothTool.Views
 
             if (Addon.SelectedTexture != null)
             {
-                var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
+                var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
@@ -273,7 +274,7 @@ namespace grzyClothTool.Views
             YtdFile ytd = null;
             if (Addon.SelectedTexture != null)
             {
-                ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
+                ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
@@ -326,7 +327,7 @@ namespace grzyClothTool.Views
 
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
 
-            var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture.FilePath, Addon.SelectedTexture.DisplayName);
+            var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
             CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             CWHelper.CWForm.Refresh();
         }

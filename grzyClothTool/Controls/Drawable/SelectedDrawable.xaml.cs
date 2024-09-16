@@ -255,7 +255,7 @@ namespace grzyClothTool.Controls
             OpenFileDialog files = new()
             {
                 Title = $"Select textures",
-                Filter = "Texture files (*.ytd)|*.ytd|Image files (*.jpg;*.png)|*.jpg;*.png",
+                Filter = "Texture files (*.ytd)|*.ytd|Image files (*.jpg;*.png;*.dds)|*.jpg;*.png;*.dds",
                 Multiselect = true
             };
 

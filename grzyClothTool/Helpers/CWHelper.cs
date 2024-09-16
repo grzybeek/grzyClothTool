@@ -1,6 +1,9 @@
 ﻿using CodeWalker;
 using CodeWalker.GameFiles;
+using grzyClothTool.Models.Texture;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace grzyClothTool.Helpers;
 public static class CWHelper
@@ -48,9 +51,14 @@ public static class CWHelper
         return _ytdFile;
     }
 
-    public static YtdFile CreateYtdFile(string path, string name)
+    public static YtdFile CreateYtdFile(GTexture texture, string name)
     {
-        byte[] data = File.ReadAllBytes(path);
+        byte[] data = texture.Extension switch
+        {
+            ".ytd" => File.ReadAllBytes(texture.FilePath), // Read existing YTD file directly
+            ".png" or ".jpg" or ".dds" => ImgHelper.CreateDDS(texture), // Create DDS texture
+            _ => throw new NotSupportedException($"Unsupported file extension: {texture.Extension}"),
+        };
 
         RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
         var decompressedData = ResourceBuilder.Decompress(data);

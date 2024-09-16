@@ -155,7 +155,7 @@ public class GTexture : INotifyPropertyChanged
                 Name = txt.Name
             };
         }
-        else if (extension == ".jpg" || extension == ".png")
+        else if (extension == ".jpg" || extension == ".png" || extension == ".dds")
         {
             using var img = new MagickImage(bytes);
 
