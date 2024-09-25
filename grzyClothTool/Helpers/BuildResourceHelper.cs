@@ -21,6 +21,8 @@ public class BuildResourceHelper
 
     private readonly bool shouldUseNumber = false;
 
+    private readonly List<string> firstPersonFiles = [];
+
     public BuildResourceHelper(string name, string path, int totalCount)
     {
         _projectName = name;
@@ -86,6 +88,20 @@ public class BuildResourceHelper
                 var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
                 fileOperations.Add(FileHelper.CopyAsync(d.FilePath, finalPath));
 
+                if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
+                {
+                    fileOperations.Add(FileHelper.CopyAsync(d.ClothPhysicsPath, Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.ClothPhysicsPath)}")));
+                }
+
+                if (!string.IsNullOrEmpty(d.FirstPersonPath))
+                {
+                    //todo: this probably shouldn't be hardcoded to "_1", handle it when there is option to add more alternate drawable versions
+                    fileOperations.Add(FileHelper.CopyAsync(d.FirstPersonPath, Path.Combine(folderPath, $"{prefix}{d.Name}_1{Path.GetExtension(d.FirstPersonPath)}")));
+                    
+                    var name = $"{prefix}{d.Name}".Replace("^", "/");
+                    firstPersonFiles.Add(name);
+                }
+
                 foreach (var t in d.Textures)
                 {
                     var displayName = RemoveInvalidChars(t.DisplayName);
@@ -136,8 +152,15 @@ public class BuildResourceHelper
         contentBuilder.AppendLine();
         contentBuilder.AppendLine("files {");
 
-        string filesSection = string.Join(",\n  ", metaFiles.Select(f => $"'{f}'"));
-        contentBuilder.AppendLine($"  {filesSection}");
+        var filesSectionBuilder = new StringBuilder();
+        filesSectionBuilder.Append(string.Join(",\n  ", metaFiles.Select(f => $"'{f}'")));
+
+        if (firstPersonFiles.Count > 0)
+        {
+            filesSectionBuilder.Append($",\n  'first_person_alternates_{_projectName}.meta'");
+        }
+
+        contentBuilder.AppendLine($"  {filesSectionBuilder}");
 
         contentBuilder.AppendLine("}");
         contentBuilder.AppendLine();
@@ -147,8 +170,16 @@ public class BuildResourceHelper
             contentBuilder.AppendLine($"data_file 'SHOP_PED_APPAREL_META_FILE' '{file}'");
         }
 
+        if (firstPersonFiles.Count > 0)
+        {
+            contentBuilder.AppendLine($"data_file 'PED_FIRST_PERSON_ALTERNATE_DATA' 'first_person_alternates_{_projectName}.meta'");
+        }
+
         var finalPath = Path.Combine(_buildPath, "fxmanifest.lua");
         File.WriteAllText(finalPath, contentBuilder.ToString());
+
+        //clear firstPerson files
+        firstPersonFiles.Clear();
     }
 
     #endregion
@@ -596,8 +627,8 @@ public class BuildResourceHelper
             for (int d = 0; d < drawables.Length; d++)
             {
                 drawables[d].propMask = (byte)(drawablesArray[d].HasSkin ? 17 : 1);
-                drawables[d].numAlternatives = 0;
-                drawables[d].clothData = new CPVDrawblData__CPVClothComponentData() { ownsCloth = 0 };
+                drawables[d].numAlternatives = (byte)(string.IsNullOrEmpty(drawablesArray[d].FirstPersonPath) ? 0 : 1);
+                drawables[d].clothData = new CPVDrawblData__CPVClothComponentData() { ownsCloth = (byte)(string.IsNullOrEmpty(drawablesArray[d].ClothPhysicsPath) ? 0 : 1) };
 
                 var texturesArray = drawablesArray[d].Textures.ToArray();
                 var textures = new CPVTextureData[texturesArray.Length];
@@ -749,6 +780,29 @@ public class BuildResourceHelper
 
         var bytes = Encoding.UTF8.GetBytes(xml);
         return (name, bytes);
+    }
+
+    public void BuildFirstPersonAlternatesMeta()
+    {
+        StringBuilder sb = new();
+        sb.AppendLine(MetaXmlBase.XmlHeader);
+
+        MetaXmlBase.OpenTag(sb, 0, "FirstPersonAlternateData");
+        MetaXmlBase.OpenTag(sb, 4, "alternates");
+
+        foreach (var file in firstPersonFiles)
+        {
+            MetaXmlBase.OpenTag(sb, 8, "Item");
+            MetaXmlBase.StringTag(sb, 12, "assetName", file);
+            MetaXmlBase.ValueTag(sb, 12, "alternate", "1");
+            MetaXmlBase.CloseTag(sb, 8, "Item");
+        }
+
+        MetaXmlBase.CloseTag(sb, 4, "alternates");
+        MetaXmlBase.CloseTag(sb, 0, "FirstPersonAlternateData");
+
+        var finalPath = Path.Combine(_buildPath, $"first_person_alternates_{_projectName}.meta");
+        File.WriteAllText(finalPath, sb.ToString());
     }
 
     private static RbfFile GenerateCreatureMetadata(List<GDrawable> drawables)

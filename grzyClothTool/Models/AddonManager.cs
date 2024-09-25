@@ -108,6 +108,10 @@ namespace grzyClothTool.Models
                 .Where(x => x.Contains(addonName))
                 .FirstOrDefault();
 
+            var yldFiles = Directory.GetFiles(dirPath, "*.yld", SearchOption.AllDirectories)
+                .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
+                .ToArray();
+
             if (yddFiles.Length == 0)
             {
                 CustomMessageBox.Show($"No .ydd files found for selected .meta file ({Path.GetFileName(path)})", "Error");
@@ -145,7 +149,10 @@ namespace grzyClothTool.Models
                 }
             }
             
-            await AddDrawables(yddFiles, isMale);
+            //merge ydd with yld files
+            var mergedFiles = yddFiles.Concat(yldFiles).ToArray();
+
+            await AddDrawables(mergedFiles, isMale);
 
             foreach (var addon in Addons)
             {
@@ -190,19 +197,14 @@ namespace grzyClothTool.Models
             }
         }
 
-        public async Task AddDrawables(string[] filePaths, bool isMale)
+        public async Task AddDrawables(string[] filePaths, bool isMale, string[] yldFiles = null)
         {
-
             Regex alternateRegex = new(@"_\w_\d+\.ydd$");
+            Regex physicsRegex = new(@"\.yld$");
             foreach (var filePath in filePaths)
             {
                 var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
                 if (drawableType == -1)
-                {
-                    continue;
-                }
-
-                if (alternateRegex.IsMatch(filePath))
                 {
                     continue;
                 }
@@ -217,7 +219,27 @@ namespace grzyClothTool.Models
                 Addon currentAddon = Addons[currentAddonIndex];
 
                 // Calculate countOfType for the current Addon
-                var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
+                var drawablesOfType = currentAddon.Drawables.Where(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
+                var countOfType = drawablesOfType.Count();
+
+                if (alternateRegex.IsMatch(filePath))
+                {
+                    if (filePath.EndsWith("_1.ydd")) {
+                        // Add only first alternate variation as first person file
+                        drawablesOfType.FirstOrDefault(x => x.Number == countOfType - 1).FirstPersonPath = filePath;
+                    }
+
+                    // Skip all other alternate variations (_2, _3, etc.)
+                    continue;
+                }
+
+                if (physicsRegex.IsMatch(filePath))
+                {
+                    drawablesOfType.FirstOrDefault(x => x.Number == countOfType - 1).ClothPhysicsPath = filePath;
+
+                    continue;
+                }
+
                 var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, drawableType, countOfType));
 
                 // Check if the number of drawables of this type has reached 128

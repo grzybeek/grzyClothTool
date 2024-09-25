@@ -118,6 +118,7 @@ namespace grzyClothTool.Views
                 counter++;
             }
             await Task.WhenAll(tasks);
+            bHelper.BuildFirstPersonAlternatesMeta();
             bHelper.BuildFxManifest(metaFiles);
         }
 
