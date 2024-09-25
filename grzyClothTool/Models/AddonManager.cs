@@ -197,7 +197,7 @@ namespace grzyClothTool.Models
             }
         }
 
-        public async Task AddDrawables(string[] filePaths, bool isMale, string[] yldFiles = null)
+        public async Task AddDrawables(string[] filePaths, bool isMale)
         {
             Regex alternateRegex = new(@"_\w_\d+\.ydd$");
             Regex physicsRegex = new(@"\.yld$");
