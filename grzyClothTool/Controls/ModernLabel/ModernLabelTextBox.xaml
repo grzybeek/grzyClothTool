@@ -14,7 +14,7 @@
              Width="auto"
              PreviewMouseDown="MyText_MouseDown"
              Foreground="{DynamicResource Brush950}"
-             VerticalContentAlignment="Bottom" 
+             VerticalContentAlignment="Bottom"
              HorizontalContentAlignment="{Binding HorizontalAlignment, ElementName=MyModernLabelTextBox}" 
              Text="{Binding Text, ElementName=MyModernLabelTextBox}" 
              FontSize="{Binding FontSize, ElementName=MyModernLabelTextBox}">
@@ -92,7 +92,7 @@
                                         <Setter TargetName="placeholder" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
                                     </Trigger.Setters>
                                 </Trigger>
-                                <DataTrigger Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True">
+                                <DataTrigger Binding="{Binding IsFolderOrFileSelection, ElementName=MyModernLabelTextBox}" Value="True">
                                     <DataTrigger.Setters>
                                         <Setter TargetName="dots" Property="Visibility" Value="Visible" />
                                     </DataTrigger.Setters>
@@ -100,7 +100,7 @@
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
                                         <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
-                                        <Condition Binding="{Binding IsFolderSelection, ElementName=MyModernLabelTextBox}" Value="True"/>
+                                        <Condition Binding="{Binding IsFolderOrFileSelection, ElementName=MyModernLabelTextBox}" Value="True"/>
                                     </MultiDataTrigger.Conditions>
                                     <Setter Property="Cursor" Value="Hand"/>
                                 </MultiDataTrigger>

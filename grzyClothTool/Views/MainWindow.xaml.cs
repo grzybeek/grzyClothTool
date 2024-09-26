@@ -5,6 +5,7 @@ using Material.Icons;
 using Microsoft.Win32;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -123,6 +124,20 @@ namespace grzyClothTool
                 AddonManager.Addons = [];
                 foreach (var dir in metaFiles.FileNames)
                 {
+                    using (var reader = new StreamReader(dir))
+                    {
+                        string firstLine = await reader.ReadLineAsync();
+                        string secondLine = await reader.ReadLineAsync();
+
+                        //Check two first lines if it contains "ShopPedApparel"
+                        if ((firstLine == null || !firstLine.Contains("ShopPedApparel")) &&
+                            (secondLine == null || !secondLine.Contains("ShopPedApparel")))
+                        {
+                            LogHelper.Log($"Skipped file {dir} as it is probably not a correct .meta file");
+                            return;
+                        }
+                    }
+
                     await AddonManager.LoadAddon(dir);
                 }
 

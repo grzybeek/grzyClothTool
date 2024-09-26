@@ -116,6 +116,9 @@ public class GDrawable : INotifyPropertyChanged
 
     public GDrawableDetails Details { get; set; }
 
+    public string? FirstPersonPath { get; set; } = null;
+    public string? ClothPhysicsPath { get; set; } = null;
+
 
     private bool _hasSkin;
     public bool HasSkin

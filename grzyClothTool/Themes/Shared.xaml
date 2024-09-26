@@ -7,6 +7,7 @@
     <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+    <converters:FilePathToShortVersionConverter x:Key="FilePathToShortVersionConverter" />
 
     <system:Double x:Key="DisabledOpacity">0.5</system:Double>
 

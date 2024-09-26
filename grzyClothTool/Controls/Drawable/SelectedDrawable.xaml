@@ -85,6 +85,11 @@
                                             <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
                                             <c:ModernLabelComboBox Width="75" Label="Sex" SelectedItem="{Binding SelectedAddon.SelectedDrawable.SexName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableSex}" IsUpdated="DrawableSex_Changed" />
                                         </StackPanel>
+                                        <StackPanel Orientation="Vertical" Margin="2">
+                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Width="300" Label="First person file" IsFileSelection="True" FileExtension=".ydd" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath}" ToolTipService.InitialShowDelay="400" />
+                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Width="300" Label="Cloth physics file (.yld)" IsFileSelection="True" FileExtension=".yld" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath}" ToolTipService.InitialShowDelay="400" />
+                                        </StackPanel>
+
                                     </StackPanel>
                                     <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">
                                         <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />
