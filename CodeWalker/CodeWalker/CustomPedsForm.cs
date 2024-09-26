@@ -96,6 +96,11 @@ namespace CodeWalker
         };
 
         private bool highheelvaluechanged = false;
+        private bool renderOnlySelected = false;
+
+        private System.Windows.Forms.Timer autoRotateTimer;
+        private float autoRotateAngle = 0f;
+        private const float AutoRotateSpeed = 1.0f;
 
         public class ComponentComboItem
         {
@@ -173,6 +178,10 @@ namespace CodeWalker
 
             Renderer.renderskydome = false;
             Renderer.renderhdtextures = true;
+
+            autoRotateTimer = new System.Windows.Forms.Timer();
+            autoRotateTimer.Interval = 16; // About 60 FPS
+            autoRotateTimer.Tick += AutoRotateTimer_Tick;
         }
 
         public override void Refresh()
@@ -197,15 +206,7 @@ namespace CodeWalker
             }
 
 
-            camera.FollowEntity = camEntity;
-            camera.FollowEntity.Position = Vector3.Zero;// prevworldpos;
-            camera.FollowEntity.Orientation = Quaternion.LookAtLH(Vector3.Zero, Vector3.Up, Vector3.ForwardLH);
-            camera.TargetDistance = 2.0f;
-            camera.CurrentDistance = 2.0f;
-            camera.TargetRotation.Y = 0.2f;
-            camera.CurrentRotation.Y = 0.2f;
-            camera.TargetRotation.X = 1.0f * (float)Math.PI;
-            camera.CurrentRotation.X = 1.0f * (float)Math.PI;
+            SetDefaultCameraPosition();
 
             Renderer.shaders.deferred = false; //no point using this here yet
             Renderer.shaders.AnisotropicFiltering = true;
@@ -780,15 +781,32 @@ namespace CodeWalker
 
             if (SelectedPed == null) return;
 
-
-            for (int i = 0; i < 12; i++)
+            // The following could be combined into a single for loop with a conditional check inside
+            if (!renderOnlySelected)
             {
-                var drawable = SelectedPed.Drawables[i];
-                var drawablename = SelectedPed.DrawableNames[i];
-
-                if (drawable != null)
+                for (int i = 0; i < 12; i++)
                 {
-                    AddDrawableTreeNode(drawable, drawablename, true);
+                    var drawable = SelectedPed.Drawables[i];
+                    var drawablename = SelectedPed.DrawableNames[i];
+
+                    if (drawable != null)
+                    {
+                        AddDrawableTreeNode(drawable, drawablename, true);
+                    }
+                }
+            }
+            else
+            {
+                // Disabling rendering for all drawables.
+                // Code below this for loop will override this flag for the drawable(s) we want to render.
+                for (int i = 0; i < 12; i++)
+                {
+                    var drawable = SelectedPed.Drawables[i];
+
+                    if (drawable != null)
+                    {
+                        Renderer.SelectionDrawableDrawFlags[drawable] = false;
+                    }
                 }
             }
 
@@ -1581,6 +1599,71 @@ namespace CodeWalker
         {
             var value = Convert.ToInt32(((NumericUpDown)sender).Value);
 
+        }
+
+        private void AutoRotateTimer_Tick(object sender, EventArgs e)
+        {
+            if (SelectedPed != null)
+            {
+                autoRotateAngle += AutoRotateSpeed * (float)Math.PI / 180f;
+                if (autoRotateAngle > 2 * Math.PI) // Keep the autoRotateAngle within the 0 to 360
+                {
+                    autoRotateAngle -= 2 * (float)Math.PI;
+                }
+
+                Quaternion newRotation = Quaternion.RotationYawPitchRoll(0, 0, autoRotateAngle);
+                SelectedPed.Rotation = newRotation;
+                SelectedPed.UpdateEntity();
+            }
+        }
+
+        private void AutoRotatePedCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (AutoRotatePedCheckBox.Checked)
+            {
+                autoRotateTimer.Start();
+            }
+            else
+            {
+                autoRotateTimer.Stop();
+            }
+        }
+
+        private void OnlySelectedCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (OnlySelectedCheckBox.Checked == renderOnlySelected) { return; }
+            renderOnlySelected = OnlySelectedCheckBox.Checked;
+            
+            UpdateModelsUI();
+        }
+
+        private void SetDefaultCameraPosition()
+        {
+            camera.FollowEntity = camEntity;
+            camera.FollowEntity.Position = Vector3.Zero;// prevworldpos;
+
+            // used to be Vector3.ForwardLH, but default animations rotates ped, so changed it to Vector3.ForwardRH 
+            camera.FollowEntity.Orientation = Quaternion.LookAtLH(Vector3.Zero, Vector3.Up, Vector3.ForwardRH); 
+
+            camera.TargetDistance = 2.0f;
+            camera.CurrentDistance = 2.0f;
+            camera.TargetRotation.Y = 0.2f;
+            camera.CurrentRotation.Y = 0.2f;
+            camera.TargetRotation.X = 1.0f * (float)Math.PI;
+            camera.CurrentRotation.X = 1.0f * (float)Math.PI;
+
+            if (SelectedPed != null)
+            {
+                // restart rotation angle, so ped faces camera
+                autoRotateAngle = 0f;
+                SelectedPed.Rotation = Quaternion.Identity;
+                SelectedPed.UpdateEntity();
+            }
+        }
+
+        private void RestartCamera_Click(object sender, EventArgs e)
+        {
+            SetDefaultCameraPosition();
         }
     }
 }
