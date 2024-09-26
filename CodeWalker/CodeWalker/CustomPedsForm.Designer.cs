@@ -67,6 +67,8 @@ namespace CodeWalker
             this.normalRadio = new System.Windows.Forms.RadioButton();
             this.TexturesTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ToolsOptionsTabPage = new System.Windows.Forms.TabPage();
+            this.floorUpDown = new System.Windows.Forms.NumericUpDown();
+            this.floorCheckbox = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
@@ -111,6 +113,7 @@ namespace CodeWalker
             this.ToolsTexturesTabPage.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.ToolsOptionsTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.floorUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.TimeOfDayTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.feet_updown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lowr_updown)).BeginInit();
@@ -510,6 +513,8 @@ namespace CodeWalker
             // 
             // ToolsOptionsTabPage
             // 
+            this.ToolsOptionsTabPage.Controls.Add(this.floorUpDown);
+            this.ToolsOptionsTabPage.Controls.Add(this.floorCheckbox);
             this.ToolsOptionsTabPage.Controls.Add(this.label7);
             this.ToolsOptionsTabPage.Controls.Add(this.label6);
             this.ToolsOptionsTabPage.Controls.Add(this.label5);
@@ -550,6 +555,38 @@ namespace CodeWalker
             this.ToolsOptionsTabPage.TabIndex = 3;
             this.ToolsOptionsTabPage.Text = "Options";
             this.ToolsOptionsTabPage.UseVisualStyleBackColor = true;
+            // 
+            // floorUpDown
+            // 
+            this.floorUpDown.DecimalPlaces = 1;
+            this.floorUpDown.Enabled = false;
+            this.floorUpDown.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.floorUpDown.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.floorUpDown.Location = new System.Drawing.Point(98, 341);
+            this.floorUpDown.Maximum = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.floorUpDown.Name = "floorUpDown";
+            this.floorUpDown.Size = new System.Drawing.Size(47, 22);
+            this.floorUpDown.TabIndex = 68;
+            this.floorUpDown.Tag = "6";
+            // 
+            // floorCheckbox
+            // 
+            this.floorCheckbox.AutoSize = true;
+            this.floorCheckbox.Location = new System.Drawing.Point(10, 344);
+            this.floorCheckbox.Name = "floorCheckbox";
+            this.floorCheckbox.Size = new System.Drawing.Size(82, 17);
+            this.floorCheckbox.TabIndex = 67;
+            this.floorCheckbox.Text = "Enable floor";
+            this.floorCheckbox.UseVisualStyleBackColor = true;
+            this.floorCheckbox.CheckedChanged += new System.EventHandler(this.FloorCheckbox_CheckedChanged);
             // 
             // label7
             // 
@@ -954,6 +991,7 @@ namespace CodeWalker
             this.groupBox1.PerformLayout();
             this.ToolsOptionsTabPage.ResumeLayout(false);
             this.ToolsOptionsTabPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.floorUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.TimeOfDayTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.feet_updown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lowr_updown)).EndInit();
@@ -1037,5 +1075,7 @@ namespace CodeWalker
         private System.Windows.Forms.RadioButton diffuseRadio;
         private System.Windows.Forms.Button liveTxtButton;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.CheckBox floorCheckbox;
+        private System.Windows.Forms.NumericUpDown floorUpDown;
     }
 }

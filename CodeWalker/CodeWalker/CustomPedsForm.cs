@@ -75,7 +75,7 @@ namespace CodeWalker
         Texture LiveTexture = new Texture();
 
         List<List<ComponentComboItem>> ComponentComboBoxes;
-        private List<VertexTypePC> floorVerticesList = new List<VertexTypePC>();
+        private Dictionary<string, List<VertexTypePC>> floorVerticesDict = new Dictionary<string, List<VertexTypePC>>();
         private readonly Vector3[] floorVertices = new Vector3[]
         {
             new Vector3(-1.0f, 1.0f, -1.0f),
@@ -219,15 +219,30 @@ namespace CodeWalker
 
             frametimer.Start();
 
-            for (int i = 0; i < floorVertices.Length; i++)
+            floorVerticesDict = new Dictionary<string, List<VertexTypePC>>
             {
-                floorVerticesList.Add(new VertexTypePC()
+                { "DrawableFloor", CreateFloorVertices(new Color(50, 50, 50, 255)) },
+                { "PreviewFloor", CreateFloorVertices(new Color(90, 90, 90, 255)) }
+            };
+        }
+
+        private List<VertexTypePC> CreateFloorVertices(Color color)
+        {
+            var verticesList = new List<VertexTypePC>(floorVertices.Length);
+            uint colorValue = (uint)color.ToRgba();
+
+            foreach (var vertex in floorVertices)
+            {
+                verticesList.Add(new VertexTypePC
                 {
-                    Position = floorVertices[i],
-                    Colour = (uint)new Color(50, 50, 50, 255).ToRgba()
+                    Position = vertex,
+                    Colour = colorValue
                 });
             }
+
+            return verticesList;
         }
+
         public void CleanupScene()
         {
             formopen = false;
@@ -336,32 +351,59 @@ namespace CodeWalker
 
         private void RenderFloor()
         {
-            if(Renderer.renderfloor)
+            if (Renderer.renderfloor)
             {
-                if (Renderer.SelDrawable != null && Renderer.SelDrawable.IsHighHeelsEnabled)
+                if (floorVerticesDict.TryGetValue("DrawableFloor", out var floorVerticesList))
                 {
-                    List<VertexTypePC> newFloorVerticesList = new List<VertexTypePC>();
-
-                    if(highheelvaluechanged || newFloorVerticesList.Count == 0)
+                    if (Renderer.SelDrawable != null && Renderer.SelDrawable.IsHighHeelsEnabled)
                     {
-                        newFloorVerticesList.Clear();
+                        List<VertexTypePC> newFloorVerticesList = new List<VertexTypePC>();
 
-                        for (int i = 0; i < floorVerticesList.Count; i++)
+                        if (highheelvaluechanged || newFloorVerticesList.Count == 0)
                         {
-                            var ver = floorVerticesList[i];
-                            var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - Renderer.SelDrawable.HighHeelsValue);
-                            ver.Position = newPosition;
+                            newFloorVerticesList.Clear();
 
-                            newFloorVerticesList.Add(ver);
+                            foreach (var ver in floorVerticesList)
+                            {
+                                var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - Renderer.SelDrawable.HighHeelsValue);
+                                newFloorVerticesList.Add(new VertexTypePC
+                                {
+                                    Position = newPosition,
+                                    Colour = ver.Colour
+                                });
+                            }
+
+                            highheelvaluechanged = false;
                         }
-                        highheelvaluechanged = false;
+
+                        Renderer.RenderTriangles(newFloorVerticesList);
+                    }
+                    else
+                    {
+                        Renderer.RenderTriangles(floorVerticesList);
+                    }
+                }
+            }
+
+            if (floorCheckbox.Checked)
+            {
+                if (floorVerticesDict.TryGetValue("PreviewFloor", out var previewFloorVerticesList))
+                {
+                    List<VertexTypePC> newPreviewFloorVerticesList = new List<VertexTypePC>();
+                    float floorUpDownValue = (float)floorUpDown.Value / 10;
+
+                    foreach (var ver in previewFloorVerticesList)
+                    {
+                        var newPosition = new Vector3(ver.Position.X, ver.Position.Y, ver.Position.Z - floorUpDownValue);
+                        newPreviewFloorVerticesList.Add(new VertexTypePC
+                        {
+                            Position = newPosition,
+                            Colour = ver.Colour
+                        });
                     }
 
-                    Renderer.RenderTriangles(newFloorVerticesList);
-                    return;
+                    Renderer.RenderTriangles(newPreviewFloorVerticesList);
                 }
-
-                Renderer.RenderTriangles(floorVerticesList);
             }
         }
 
@@ -1528,6 +1570,17 @@ namespace CodeWalker
                         break;
                 }
             }
+        }
+
+        private void FloorCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            floorUpDown.Enabled = floorCheckbox.Checked;
+        }
+
+        private void FloorUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            var value = Convert.ToInt32(((NumericUpDown)sender).Value);
+
         }
     }
 }
