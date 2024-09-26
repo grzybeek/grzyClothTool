@@ -3,6 +3,7 @@ using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,15 +19,17 @@ public class BuildResourceHelper
     private int _number;
     private readonly string _projectName;
     private readonly string _buildPath;
+    private readonly IProgress<int> _progress;
 
     private readonly bool shouldUseNumber = false;
 
     private readonly List<string> firstPersonFiles = [];
 
-    public BuildResourceHelper(string name, string path, int totalCount)
+    public BuildResourceHelper(string name, string path, int totalCount, IProgress<int> progress)
     {
         _projectName = name;
         _buildPath = path;
+        _progress = progress;
 
         shouldUseNumber = totalCount > 1;
     }
@@ -46,8 +49,8 @@ public class BuildResourceHelper
         number ??= _number;
         return shouldUseNumber ? $"{_projectName}_{number:D2}" : _projectName;
     }
-
     
+
     #region FiveM
 
 
@@ -130,8 +133,24 @@ public class BuildResourceHelper
             }
         }
 
-        // Run all file operations
-        await Task.WhenAll(fileOperations);
+        int completedTasks = 0;
+        int lastReportedProgress = 0;
+
+        var runningTasks = fileOperations.ToList(); // Start all file operations
+        int totalTasks = runningTasks.Count;
+
+        while (completedTasks < totalTasks)
+        {
+            Task finishedTask = await Task.WhenAny(runningTasks);
+            completedTasks++;
+
+            if (completedTasks - lastReportedProgress >= 20 || runningTasks.Count == 0)
+            {
+                _progress.Report(completedTasks - lastReportedProgress);
+                lastReportedProgress = completedTasks;
+            }
+        }
+
         await Task.Run(() =>
             {
                 var generated = GenerateCreatureMetadata(drawables);
@@ -253,8 +272,24 @@ public class BuildResourceHelper
             }
         }
 
-        // Run all file operations
-        await Task.WhenAll(fileOperations);
+        int completedTasks = 0;
+        int lastReportedProgress = 0;
+
+        var runningTasks = fileOperations.ToList(); // Start all file operations
+        int totalTasks = runningTasks.Count;
+
+        while (completedTasks < totalTasks)
+        {
+            Task finishedTask = await Task.WhenAny(runningTasks);
+            completedTasks++;
+
+            if (completedTasks - lastReportedProgress >= 20 || runningTasks.Count == 0)
+            {
+                _progress.Report(completedTasks - lastReportedProgress);
+                lastReportedProgress = completedTasks;
+            }
+        }
+
         await Task.Run(() => {
             var generated = GenerateCreatureMetadata(drawables);
             if (generated != null)
@@ -349,6 +384,7 @@ public class BuildResourceHelper
                 await BuildSingleplayerFilesAsync(false, ymtBytes, counter, cdimages);
             }
 
+            _progress.Report(selectedAddon.GetTotalDrawableAndTextureCount());
             counter++;
         }
     }

@@ -110,6 +110,11 @@ public class Addon : INotifyPropertyChanged
         return nextNumber;
     }
 
+    public int GetTotalDrawableAndTextureCount()
+    {
+        return Drawables.Count + Drawables.SelectMany(drawable => drawable.Textures).Count();
+    }
+
     protected void OnPropertyChanged([CallerMemberName] string name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
