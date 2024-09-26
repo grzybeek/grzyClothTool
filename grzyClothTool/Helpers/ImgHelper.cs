@@ -87,6 +87,38 @@ public static class ImgHelper
         return bytes;
     }
 
+    public static byte[] GetDDSBytes(GTexture gtxt)
+    {
+        var ytd = new YtdFile
+        {
+            TextureDict = new TextureDictionary()
+        };
+
+        byte[] ddsBytes = [];
+
+        if (gtxt.Extension == ".dds")
+        {
+            ddsBytes = File.ReadAllBytes(gtxt.FilePath);
+        } 
+        else if (gtxt.Extension == ".jpg" || gtxt.Extension == ".png")
+        {
+            using var img = GetImage(gtxt.FilePath);
+            img.Format = MagickFormat.Dds;
+
+            var stream = new MemoryStream();
+            img.Write(stream);
+
+            ddsBytes = stream.ToArray();
+        }
+
+        var newTxt = CodeWalker.Utils.DDSIO.GetTexture(ddsBytes);
+
+        newTxt.Name = gtxt.DisplayName;
+        ytd.TextureDict.BuildFromTextureList([newTxt]);
+
+        return ytd.Save();
+    }
+
     private static string GetCompressionString(string cwCompression)
     {
         return cwCompression switch
