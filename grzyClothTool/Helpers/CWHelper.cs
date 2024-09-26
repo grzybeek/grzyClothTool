@@ -56,7 +56,7 @@ public static class CWHelper
         byte[] data = texture.Extension switch
         {
             ".ytd" => File.ReadAllBytes(texture.FilePath), // Read existing YTD file directly
-            ".png" or ".jpg" or ".dds" => ImgHelper.CreateDDS(texture), // Create DDS texture
+            ".png" or ".jpg" or ".dds" => ImgHelper.GetDDSBytes(texture), // Create DDS texture
             _ => throw new NotSupportedException($"Unsupported file extension: {texture.Extension}"),
         };
 
