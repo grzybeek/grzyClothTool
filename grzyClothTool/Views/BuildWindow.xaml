@@ -9,6 +9,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
         MouseDown="Window_MouseDown"
+        Closing="Window_Closing"
         Title="(WIP) grzyClothTool - Build resource"
         Background="{DynamicResource Brush50}"
         Height="450"
@@ -43,7 +44,7 @@
                     />
                 </StackPanel>
             </GroupBox>
-            
+
             <c:ModernLabelTextBox 
                 x:Name="name"
                 Label="Project name"
@@ -62,19 +63,32 @@
                 Text="{Binding BuildPath}" />
         </StackPanel>
 
+        <Grid Grid.Row="1" Margin="15,5,15,5" >
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
+            <ProgressBar 
+                x:Name="pbBuild" 
+                Grid.Column="0" 
+                Grid.ColumnSpan="2" 
+                HorizontalAlignment="Left"
+                Width="300"
+                Background="{DynamicResource Brush200}"
+                BorderBrush="{DynamicResource Brush100}"
+                Value="{Binding ProgressValue}"
+                Visibility="{Binding IsBuilding, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
-        <Border Grid.Row="1" Padding="5">
-            <c:CustomButton 
-                HorizontalAlignment="Right"
-                x:Name="build"
-                CornerRadius="5"
-                Width="150"
-                Label="Build resource"
-                MyBtnClickEvent="build_MyBtnClickEvent"
-             />
-        </Border>
-
+            <Border Grid.Column="2" >
+                <c:CustomButton 
+                    HorizontalAlignment="Right"
+                    x:Name="build"
+                    CornerRadius="5"
+                    Width="150"
+                    Label="Build resource"
+                    MyBtnClickEvent="build_MyBtnClickEvent" />
+            </Border>
+        </Grid>
     </Grid>
-
 </Window>

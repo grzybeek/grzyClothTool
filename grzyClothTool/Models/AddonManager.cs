@@ -48,7 +48,6 @@ namespace grzyClothTool.Models
             }
         }
 
-        
         private Addon _selectedAddon;
         [JsonIgnore]
         public Addon SelectedAddon
@@ -281,6 +280,11 @@ namespace grzyClothTool.Models
             {
                 addon.Drawables.Sort();
             }
+        }
+
+        public int GetTotalDrawableAndTextureCount()
+        {
+            return _addons.Sum(addon => addon.GetTotalDrawableAndTextureCount());
         }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
