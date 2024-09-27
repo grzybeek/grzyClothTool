@@ -56,7 +56,8 @@ public static class FileHelper
         var drawableRaceSuffix = Path.GetFileNameWithoutExtension(filePath)[^1..];
         var drawableHasSkin = drawableRaceSuffix == "r";
 
-        var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)));
+        // Should we inform user, that they tried to add too many textures?
+        var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
 
         return Task.FromResult(new GDrawable(filePath, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
