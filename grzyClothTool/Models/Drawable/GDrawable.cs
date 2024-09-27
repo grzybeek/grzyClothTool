@@ -303,18 +303,14 @@ public class GDrawable : INotifyPropertyChanged
         var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
 
-        // change current drawable to new type
-        Number = MainWindow.AddonManager.SelectedAddon.GetNextDrawableNumber(newTypeNumeric, IsProp, Sex);
+        // change drawable to new type
         TypeNumeric = newTypeNumeric;
-        SetDrawableName();
-
-        // add new drawable with new number and type
-        MainWindow.AddonManager.SelectedAddon.Drawables.Insert(index + 1, this);
 
         // replace drawable with reserved in the same place
         MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;
 
-        MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
+        // re-add changed drawable
+        MainWindow.AddonManager.AddDrawable(this);
     }
 
     public void ChangeDrawableSex(string newSex)
@@ -324,23 +320,14 @@ public class GDrawable : INotifyPropertyChanged
         var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
     
-        // adjust drawable number and change sex
-        Number = MainWindow.AddonManager.SelectedAddon.GetNextDrawableNumber(TypeNumeric, IsProp, isMale);
+        // change drawable sex
         Sex = isMale;
-
-        SetDrawableName();
-
-        // add new drawable with new number and sex
-        MainWindow.AddonManager.SelectedAddon.Drawables.Add(this);
 
         // replace drawable with reserved in the same place
         MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;
 
-        MainWindow.AddonManager.SelectedAddon.Drawables.Sort();
-
-        // This might not be needed - adding just in case someone is bulk-adding clothes, without specifying the sex
-        if (isMale && !MainWindow.AddonManager.SelectedAddon.HasMale) MainWindow.AddonManager.SelectedAddon.HasMale = true;
-        if (!isMale && !MainWindow.AddonManager.SelectedAddon.HasFemale) MainWindow.AddonManager.SelectedAddon.HasFemale = true;
+        // re-add changed drawable
+        MainWindow.AddonManager.AddDrawable(this);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)

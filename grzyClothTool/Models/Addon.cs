@@ -13,10 +13,16 @@ public class Addon : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
 
-    public string Name { get; set; }
-
-    public bool HasFemale { get; set; }
-    public bool HasMale { get; set; }
+    private string _name;
+    public string Name
+    {
+        get { return _name; }
+        set 
+        {
+            _name = value; 
+            OnPropertyChanged(); 
+        }
+    }
     public bool HasProps { get; set; }
 
     [JsonIgnore]
@@ -108,6 +114,11 @@ public class Addon : INotifyPropertyChanged
         }
 
         return nextNumber;
+    }
+
+    public bool HasSex(bool isMale)
+    {
+        return Drawables.Any(x => x.Sex == isMale);
     }
 
     public int GetTotalDrawableAndTextureCount()

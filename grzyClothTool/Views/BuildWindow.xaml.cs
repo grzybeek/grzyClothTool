@@ -171,7 +171,7 @@ namespace grzyClothTool.Views
                 bHelper.SetAddon(selectedAddon);
                 bHelper.SetNumber(counter);
 
-                if (selectedAddon.HasMale)
+                if (selectedAddon.HasSex(true))
                 {
                     var bytes = bHelper.BuildYMT(true);
                     tasks.Add(bHelper.BuildFiveMFilesAsync(true, bytes, counter));
@@ -182,7 +182,7 @@ namespace grzyClothTool.Views
                     var path = Path.Combine(BuildPath, name);
                     tasks.Add(File.WriteAllBytesAsync(path, b));
                 }
-                if (selectedAddon.HasFemale)
+                if (selectedAddon.HasSex(false))
                 {
                     var bytes = bHelper.BuildYMT(false);
                     tasks.Add(bHelper.BuildFiveMFilesAsync(false, bytes, counter));
@@ -209,7 +209,7 @@ namespace grzyClothTool.Views
                 bHelper.SetAddon(selectedAddon);
                 bHelper.SetNumber(counter);
 
-                if(selectedAddon.HasMale) {
+                if(selectedAddon.HasSex(true)) {
                     var bytes = bHelper.BuildYMT(true);
                     tasks.Add(bHelper.BuildAltVFilesAsync(true, bytes, counter));
 
@@ -219,7 +219,7 @@ namespace grzyClothTool.Views
                     var path = Path.Combine(BuildPath, "stream", name);
                     tasks.Add(File.WriteAllBytesAsync(path, b));
                 }
-                if(selectedAddon.HasFemale) {
+                if(selectedAddon.HasSex(false)) {
                     var bytes = bHelper.BuildYMT(false);
                     tasks.Add(bHelper.BuildAltVFilesAsync(false, bytes, counter));
 

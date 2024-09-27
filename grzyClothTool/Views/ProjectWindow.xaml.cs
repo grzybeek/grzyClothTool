@@ -132,7 +132,7 @@ namespace grzyClothTool.Views
             {
                 case ModifierKeys.Shift:
                     // Shift+Delete was pressed, delete the drawable instantly
-                    DeleteDrawable(Addon.SelectedDrawable);
+                    MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
                     break;
                 case ModifierKeys.Control:
                     // Ctrl+Delete was pressed, replace the drawable instantly
@@ -156,27 +156,11 @@ namespace grzyClothTool.Views
             var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({Addon.SelectedDrawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
             if (result == CustomMessageBox.CustomMessageBoxResult.Delete)
             {
-                DeleteDrawable(Addon.SelectedDrawable);
+                MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
             }
             else if (result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {
                 ReplaceDrawable(Addon.SelectedDrawable);
-            }
-        }
-
-        private void DeleteDrawable(GDrawable drawable)
-        {
-            Addon.Drawables.Remove(drawable);
-            Addon.Drawables.Sort(true);
-            SaveHelper.SetUnsavedChanges(true);
-
-            if (SettingsHelper.Instance.AutoDeleteFiles)
-            {
-                foreach (var texture in drawable.Textures)
-                {
-                    File.Delete(texture.FilePath);
-                }
-                File.Delete(drawable.FilePath);
             }
         }
 
@@ -195,9 +179,13 @@ namespace grzyClothTool.Views
             {
                 var addon = e.AddedItems[0] as Addon;
                 int index = int.Parse(addon.Name.ToString().Split(' ')[1]) - 1;
-                Addon = MainWindow.AddonManager.Addons.ElementAt(index);
 
-                MainWindow.AddonManager.SelectedAddon = Addon;
+                // as we are modyfing the collection, we need to use try-catch
+                try
+                {
+                    Addon = MainWindow.AddonManager.Addons.ElementAt(index);
+                    MainWindow.AddonManager.SelectedAddon = Addon;
+                } catch (Exception)  { }
             }
         }
 

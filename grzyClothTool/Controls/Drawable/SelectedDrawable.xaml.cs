@@ -315,7 +315,6 @@ namespace grzyClothTool.Controls
             }
 
             SelectedDraw.ChangeDrawableType(newValue.ToString());
-            SaveHelper.SetUnsavedChanges(true);
         }
 
         private void DrawableSex_Changed(object sender, UpdatedEventArgs e)
@@ -334,7 +333,6 @@ namespace grzyClothTool.Controls
             }
 
             SelectedDraw.ChangeDrawableSex(newValue.ToString());
-            SaveHelper.SetUnsavedChanges(true);
         }
 
         private async void ReplaceReserved_Click(object sender, RoutedEventArgs e)

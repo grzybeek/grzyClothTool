@@ -2,6 +2,7 @@
 using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
+using grzyClothTool.Models.Drawable;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -269,9 +270,7 @@ namespace grzyClothTool.Models
                 // Add the drawable to the current Addon
                 currentAddon.Drawables.Add(drawable);
 
-                //set HasMale/HasFemale/HasProps only once adding first drawable
-                if (isMale && !currentAddon.HasMale) currentAddon.HasMale = true;
-                if (!isMale && !currentAddon.HasFemale) currentAddon.HasFemale = true;
+                //set HasProps only once adding first drawable
                 if (isProp && !currentAddon.HasProps) currentAddon.HasProps = true;
             }
 
@@ -284,7 +283,105 @@ namespace grzyClothTool.Models
 
         public int GetTotalDrawableAndTextureCount()
         {
-            return _addons.Sum(addon => addon.GetTotalDrawableAndTextureCount());
+            return Addons.Sum(addon => addon.GetTotalDrawableAndTextureCount());
+        }
+
+        public void AddDrawable(GDrawable drawable)
+        {
+            int nextNumber = 0;
+            int currentAddonIndex = 0;
+            Addon currentAddon;
+
+            // find to which addon we should add the drawable
+            while (currentAddonIndex < Addons.Count)
+            {
+                currentAddon = Addons[currentAddonIndex];
+                int countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex);
+
+                // If the number of drawables of this type has reached 128, move to the next addon
+                if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                {
+                    currentAddonIndex++;
+                    continue;
+                }
+
+                nextNumber = countOfType;
+                break;
+            }
+
+            // make sure we are adding to correct addon
+            if (currentAddonIndex < Addons.Count)
+            {
+                currentAddon = Addons[currentAddonIndex];
+            }
+            else
+            {
+                // Create a new Addon
+                currentAddon = new Addon("Addon " + (currentAddonIndex + 1));
+                Addons.Add(currentAddon);
+            }
+
+            // Update name and number
+            // mark as new, to make it easier to find
+            drawable.IsNew = true;
+            drawable.Number = nextNumber;
+            drawable.SetDrawableName();
+
+            currentAddon.Drawables.Add(drawable);
+            currentAddon.Drawables.Sort();
+
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
+        public void DeleteDrawable(GDrawable drawable)
+        {
+            // find the addon that contains the drawable
+            var addon = Addons.FirstOrDefault(x => x.Drawables.Contains(drawable));
+            if (addon == null)
+            {
+                return;
+            }
+
+            SaveHelper.SetUnsavedChanges(true);
+
+            addon.Drawables.Remove(drawable);
+
+            if (SettingsHelper.Instance.AutoDeleteFiles)
+            {
+                foreach (var texture in drawable.Textures)
+                {
+                    File.Delete(texture.FilePath);
+                }
+                File.Delete(drawable.FilePath);
+            }
+
+            // if addon is empty, remove it
+            if (addon.Drawables.Count == 0)
+            {
+                DeleteAddon(addon);
+                return;
+            }
+
+            addon.Drawables.Sort(true);
+        }   
+
+        private void DeleteAddon(Addon addon)
+        {
+            int index = Addons.IndexOf(addon);
+            if (index <= 0) { return; } // if not found or it's Addon 1 - don't remove
+
+            Addons.RemoveAt(index);
+            AdjustAddonNames();
+        }
+
+        private void AdjustAddonNames()
+        {
+            for (int i = 0; i < Addons.Count; i++)
+            {
+                Addons[i].Name = $"Addon {i + 1}";
+            }
+
+            OnPropertyChanged("Addons");
         }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)

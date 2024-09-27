@@ -3,7 +3,6 @@ using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -366,7 +365,7 @@ public class BuildResourceHelper
             SetAddon(selectedAddon);
             SetNumber(counter);
 
-            if (selectedAddon.HasMale)
+            if (selectedAddon.HasSex(true))
             {
                 var (name, bytes) = BuildMeta(true);
                 RpfFile.CreateFile(dataFolder, name, bytes);
@@ -375,7 +374,7 @@ public class BuildResourceHelper
                 await BuildSingleplayerFilesAsync(true, ymtBytes, counter, cdimages);
             }
 
-            if (selectedAddon.HasFemale)
+            if (selectedAddon.HasSex(false))
             {
                 var (name, bytes) = BuildMeta(false);
                 RpfFile.CreateFile(dataFolder, name, bytes);
@@ -404,7 +403,7 @@ public class BuildResourceHelper
         var filesToEnable = new List<string>();
         foreach (var addon in MainWindow.AddonManager.Addons)
         {
-            if (addon.HasMale)
+            if (addon.HasSex(true))
             {
                 sb.AppendLine($"    <Item>");
                 sb.AppendLine($"      <filename>dlc_{_projectName}:/common/data/mp_m_freemode_01_{_projectName}.meta</filename>");
@@ -447,7 +446,7 @@ public class BuildResourceHelper
                 }
             }
 
-            if (addon.HasFemale)
+            if (addon.HasSex(false))
             {
                 sb.AppendLine($"    <Item>");
                 sb.AppendLine($"      <filename>dlc_{_projectName}:/common/data/mp_f_freemode_01_{_projectName}.meta</filename>");
