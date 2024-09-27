@@ -252,6 +252,14 @@ namespace grzyClothTool.Controls
 
         private void AddTexture_Click(object sender, RoutedEventArgs e)
         {
+            // calculate remaining texures that can be added
+            int remainingTextures = GlobalConstants.MAX_DRAWABLE_TEXTURES - SelectedDraw.Textures.Count;
+            if (remainingTextures <= 0)
+            {
+                Show($"You can't have more than {GlobalConstants.MAX_DRAWABLE_TEXTURES} textures per drawable!", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+                return;
+            }
+
             OpenFileDialog files = new()
             {
                 Title = $"Select textures",
@@ -263,8 +271,19 @@ namespace grzyClothTool.Controls
             {
                 foreach(var file in files.FileNames)
                 {
+                    // check if we are within the limit
+                    if (remainingTextures <= 0)
+                    {
+                        // break the loop and show which texture was the last one
+                        Show($"Reached the limit of {GlobalConstants.MAX_DRAWABLE_TEXTURES} textures. Last added texture: {Path.GetFileName(file)}.", "Info", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Warning);
+                        LogHelper.Log($"Reached the limit of {GlobalConstants.MAX_DRAWABLE_TEXTURES} textures. Last added texture: {Path.GetFileName(file)}.", LogType.Warning);
+                        break;
+
+                    }
                     var gtxt = new GTexture(file, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedDraw.Textures.Count, SelectedDraw.HasSkin, SelectedDraw.IsProp);
                     SelectedDraw.Textures.Add(gtxt);
+
+                    remainingTextures--;
                 }
 
                 SaveHelper.SetUnsavedChanges(true);
