@@ -15,6 +15,8 @@ using System;
 using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
+using static grzyClothTool.Enums;
+using System.Drawing.Drawing2D;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -79,12 +81,12 @@ public class GDrawable : INotifyPropertyChanged
     {
         get
         {
-            _sexName ??= EnumHelper.GetSex(Sex);
-            return _sexName;
+            return _sexName ??= Enum.GetName(Sex)!;
         }
         set
         {
             _sexName = value;
+            OnPropertyChanged();
         }
     }
 
@@ -97,8 +99,19 @@ public class GDrawable : INotifyPropertyChanged
     /// <returns>
     /// true(1) = male ped, false(0) = female ped
     /// </returns>
-    private bool _sex;
-    public bool Sex
+    private bool _sexx;
+    public bool Sexx
+    {
+        get => _sexx;
+        set
+        {
+            _sexx = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private Enums.SexType _sex;
+    public Enums.SexType Sex
     {
         get => _sex;
         set
@@ -227,7 +240,7 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
-    public GDrawable(string drawablePath, bool isMale, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
+    public GDrawable(string drawablePath, Enums.SexType sex, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
 
@@ -236,7 +249,7 @@ public class GDrawable : INotifyPropertyChanged
         TypeNumeric = compType;
         Number = count;
         HasSkin = hasSkin;
-        Sex = isMale;
+        Sex = sex;
         IsProp = isProp;
         IsNew = true;
 
@@ -281,7 +294,7 @@ public class GDrawable : INotifyPropertyChanged
         SetDrawableName();
     }
 
-    protected GDrawable(bool isMale, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
+    protected GDrawable(Enums.SexType sex, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
 
     public void SetDrawableName()
     {
@@ -315,13 +328,13 @@ public class GDrawable : INotifyPropertyChanged
 
     public void ChangeDrawableSex(string newSex)
     {
-        // transform new sex to bool
-        var isMale = newSex == "male";
+        // transform new sex to enum
+        var newSexEnum = Enum.Parse<Enums.SexType>(newSex);
         var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
     
         // change drawable sex
-        Sex = isMale;
+        Sex = newSexEnum;
 
         // replace drawable with reserved in the same place
         MainWindow.AddonManager.SelectedAddon.Drawables[index] = reserved;

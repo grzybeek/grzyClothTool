@@ -94,10 +94,10 @@ namespace grzyClothTool.Models
             var addonName = Path.GetFileNameWithoutExtension(path);
 
             // Determine if the addonName indicates male or female
-            bool isMale = addonName.Contains("mp_m_freemode_01");
+            Enums.SexType sex = addonName.Contains("mp_m_freemode_01") ? Enums.SexType.male : Enums.SexType.female;
 
             // Build the appropriate regex pattern based on whether it's male or female
-            string genderSpecificPart = isMale ? "mp_m_freemode_01" : "mp_f_freemode_01";
+            string genderSpecificPart = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
             string pattern = $@"^{genderSpecificPart}(_p)?.*?\^";
 
             var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
@@ -152,7 +152,7 @@ namespace grzyClothTool.Models
             //merge ydd with yld files
             var mergedFiles = yddFiles.Concat(yldFiles).ToArray();
 
-            await AddDrawables(mergedFiles, isMale);
+            await AddDrawables(mergedFiles, sex);
 
             foreach (var addon in Addons)
             {
@@ -197,7 +197,7 @@ namespace grzyClothTool.Models
             }
         }
 
-        public async Task AddDrawables(string[] filePaths, bool isMale)
+        public async Task AddDrawables(string[] filePaths, Enums.SexType sex)
         {
             Regex alternateRegex = new(@"_\w_\d+\.ydd$");
             Regex physicsRegex = new(@"\.yld$");
@@ -219,7 +219,7 @@ namespace grzyClothTool.Models
                 Addon currentAddon = Addons[currentAddonIndex];
 
                 // Calculate countOfType for the current Addon
-                var drawablesOfType = currentAddon.Drawables.Where(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
+                var drawablesOfType = currentAddon.Drawables.Where(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex);
                 var countOfType = drawablesOfType.Count();
 
                 if (alternateRegex.IsMatch(filePath))
@@ -240,7 +240,7 @@ namespace grzyClothTool.Models
                     continue;
                 }
 
-                var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, isMale, isProp, drawableType, countOfType));
+                var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType));
 
                 // Check if the number of drawables of this type has reached 128
                 while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
@@ -260,7 +260,7 @@ namespace grzyClothTool.Models
                     }
 
                     // Calculate countOfType for the current Addon
-                    countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == isMale);
+                    countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex);
 
                     // Update name and number
                     drawable.Number = countOfType;

@@ -351,6 +351,7 @@ namespace grzyClothTool.Controls
                 return;
             }
 
+
             SelectedDraw.ChangeDrawableSex(newValue.ToString());
         }
 

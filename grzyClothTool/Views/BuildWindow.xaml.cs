@@ -1,5 +1,7 @@
-﻿using grzyClothTool.Controls;
+﻿using CodeWalker.GameFiles;
+using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
+using grzyClothTool.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -91,7 +93,7 @@ namespace grzyClothTool.Views
                     await BuildAltVResource(buildHelper);
                     break;
                 case ResourceType.Singleplayer:
-                    await buildHelper.BuildSingleplayer();
+                    await BuildSingleplayerResource(buildHelper);
                     break;
                 default:
                     throw new NotImplementedException($"Unsupported resource type: {_resourceType}");
@@ -160,79 +162,120 @@ namespace grzyClothTool.Views
             }
         }
 
+        private void AddBuildTasksForSex(BuildResourceHelper bHelper, Addon selectedAddon, Enums.SexType sexType, List<Task> tasks, List<string> metaFiles, int counter, RpfDirectoryEntry cdimages = null, RpfDirectoryEntry dataFolder = null)
+        {
+            if (selectedAddon.HasSex(sexType))
+            {
+                var bytes = bHelper.BuildYMT(sexType);
+                if (_resourceType == ResourceType.FiveM)
+                {
+                    tasks.Add(bHelper.BuildFiveMFilesAsync(sexType, bytes, counter));
+                }
+                else if (_resourceType == ResourceType.AltV)
+                {
+                    tasks.Add(bHelper.BuildAltVFilesAsync(sexType, bytes, counter));
+                }
+                else if (_resourceType == ResourceType.Singleplayer)
+                {
+                    var (name, metaBytes) = bHelper.BuildMeta(sexType);
+                    RpfFile.CreateFile(dataFolder, name, metaBytes);
+                    tasks.Add(bHelper.BuildSingleplayerFilesAsync(sexType, bytes, counter, cdimages));
+                }
+
+                if (_resourceType != ResourceType.Singleplayer)
+                {
+                    var (metaName, metaContent) = bHelper.BuildMeta(sexType);
+                    metaFiles.Add(metaName);
+
+                    var path = _resourceType == ResourceType.FiveM ? Path.Combine(BuildPath, metaName) : Path.Combine(BuildPath, "stream", metaName);
+                    tasks.Add(File.WriteAllBytesAsync(path, metaContent));
+                }
+            }
+        }
+
         private async Task BuildFiveMResource(BuildResourceHelper bHelper)
         {
             int counter = 1;
             var metaFiles = new List<string>();
             var tasks = new List<Task>();
-            
+
             foreach (var selectedAddon in MainWindow.AddonManager.Addons)
             {
                 bHelper.SetAddon(selectedAddon);
                 bHelper.SetNumber(counter);
 
-                if (selectedAddon.HasSex(true))
-                {
-                    var bytes = bHelper.BuildYMT(true);
-                    tasks.Add(bHelper.BuildFiveMFilesAsync(true, bytes, counter));
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.female, tasks, metaFiles, counter);
 
-                    var (name, b) = bHelper.BuildMeta(true);
-                    metaFiles.Add(name);
-
-                    var path = Path.Combine(BuildPath, name);
-                    tasks.Add(File.WriteAllBytesAsync(path, b));
-                }
-                if (selectedAddon.HasSex(false))
-                {
-                    var bytes = bHelper.BuildYMT(false);
-                    tasks.Add(bHelper.BuildFiveMFilesAsync(false, bytes, counter));
-
-                    var (name, b) = bHelper.BuildMeta(false);
-                    metaFiles.Add(name);
-
-                    var path = Path.Combine(BuildPath, name);
-                    tasks.Add(File.WriteAllBytesAsync(path, b));
-                }
                 counter++;
             }
+
             await Task.WhenAll(tasks);
             bHelper.BuildFirstPersonAlternatesMeta();
             bHelper.BuildFxManifest(metaFiles);
         }
 
-        private async Task BuildAltVResource(BuildResourceHelper bHelper) {
+        private async Task BuildAltVResource(BuildResourceHelper bHelper)
+        {
             int counter = 1;
             var metaFiles = new List<string>();
             var tasks = new List<Task>();
 
-            foreach(var selectedAddon in MainWindow.AddonManager.Addons) {
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
                 bHelper.SetAddon(selectedAddon);
                 bHelper.SetNumber(counter);
 
-                if(selectedAddon.HasSex(true)) {
-                    var bytes = bHelper.BuildYMT(true);
-                    tasks.Add(bHelper.BuildAltVFilesAsync(true, bytes, counter));
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.female, tasks, metaFiles, counter);
 
-                    var (name, b) = bHelper.BuildMeta(true);
-                    metaFiles.Add(name);
-
-                    var path = Path.Combine(BuildPath, "stream", name);
-                    tasks.Add(File.WriteAllBytesAsync(path, b));
-                }
-                if(selectedAddon.HasSex(false)) {
-                    var bytes = bHelper.BuildYMT(false);
-                    tasks.Add(bHelper.BuildAltVFilesAsync(false, bytes, counter));
-
-                    var (name, b) = bHelper.BuildMeta(false);
-                    metaFiles.Add(name);
-
-                    var path = Path.Combine(BuildPath, "stream", name);
-                    tasks.Add(File.WriteAllBytesAsync(path, b));
-                }
                 counter++;
             }
+
             await Task.WhenAll(tasks);
             bHelper.BuildAltVTomls(metaFiles);
+        }
+
+        private async Task BuildSingleplayerResource(BuildResourceHelper bHelper)
+        {
+            var dlcRpf = RpfFile.CreateNew(BuildPath, "dlc.rpf", RpfEncryption.OPEN);
+            var creatureMetadatas = bHelper.BuildContentXml(dlcRpf.Root);
+            bHelper.BuildSetupXml(dlcRpf.Root);
+
+            var x64 = RpfFile.CreateDirectory(dlcRpf.Root, "x64");
+            var common = RpfFile.CreateDirectory(dlcRpf.Root, "common");
+            var dataFolder = RpfFile.CreateDirectory(common, "data");
+
+            var models = RpfFile.CreateDirectory(x64, "models");
+            var cdimages = RpfFile.CreateDirectory(models, "cdimages");
+
+            if (creatureMetadatas.Count > 0)
+            {
+                var animFolder = RpfFile.CreateDirectory(x64, "anim");
+                var creature = RpfFile.CreateNew(animFolder, "creaturemetadata.rpf");
+
+                foreach (var meta in creatureMetadatas)
+                {
+                    RpfFile.CreateFile(creature.Root, meta.SingleplayerFileName + ".ymt", meta.Save());
+                }
+            }
+
+            int counter = 1;
+            var tasks = new List<Task>();
+            var metaFiles = new List<string>();
+
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                bHelper.SetAddon(selectedAddon);
+                bHelper.SetNumber(counter);
+
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.male, tasks, metaFiles, counter, cdimages, dataFolder);
+                AddBuildTasksForSex(bHelper, selectedAddon, Enums.SexType.female, tasks, metaFiles, counter, cdimages, dataFolder);
+
+                counter++;
+            }
+
+            await Task.WhenAll(tasks);
         }
 
         private void RadioButton_ChangedEvent(object sender, RoutedEventArgs e)
