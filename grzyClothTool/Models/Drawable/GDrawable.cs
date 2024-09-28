@@ -1,6 +1,4 @@
-﻿using grzyClothTool.Extensions;
-using grzyClothTool.Helpers;
-using grzyClothTool.Views;
+﻿using grzyClothTool.Helpers;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,8 +13,6 @@ using System;
 using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
-using static grzyClothTool.Enums;
-using System.Drawing.Drawing2D;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -95,20 +91,6 @@ public class GDrawable : INotifyPropertyChanged
 
     [JsonIgnore]
     public static List<string> AvailableSex => EnumHelper.GetSexTypeList();
-
-    /// <returns>
-    /// true(1) = male ped, false(0) = female ped
-    /// </returns>
-    private bool _sexx;
-    public bool Sexx
-    {
-        get => _sexx;
-        set
-        {
-            _sexx = value;
-            OnPropertyChanged();
-        }
-    }
 
     private Enums.SexType _sex;
     public Enums.SexType Sex
