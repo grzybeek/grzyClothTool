@@ -3,7 +3,6 @@ using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -54,19 +53,19 @@ public class BuildResourceHelper
     #region FiveM
 
 
-    public async Task BuildFiveMFilesAsync(bool isMale, byte[] ymtBytes, int counter)
+    public async Task BuildFiveMFilesAsync(Enums.SexType sex, byte[] ymtBytes, int counter)
     {
-        var pedName = GetPedName(isMale);
+        var pedName = GetPedName(sex);
         var projectName = GetProjectName(counter);
 
-        var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
+        var drawables = _addon.Drawables.Where(x => x.Sex == sex).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
                                        .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())
                                        .ToList();
 
         // Prepare all directory paths first to minimize file system access
-        var genderFolderName = isMale ? "[male]" : "[female]";
+        var genderFolderName = sex == Enums.SexType.male ? "[male]" : "[female]";
         var directoriesToEnsure = drawableGroups.SelectMany(g => g.Select(d => Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName))).Distinct();
         foreach (var dir in directoriesToEnsure)
         {
@@ -154,7 +153,7 @@ public class BuildResourceHelper
         await Task.Run(() =>
             {
                 var generated = GenerateCreatureMetadata(drawables);
-                generated?.Save(_buildPath + "/stream/mp_creaturemetadata_" + GetGenderLetter(isMale) + "_" + projectName + ".ymt");
+                generated?.Save(_buildPath + "/stream/mp_creaturemetadata_" + GetGenderLetter(sex) + "_" + projectName + ".ymt");
             }
         );
     }
@@ -205,18 +204,18 @@ public class BuildResourceHelper
 
     #region AltV
 
-    public async Task BuildAltVFilesAsync(bool isMale, byte[] ymtBytes, int counter) {
-        var pedName = GetPedName(isMale);
+    public async Task BuildAltVFilesAsync(Enums.SexType sex, byte[] ymtBytes, int counter) {
+        var pedName = GetPedName(sex);
         var projectName = GetProjectName(counter);
 
-        var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
+        var drawables = _addon.Drawables.Where(x => x.Sex == sex).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
                                        .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())
                                        .ToList();
 
         // Prepare all directory paths first to minimize file system access
-        var genderFolderName = isMale ? $"{projectName}_male.rpf" : $"{projectName}_female.rpf";
+        var genderFolderName = sex == Enums.SexType.male ? $"{projectName}_male.rpf" : $"{projectName}_female.rpf";
 
         //Describe the 3 levels of a AltV clothes resource
         var firstLevelFolder = Path.Combine(_buildPath, "stream");
@@ -232,7 +231,7 @@ public class BuildResourceHelper
         string thirdLevelPropFolder = null;
         //Additionaly if props are present, create a folder for them
         if(drawables.Any(x => x.IsProp)) {
-            var genderPropFolderName = isMale ? $"{projectName}_male_p.rpf" : $"{projectName}_female_p.rpf";
+            var genderPropFolderName = sex == Enums.SexType.male ? $"{projectName}_male_p.rpf" : $"{projectName}_female_p.rpf";
 
             var secondLevelPropFolder = Path.Combine(_buildPath, "stream", genderPropFolderName);
             thirdLevelPropFolder = Path.Combine(_buildPath, "stream", genderPropFolderName, $"{pedName}_p_{projectName}");
@@ -296,7 +295,7 @@ public class BuildResourceHelper
             {
                 string creatureMetadataFolder = Path.Combine(firstLevelFolder, "creaturemetadata.rpf");
                 Directory.CreateDirectory(creatureMetadataFolder);
-                generated.Save(Path.Combine(creatureMetadataFolder, $"mp_creaturemetadata_{GetGenderLetter(isMale)}_{projectName}.ymt"));
+                generated.Save(Path.Combine(creatureMetadataFolder, $"mp_creaturemetadata_{GetGenderLetter(sex)}_{projectName}.ymt"));
             }
         });
     }
@@ -336,60 +335,7 @@ public class BuildResourceHelper
 
     #region Singleplayer
 
-    public async Task BuildSingleplayer()
-    {
-        var dlcRpf = RpfFile.CreateNew(_buildPath, "dlc.rpf", RpfEncryption.OPEN);
-        var creatureMetadatas = BuildContentXml(dlcRpf.Root);
-        BuildSetupXml(dlcRpf.Root);
-
-        var x64 = RpfFile.CreateDirectory(dlcRpf.Root, "x64");
-        var common = RpfFile.CreateDirectory(dlcRpf.Root, "common");
-        var dataFolder = RpfFile.CreateDirectory(common, "data");
-
-        var models = RpfFile.CreateDirectory(x64, "models");
-        var cdimages = RpfFile.CreateDirectory(models, "cdimages");
-
-        if(creatureMetadatas.Count > 0)
-        {
-            var animFolder = RpfFile.CreateDirectory(x64, "anim");
-            var creature = RpfFile.CreateNew(animFolder, "creaturemetadata.rpf");
-
-            foreach (var meta in creatureMetadatas)
-            {
-                RpfFile.CreateFile(creature.Root, meta.SingleplayerFileName + ".ymt", meta.Save());
-            }
-        }
-
-        int counter = 1;
-        foreach (var selectedAddon in MainWindow.AddonManager.Addons)
-        {
-            SetAddon(selectedAddon);
-            SetNumber(counter);
-
-            if (selectedAddon.HasMale)
-            {
-                var (name, bytes) = BuildMeta(true);
-                RpfFile.CreateFile(dataFolder, name, bytes);
-
-                var ymtBytes = BuildYMT(true);
-                await BuildSingleplayerFilesAsync(true, ymtBytes, counter, cdimages);
-            }
-
-            if (selectedAddon.HasFemale)
-            {
-                var (name, bytes) = BuildMeta(false);
-                RpfFile.CreateFile(dataFolder, name, bytes);
-
-                var ymtBytes = BuildYMT(false);
-                await BuildSingleplayerFilesAsync(false, ymtBytes, counter, cdimages);
-            }
-
-            _progress.Report(selectedAddon.GetTotalDrawableAndTextureCount());
-            counter++;
-        }
-    }
-
-    private List<RbfFile> BuildContentXml(RpfDirectoryEntry dir)
+    public List<RbfFile> BuildContentXml(RpfDirectoryEntry dir)
     {
         StringBuilder sb = new();
 
@@ -404,7 +350,7 @@ public class BuildResourceHelper
         var filesToEnable = new List<string>();
         foreach (var addon in MainWindow.AddonManager.Addons)
         {
-            if (addon.HasMale)
+            if (addon.HasSex(Enums.SexType.male))
             {
                 sb.AppendLine($"    <Item>");
                 sb.AppendLine($"      <filename>dlc_{_projectName}:/common/data/mp_m_freemode_01_{_projectName}.meta</filename>");
@@ -438,7 +384,7 @@ public class BuildResourceHelper
                     filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_male_p.rpf");
                 }
 
-                var drawables = addon.Drawables.Where(x => x.Sex == true).ToList();
+                var drawables = addon.Drawables.Where(x => x.Sex == Enums.SexType.male).ToList();
                 var generated = GenerateCreatureMetadata(drawables);
                 if (generated != null)
                 {
@@ -447,7 +393,7 @@ public class BuildResourceHelper
                 }
             }
 
-            if (addon.HasFemale)
+            if (addon.HasSex(Enums.SexType.female))
             {
                 sb.AppendLine($"    <Item>");
                 sb.AppendLine($"      <filename>dlc_{_projectName}:/common/data/mp_f_freemode_01_{_projectName}.meta</filename>");
@@ -482,7 +428,7 @@ public class BuildResourceHelper
                     filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_female_p.rpf");
                 }
 
-                var drawables = addon.Drawables.Where(x => x.Sex == false).ToList();
+                var drawables = addon.Drawables.Where(x => x.Sex == Enums.SexType.female).ToList();
                 var generated = GenerateCreatureMetadata(drawables);
                 if (generated != null)
                 {
@@ -535,7 +481,7 @@ public class BuildResourceHelper
         return generatedCreatureMetadatas;
     }
 
-    private void BuildSetupXml(RpfDirectoryEntry dir)
+    public void BuildSetupXml(RpfDirectoryEntry dir)
     {
         var timestamp = DateTimeOffset.UtcNow.ToString("dd/MM/yyyy HH:mm:ss");
 
@@ -569,12 +515,12 @@ public class BuildResourceHelper
         RpfFile.CreateFile(dir, "setup2.xml", Encoding.UTF8.GetBytes(sb.ToString()));
     }
 
-    private async Task BuildSingleplayerFilesAsync(bool isMale, byte[] ymtBytes, int counter, RpfDirectoryEntry cdimages)
+    public async Task BuildSingleplayerFilesAsync(Enums.SexType sex, byte[] ymtBytes, int counter, RpfDirectoryEntry cdimages)
     {
-        var pedName = GetPedName(isMale);
+        var pedName = GetPedName(sex);
         var projectName = GetProjectName(counter);
 
-        var drawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
+        var drawables = _addon.Drawables.Where(x => x.Sex == Enums.SexType.male).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
                                        .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())
@@ -584,7 +530,7 @@ public class BuildResourceHelper
 
         var hasProps = drawables.Any(x => x.IsProp);
 
-        var genderRpfName = isMale ? "_male" : "_female";
+        var genderRpfName = sex == Enums.SexType.male ? "_male" : "_female";
         var componentsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + ".rpf");
         var componentsFolder = RpfFile.CreateDirectory(componentsRpf.Root, pedName + "_" + projectName);
         RpfFile propsRpf = null;
@@ -631,7 +577,7 @@ public class BuildResourceHelper
 
     #region Generic
 
-    public byte[] BuildYMT(bool isMale)
+    public byte[] BuildYMT(Enums.SexType sex)
     {
         var mb = new MetaBuilder();
         var mdb = mb.EnsureBlock(MetaName.CPedVariationInfo);
@@ -648,7 +594,7 @@ public class BuildResourceHelper
         availComp.SetBytes(generatedAvailComp);
         CPed.availComp = availComp;
 
-        var allDrawables = _addon.Drawables.Where(x => x.Sex == isMale).ToList();
+        var allDrawables = _addon.Drawables.Where(x => x.Sex == sex).ToList();
         var allCompDrawablesArray = allDrawables.Where(x => !x.IsProp).ToArray();
         var allPropDrawablesArray = allDrawables.Where(x => x.IsProp).ToArray();
 
@@ -783,11 +729,11 @@ public class BuildResourceHelper
         return data;
     }
 
-    public (string, byte[]) BuildMeta(bool isMale)
+    public (string, byte[]) BuildMeta(Enums.SexType sex)
     {
-        var eCharacter = isMale ? "SCR_CHAR_MULTIPLAYER" : "SCR_CHAR_MULTIPLAYER_F";
-        var genderLetter = GetGenderLetter(isMale);
-        var pedName = GetPedName(isMale);
+        var eCharacter = sex == Enums.SexType.male ? "SCR_CHAR_MULTIPLAYER" : "SCR_CHAR_MULTIPLAYER_F";
+        var genderLetter = GetGenderLetter(sex);
+        var pedName = GetPedName(sex);
         var projectName = GetProjectName();
 
         StringBuilder sb = new();
@@ -910,14 +856,24 @@ public class BuildResourceHelper
         return string.Concat(input.Split(Path.GetInvalidFileNameChars()));
     }
 
-    private static string GetGenderLetter(bool isMale)
+    private static string GetGenderLetter(Enums.SexType sex)
     {
-        return isMale ? "m" : "f";
+        return sex switch
+        {
+            Enums.SexType.male => "m",
+            Enums.SexType.female => "f",
+            _ => throw new ArgumentOutOfRangeException(nameof(sex), sex, "Wrong sexType GetGenderLetter")
+        };
     }
 
-    private static string GetPedName(bool isMale)
+    private static string GetPedName(Enums.SexType sex)
     {
-        return isMale ? "mp_m_freemode_01" : "mp_f_freemode_01";
+        return sex switch
+        {
+            Enums.SexType.male => "mp_m_freemode_01",
+            Enums.SexType.female => "mp_f_freemode_01",
+            _ => throw new ArgumentOutOfRangeException(nameof(sex), sex, "Wrong sexType GetPedName")
+        };
     }
 
     #endregion

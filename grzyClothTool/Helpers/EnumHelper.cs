@@ -13,11 +13,6 @@ public static class EnumHelper
         return Enum.GetName(enumType, type);
     }
 
-    public static string GetSex(bool isMale)
-    {
-        return Enum.GetName(typeof(Enums.Sex), isMale ? 1 : 0);
-    }
-
     public static int GetValue(string type, bool isProp)
     {
         Type enumType = isProp ? typeof(Enums.PropNumbers) : typeof(Enums.ComponentNumbers);
@@ -171,8 +166,8 @@ public static class EnumHelper
 
     public static List<string> GetSexTypeList()
     {
-        return Enum.GetValues(typeof(Sex))
-            .Cast<Sex>()
+        return Enum.GetValues(typeof(SexType))
+            .Cast<SexType>()
             .Select(item => item.ToString())
             .ToList();
     }

@@ -31,7 +31,7 @@ namespace grzyClothTool.Views
     /// </summary>
     public partial class ProjectWindow : UserControl, INotifyPropertyChanged
     {
-        private bool PrevDrawableSex;
+        private Enums.SexType PrevDrawableSex;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private Addon _addon;
@@ -66,7 +66,7 @@ namespace grzyClothTool.Views
         private async void Add_DrawableFile(object sender, RoutedEventArgs e)
         {
             var btn = sender as CustomButton;
-            var isMaleBtn = btn.Label.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase);
+            var sexBtn = btn.Label.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase) ? Enums.SexType.male : Enums.SexType.female;
             e.Handled = true;
 
             OpenFileDialog files = new()
@@ -82,7 +82,7 @@ namespace grzyClothTool.Views
                 var timer = new Stopwatch();
                 timer.Start();
 
-                await MainWindow.AddonManager.AddDrawables(files.FileNames, isMaleBtn);
+                await MainWindow.AddonManager.AddDrawables(files.FileNames, sexBtn);
 
                 timer.Stop();
                 LogHelper.Log($"Added drawables in {timer.Elapsed}");
@@ -94,7 +94,7 @@ namespace grzyClothTool.Views
         private async void Add_DrawableFolder(object sender, RoutedEventArgs e)
         {
             var btn = sender as CustomButton;
-            var isMaleBtn = btn.Tag.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase);
+            var sexBtn = btn.Tag.ToString().Equals("male", StringComparison.CurrentCultureIgnoreCase) ? Enums.SexType.male : Enums.SexType.female;
             e.Handled = true;
 
             OpenFolderDialog folder = new()
@@ -111,7 +111,7 @@ namespace grzyClothTool.Views
                 foreach (var fldr in folder.FolderNames)
                 {
                     var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories).OrderBy(f => Path.GetFileName(f)).ToArray();
-                    await MainWindow.AddonManager.AddDrawables(files, isMaleBtn);
+                    await MainWindow.AddonManager.AddDrawables(files, sexBtn);
                 }
 
                 timer.Stop();
@@ -132,7 +132,7 @@ namespace grzyClothTool.Views
             {
                 case ModifierKeys.Shift:
                     // Shift+Delete was pressed, delete the drawable instantly
-                    DeleteDrawable(Addon.SelectedDrawable);
+                    MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
                     break;
                 case ModifierKeys.Control:
                     // Ctrl+Delete was pressed, replace the drawable instantly
@@ -156,27 +156,11 @@ namespace grzyClothTool.Views
             var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({Addon.SelectedDrawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
             if (result == CustomMessageBox.CustomMessageBoxResult.Delete)
             {
-                DeleteDrawable(Addon.SelectedDrawable);
+                MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
             }
             else if (result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {
                 ReplaceDrawable(Addon.SelectedDrawable);
-            }
-        }
-
-        private void DeleteDrawable(GDrawable drawable)
-        {
-            Addon.Drawables.Remove(drawable);
-            Addon.Drawables.Sort(true);
-            SaveHelper.SetUnsavedChanges(true);
-
-            if (SettingsHelper.Instance.AutoDeleteFiles)
-            {
-                foreach (var texture in drawable.Textures)
-                {
-                    File.Delete(texture.FilePath);
-                }
-                File.Delete(drawable.FilePath);
             }
         }
 
@@ -195,9 +179,13 @@ namespace grzyClothTool.Views
             {
                 var addon = e.AddedItems[0] as Addon;
                 int index = int.Parse(addon.Name.ToString().Split(' ')[1]) - 1;
-                Addon = MainWindow.AddonManager.Addons.ElementAt(index);
 
-                MainWindow.AddonManager.SelectedAddon = Addon;
+                // as we are modyfing the collection, we need to use try-catch
+                try
+                {
+                    Addon = MainWindow.AddonManager.Addons.ElementAt(index);
+                    MainWindow.AddonManager.SelectedAddon = Addon;
+                } catch (Exception)  { }
             }
         }
 
@@ -297,7 +285,7 @@ namespace grzyClothTool.Views
                 PrevDrawableSex = Addon.SelectedDrawable.Sex;
 
                 updateName = "GenderChanged";
-                value = Addon.SelectedDrawable.Sex ? "mp_m_freemode_01" : "mp_f_freemode_01";
+                value = Addon.SelectedDrawable.Sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
                 updateDict.Add(updateName, value);
             }
 

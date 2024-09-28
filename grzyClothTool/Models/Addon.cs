@@ -13,10 +13,16 @@ public class Addon : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler PropertyChanged;
 
-    public string Name { get; set; }
-
-    public bool HasFemale { get; set; }
-    public bool HasMale { get; set; }
+    private string _name;
+    public string Name
+    {
+        get { return _name; }
+        set 
+        {
+            _name = value; 
+            OnPropertyChanged(); 
+        }
+    }
     public bool HasProps { get; set; }
 
     [JsonIgnore]
@@ -73,8 +79,9 @@ public class Addon : INotifyPropertyChanged
         {
             for (int i = 1; i < 50; i++)
             {
+                var sexEnum = i % 2 == 0 ? Enums.SexType.female : Enums.SexType.male;
                 Drawables.Add(
-                    new GDrawable("grzyClothTool/Assets/jbib_000_u.ydd", i % 2 == 0, false, 11, i, false,
+                    new GDrawable("grzyClothTool/Assets/jbib_000_u.ydd", sexEnum, false, 11, i, false,
                     [
                         new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false), 
                         new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 1, false, false)
@@ -86,7 +93,7 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-    public int GetNextDrawableNumber(int typeNumeric, bool isProp, bool isMale)
+    public int GetNextDrawableNumber(int typeNumeric, bool isProp, Enums.SexType sex)
     {
         var nextNumber = 0;
         var currentAddonIndex = 0;
@@ -94,7 +101,7 @@ public class Addon : INotifyPropertyChanged
         while (currentAddonIndex < MainWindow.AddonManager.Addons.Count)
         {
             var currentAddon = MainWindow.AddonManager.Addons[currentAddonIndex];
-            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == typeNumeric && x.IsProp == isProp && x.Sex == isMale);
+            var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == typeNumeric && x.IsProp == isProp && x.Sex == sex);
 
             // If the number of drawables of this type has reached 128, move to the next addon
             if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
@@ -108,6 +115,11 @@ public class Addon : INotifyPropertyChanged
         }
 
         return nextNumber;
+    }
+
+    public bool HasSex(Enums.SexType sex)
+    {
+        return Drawables.Any(x => x.Sex == sex);
     }
 
     public int GetTotalDrawableAndTextureCount()

@@ -35,10 +35,10 @@
                                     <Rectangle.Style>
                                         <Style TargetType="Rectangle">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Sex}" Value="True">
+                                                <DataTrigger Binding="{Binding SexName}" Value="male">
                                                     <Setter Property="Fill" Value="#94c1ff"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Sex}" Value="False">
+                                                <DataTrigger Binding="{Binding SexName}" Value="female">
                                                     <Setter Property="Fill" Value="#ffa3c3"/>
                                                 </DataTrigger>
                                             </Style.Triggers>

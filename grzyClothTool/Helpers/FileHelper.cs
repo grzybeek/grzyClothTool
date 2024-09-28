@@ -46,7 +46,7 @@ public static class FileHelper
         }
     }
 
-    public static Task<GDrawable> CreateDrawableAsync(string filePath, bool isMale, bool isProp, int typeNumber, int countOfType)
+    public static Task<GDrawable> CreateDrawableAsync(string filePath, Enums.SexType sex, bool isProp, int typeNumber, int countOfType)
     {
         var name = EnumHelper.GetName(typeNumber, isProp);
 
@@ -59,7 +59,7 @@ public static class FileHelper
         // Should we inform user, that they tried to add too many textures?
         var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
 
-        return Task.FromResult(new GDrawable(filePath, isMale, isProp, typeNumber, countOfType, drawableHasSkin, textures));
+        return Task.FromResult(new GDrawable(filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
 
     public static async Task CopyAsync(string sourcePath, string destinationPath)
