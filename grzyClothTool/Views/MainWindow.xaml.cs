@@ -6,11 +6,14 @@ using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using static grzyClothTool.Enums;
 
 namespace grzyClothTool
 {
@@ -161,6 +164,113 @@ namespace grzyClothTool
             }
         }
 
+        private async void ImportProject_Click(object sender, RoutedEventArgs e)
+        {
+
+            // open file dialog to select project file
+            OpenFileDialog openFileDialog = new()
+            {
+                Title = "Import project",
+                Filter = "grzyClothTool project (*.gctproject)|*.gctproject"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                SaveHelper.SavingPaused = true;
+                var timer = new Stopwatch();
+                timer.Start();
+
+                var tempPath = Path.Combine(Path.GetTempPath(), "grzyClothTool_import");
+                //we cannot remove this temp folder, because we need it to extract files, and we need them later to build resource
+                if (!Directory.Exists(tempPath))
+                {
+                    Directory.CreateDirectory(tempPath);
+                }
+
+                var selectedPath = openFileDialog.FileName;
+                var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+                var buildPath = Path.Combine(tempPath, projectName + "_" + DateTime.UtcNow.Ticks.ToString());
+
+                var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
+                ObfuscationHelper.XORFile(selectedPath, zipPath);
+                ZipFile.ExtractToDirectory(zipPath, buildPath);
+
+                if (File.Exists(zipPath))
+                {
+                    //delete zip after extract
+                    File.Delete(zipPath);
+                }
+
+                var metaFiles = Directory.GetFiles(buildPath, "*.meta", SearchOption.TopDirectoryOnly)
+                         .Where(file => file.Contains("mp_m_freemode") || file.Contains("mp_f_freemode"))
+                         .ToList();
+
+                if (metaFiles.Count == 0)
+                {
+                    LogHelper.Log("No meta files found in project file, this shouldn't happen, please report it to developer on discord");
+                    return;
+                }
+
+                foreach (var metaFile in metaFiles)
+                {
+                    await AddonManager.LoadAddon(metaFile);
+                }
+
+                timer.Stop();
+                LogHelper.Log($"Project imported in {timer.Elapsed}");
+                SaveHelper.SetUnsavedChanges(true);
+                SaveHelper.SavingPaused = false;
+            }
+        }
+
+        private async void ExportProject_Click(object sender, RoutedEventArgs e)
+        {
+            // As export we can build current project as a fivem resource, because fivem is most common and it's easy to load it later
+            // Then zip it and save it as a project file
+
+            SaveFileDialog saveFileDialog = new()
+            {
+                Title = "Export project",
+                Filter = "grzyClothTool project (*.gctproject)|*.gctproject",
+                FileName = "project.gctproject"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                SaveHelper.SavingPaused = true;
+                var timer = new Stopwatch();
+                timer.Start();
+
+                var tempPath = Path.Combine(Path.GetTempPath(), "grzyClothTool_export");
+                // make sure there is no temp folder
+                if (Directory.Exists(tempPath))
+                {
+                    Directory.Delete(tempPath, true);
+                }
+
+                var selectedPath = saveFileDialog.FileName;
+                var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+                var buildPath = Path.Combine(tempPath, projectName);
+
+                var bHelper = new BuildResourceHelper(projectName, buildPath, new Progress<int>(), BuildResourceType.FiveM);
+
+                await Task.Run(() => bHelper.BuildFiveMResource());
+
+                var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
+                ZipFile.CreateFromDirectory(buildPath, zipPath);
+
+                ObfuscationHelper.XORFile(zipPath, selectedPath);
+
+                if (Directory.Exists(tempPath))
+                {
+                    Directory.Delete(tempPath, true);
+                }
+
+                timer.Stop();
+                LogHelper.Log($"Project exported in {timer.Elapsed}");
+                SaveHelper.SavingPaused = false;
+            }
+        }
 
         // if main window is closed, close CW window too
         private void Window_Closed(object sender, System.EventArgs e)

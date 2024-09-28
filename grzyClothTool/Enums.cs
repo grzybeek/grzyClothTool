@@ -8,6 +8,13 @@ public class Enums
         male = 1
     }
 
+    public enum BuildResourceType
+    {
+        FiveM,
+        AltV,
+        Singleplayer
+    }
+
     public enum ComponentNumbers
     {
         head = 0,

@@ -51,6 +51,9 @@
                         </DataTemplate>
                     </MenuItem.ItemTemplate>
                 </MenuItem>
+                <Separator />
+                <MenuItem Header="_Import Project" Click="ImportProject_Click" />
+                <MenuItem Header="_Export Project" Click="ExportProject_Click" />
             </MenuItem>
             <MenuItem Header="_Settings" Tag="Settings" Click="Navigation_Click" />
             <MenuItem Header="_View" Tag="View">

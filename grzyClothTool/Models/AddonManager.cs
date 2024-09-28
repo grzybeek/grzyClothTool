@@ -126,79 +126,46 @@ namespace grzyClothTool.Models
 
             var ymt = new PedFile();
             RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);
-
-            Dictionary<(int, int), MCComponentInfo> compInfoDict = [];
-            var hasCompInfos = ymt.VariationInfo.CompInfos != null;
-            if (hasCompInfos)
-            {
-                foreach (var compInfo in ymt.VariationInfo.CompInfos)
-                {
-                    var key = (compInfo.ComponentType, compInfo.ComponentIndex);
-                    compInfoDict[key] = compInfo;
-                }
-            }
-
-            Dictionary<(int, int), MCPedPropMetaData> pedPropMetaDataDict = [];
-            var hasProps = ymt.VariationInfo.PropInfo.PropMetaData != null && ymt.VariationInfo.PropInfo.Data.numAvailProps > 0;
-            if (hasProps) 
-            {
-                foreach (var pedPropMetaData in ymt.VariationInfo.PropInfo.PropMetaData)
-                {
-                    var key = (pedPropMetaData.Data.anchorId, pedPropMetaData.Data.propId);
-                    pedPropMetaDataDict[key] = pedPropMetaData;
-                }
-            }
             
             //merge ydd with yld files
             var mergedFiles = yddFiles.Concat(yldFiles).ToArray();
 
-            await AddDrawables(mergedFiles, sex);
+            await AddDrawables(mergedFiles, sex, ymt);
+        }
 
-            foreach (var addon in Addons)
+        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null)
+        {
+            // We need to count how many drawables of each type we have added so far
+            // this is because if we are loading from ymt file, numbers are relative to this ymt file, once adding it to existing project
+            // we need to adjust numbers to get proper properties
+            Dictionary<(int, bool), int> typeNumericCounts = [];
+
+            //read properties from provided ymt file if there is any
+            Dictionary<(int, int), MCComponentInfo> compInfoDict = [];
+            Dictionary<(int, int), MCPedPropMetaData> pedPropMetaDataDict = [];
+            if (ymt is not null)
             {
-                foreach (var drawable in addon.Drawables)
+                var hasCompInfos = ymt.VariationInfo.CompInfos != null;
+                if (hasCompInfos)
                 {
-                    var key = (drawable.TypeNumeric, drawable.Number);
-                    if (compInfoDict.TryGetValue(key, out MCComponentInfo compInfo))
+                    foreach (var compInfo in ymt.VariationInfo.CompInfos)
                     {
-                        drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
-
-                        var list = EnumHelper.GetFlags((int)compInfo.Data.flags);
-                        drawable.SelectedFlags = list.ToObservableCollection();
-
-                        if (compInfo.Data.pedXml_expressionMods.f4 != 0)
-                        {
-                            drawable.EnableHighHeels = true;
-                            drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
-                        }
+                        var key = (compInfo.ComponentType, compInfo.ComponentIndex);
+                        compInfoDict[key] = compInfo;
                     }
+                }
 
-                    if (drawable.IsProp)
+                var hasProps = ymt.VariationInfo.PropInfo.PropMetaData != null && ymt.VariationInfo.PropInfo.Data.numAvailProps > 0;
+                if (hasProps)
+                {
+                    foreach (var pedPropMetaData in ymt.VariationInfo.PropInfo.PropMetaData)
                     {
-                        var propKey = (drawable.TypeNumeric, drawable.Number);
-                        if (pedPropMetaDataDict.TryGetValue(propKey, out MCPedPropMetaData pedPropMetaData))
-                        {
-                            drawable.Audio = pedPropMetaData.Data.audioId.ToString();
-                            drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
-
-                            var list = EnumHelper.GetFlags((int)pedPropMetaData.Data.propFlags);
-                            drawable.SelectedFlags = list.ToObservableCollection();
-
-                            if (pedPropMetaData.Data.expressionMods.f0 != 0)
-                            {
-                                drawable.EnableHairScale = true;
-
-                                // grzyClothTool saves hairScaleValue as positive number, on resource build it makes it negative
-                                drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0); 
-                            }
-                        }
+                        var key = (pedPropMetaData.Data.anchorId, pedPropMetaData.Data.propId);
+                        pedPropMetaDataDict[key] = pedPropMetaData;
                     }
                 }
             }
-        }
 
-        public async Task AddDrawables(string[] filePaths, Enums.SexType sex)
-        {
             Regex alternateRegex = new(@"_\w_\d+\.ydd$");
             Regex physicsRegex = new(@"\.yld$");
             foreach (var filePath in filePaths)
@@ -241,6 +208,56 @@ namespace grzyClothTool.Models
                 }
 
                 var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType));
+
+                // Set properties from ymt file if available
+                if (ymt is not null)
+                {
+                    // Update the dictionary with the count of the current TypeNumeric
+                    var key = (drawableType, isProp);
+                    if (typeNumericCounts.TryGetValue(key, out int value))
+                    {
+                        typeNumericCounts[key] = ++value;
+                    }
+                    else
+                    {
+                        typeNumericCounts[key] = 1;
+                    }
+
+                    var ymtKey = (drawable.TypeNumeric, typeNumericCounts[(drawable.TypeNumeric, drawable.IsProp)] - 1);
+                    if (compInfoDict.TryGetValue(ymtKey, out MCComponentInfo compInfo))
+                    {
+                        drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
+
+                        var list = EnumHelper.GetFlags((int)compInfo.Data.flags);
+                        drawable.SelectedFlags = list.ToObservableCollection();
+
+                        if (compInfo.Data.pedXml_expressionMods.f4 != 0)
+                        {
+                            drawable.EnableHighHeels = true;
+                            drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
+                        }
+                    }
+
+                    if (drawable.IsProp)
+                    {
+                        if (pedPropMetaDataDict.TryGetValue(ymtKey, out MCPedPropMetaData pedPropMetaData))
+                        {
+                            drawable.Audio = pedPropMetaData.Data.audioId.ToString();
+                            drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
+
+                            var list = EnumHelper.GetFlags((int)pedPropMetaData.Data.propFlags);
+                            drawable.SelectedFlags = list.ToObservableCollection();
+
+                            if (pedPropMetaData.Data.expressionMods.f0 != 0)
+                            {
+                                drawable.EnableHairScale = true;
+
+                                // grzyClothTool saves hairScaleValue as positive number, on resource build it makes it negative
+                                drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0);
+                            }
+                        }
+                    }
+                }
 
                 // Check if the number of drawables of this type has reached 128
                 while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
@@ -363,7 +380,7 @@ namespace grzyClothTool.Models
             }
 
             addon.Drawables.Sort(true);
-        }   
+        }
 
         private void DeleteAddon(Addon addon)
         {
