@@ -23,7 +23,19 @@ public class GDrawable : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    public string FilePath { get; set; }
+    private string _filePath;
+    public string FilePath
+    {
+        get => _filePath;
+        set
+        {
+            if (_filePath != value)
+            {
+                _filePath = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     private bool _isNew;
     public bool IsNew

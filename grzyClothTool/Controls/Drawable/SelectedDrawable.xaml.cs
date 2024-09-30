@@ -405,15 +405,9 @@ namespace grzyClothTool.Controls
                 // Copy the textures to avoid accessing "SelectedTextures" from a background thread
                 var texturesToExport = new List<GTexture>(SelectedTextures);
 
-                var timer = new Stopwatch();
-                timer.Start();
-
-                LogHelper.Log("Started export...");
-
                 try
                 {
                     await Task.Run(() => FileHelper.SaveTexturesAsync(texturesToExport, folderPath, format));
-                    LogHelper.Log($"Exported {texturesToExport.Count} texture(s) in {timer.ElapsedMilliseconds}ms");
                 }
                 catch (Exception ex)
                 {
@@ -421,5 +415,42 @@ namespace grzyClothTool.Controls
                 }
             }
         }
+
+        private void ReplaceTexture_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (SelectedTextures == null || SelectedTextures.Count > 1) // TODO support multiple textures
+            {
+                return;
+            }
+
+            GTexture selectedTexture = SelectedTextures[0];
+
+            OpenFileDialog file = new()
+            {
+                Title = $"Select texture file to replace {selectedTexture.DisplayName}",
+                Filter = "Texture files (*.ytd)|*.ytd|Image files (*.jpg;*.png;*.dds)|*.jpg;*.png;*.dds" // we could store all available formats somewhere
+            };
+
+            if (file.ShowDialog() == false)
+            {
+                return;
+            }
+
+            // create new  texture
+            var newTexture = new GTexture(file.FileName, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedTextures[0].TxtNumber, SelectedDraw.HasSkin, SelectedDraw.IsProp);
+            int index = SelectedDraw.Textures.IndexOf(selectedTexture);
+
+            MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Textures[index] = newTexture;
+            MainWindow.AddonManager.SelectedAddon.SelectedTexture = newTexture;
+
+            // not sure why it doens't update selection
+            SelectedTxt = newTexture;
+            SelectedTextures = new List<GTexture>([newTexture]);
+
+            SaveHelper.SetUnsavedChanges(true);
+            CWHelper.SendDrawableUpdateToPreview(e);
+        }
+        
     }
 }
