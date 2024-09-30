@@ -31,7 +31,6 @@ namespace grzyClothTool.Views
     /// </summary>
     public partial class ProjectWindow : UserControl, INotifyPropertyChanged
     {
-        private Enums.SexType PrevDrawableSex;
         public event PropertyChangedEventHandler PropertyChanged;
 
         private Addon _addon;
@@ -213,7 +212,7 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            var ydd = CreateYddFile(Addon.SelectedDrawable);
+            var ydd = CWHelper.CreateYddFile(Addon.SelectedDrawable);
             CWHelper.CWForm.LoadedDrawable = ydd.Drawables.First();
 
             if (Addon.SelectedTexture != null)
@@ -253,43 +252,7 @@ namespace grzyClothTool.Views
             Addon.SelectedDrawable.IsNew = false;
 
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
-            SendDrawableUpdateToCodewalkerPreview(e);
-        }
-
-        private void SendDrawableUpdateToCodewalkerPreview(EventArgs args)
-        {
-            var ydd = CreateYddFile(Addon.SelectedDrawable);
-            YtdFile ytd = null;
-            if (Addon.SelectedTexture != null)
-            {
-                ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
-                CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
-            }
-
-            var firstDrawable = ydd.Drawables.First();
-            CWHelper.CWForm.LoadedDrawable = firstDrawable;
-            CWHelper.CWForm.Refresh();
-
-            Dictionary<string, string> updateDict = [];
-            string updateName, value;
-
-            if (args is DrawableUpdatedArgs dargs)
-            {
-                updateName = dargs.UpdatedName;
-                value = dargs.Value.ToString();
-                updateDict.Add(updateName, value);
-            }
-
-            if (PrevDrawableSex != Addon.SelectedDrawable.Sex)
-            {
-                PrevDrawableSex = Addon.SelectedDrawable.Sex;
-
-                updateName = "GenderChanged";
-                value = Addon.SelectedDrawable.Sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
-                updateDict.Add(updateName, value);
-            }
-
-            CWHelper.CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateDict);
+            CWHelper.SendDrawableUpdateToPreview(e);
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
@@ -299,7 +262,7 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            SendDrawableUpdateToCodewalkerPreview(e);
+            CWHelper.SendDrawableUpdateToPreview(e);
         }
 
         private void SelectedDrawable_TextureChanged(object sender, EventArgs e)
@@ -318,32 +281,6 @@ namespace grzyClothTool.Views
             var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
             CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             CWHelper.CWForm.Refresh();
-        }
-
-        private static YddFile CreateYddFile(GDrawable d)
-        {
-            byte[] data = File.ReadAllBytes(d.FilePath);
-
-            RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
-            var decompressedData = ResourceBuilder.Decompress(data);
-            YddFile ydd = RpfFile.GetFile<YddFile>(rpf, decompressedData);
-            var drawable = ydd.Drawables.First();
-            drawable.Name = Path.GetFileNameWithoutExtension(d.Name);
-
-            drawable.IsHairScaleEnabled = d.EnableHairScale;
-            if (drawable.IsHairScaleEnabled)
-            {
-                drawable.HairScaleValue = d.HairScaleValue;
-            }
-
-            drawable.IsHighHeelsEnabled = d.EnableHighHeels;
-            if (drawable.IsHighHeelsEnabled)
-            {
-                drawable.HighHeelsValue = d.HighHeelsValue / 10;
-            }
-
-
-            return ydd;
         }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
