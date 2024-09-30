@@ -4,6 +4,7 @@ using grzyClothTool.Views;
 using Material.Icons;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -30,6 +31,12 @@ namespace grzyClothTool
         private static AddonManager _addonManager;
         public static AddonManager AddonManager => _addonManager;
 
+        private readonly static Dictionary<string, string> TempFoldersNames = new()
+        {
+            { "import", "grzyClothTool_import" },
+            { "export", "grzyClothTool_export" }
+        };
+
         public MainWindow()
         {
             InitializeComponent();
@@ -48,9 +55,12 @@ namespace grzyClothTool
             _navigationHelper.Navigate("Project");
             version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
+            TempFoldersCleanup();
+
             FileHelper.GenerateReservedAssets();
             LogHelper.Init();
             LogHelper.LogMessageCreated += LogHelper_LogMessageCreated;
+            ProgressHelper.ProgressStatusChanged += ProgressHelper_ProgressStatusChanged;
 
             SaveHelper.Init();
 
@@ -70,6 +80,21 @@ namespace grzyClothTool
 
                 await App.splashScreen.LoadComplete();
             }));
+        }
+
+        private void ProgressHelper_ProgressStatusChanged(object sender, ProgressMessageEventArgs e)
+        {
+            var visibility = e.Status switch
+            {
+                ProgressStatus.Start => Visibility.Visible,
+                ProgressStatus.Stop => Visibility.Hidden,
+                _ => Visibility.Collapsed
+            };
+
+            this.Dispatcher.Invoke(() =>
+            {
+                progressBar.Visibility = visibility;
+            });
         }
 
         private void LogHelper_LogMessageCreated(object sender, LogMessageEventArgs e)
@@ -119,9 +144,7 @@ namespace grzyClothTool
 
             if (metaFiles.ShowDialog() == true)
             {
-                SaveHelper.SavingPaused = true;
-                var timer = new Stopwatch();
-                timer.Start();
+                ProgressHelper.Start("Started loading addon");
 
                 // Opening existing addon, should clear everything and add new opened ones
                 AddonManager.Addons = [];
@@ -144,10 +167,8 @@ namespace grzyClothTool
                     await AddonManager.LoadAddon(dir);
                 }
 
-                timer.Stop();
-                LogHelper.Log($"Loaded addon in {timer.Elapsed}");
+                ProgressHelper.Stop("Addon loaded in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
-                SaveHelper.SavingPaused = false;
             }
         }
 
@@ -176,24 +197,20 @@ namespace grzyClothTool
 
             if (openFileDialog.ShowDialog() == true)
             {
-                SaveHelper.SavingPaused = true;
-                var timer = new Stopwatch();
-                timer.Start();
+                ProgressHelper.Start($"Started importing {openFileDialog.SafeFileName}");
 
-                var tempPath = Path.Combine(Path.GetTempPath(), "grzyClothTool_import");
-                //we cannot remove this temp folder, because we need it to extract files, and we need them later to build resource
-                if (!Directory.Exists(tempPath))
-                {
-                    Directory.CreateDirectory(tempPath);
-                }
+                var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["import"]);
+                Directory.CreateDirectory(tempPath);
 
                 var selectedPath = openFileDialog.FileName;
                 var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+
                 var buildPath = Path.Combine(tempPath, projectName + "_" + DateTime.UtcNow.Ticks.ToString());
 
                 var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
-                ObfuscationHelper.XORFile(selectedPath, zipPath);
-                ZipFile.ExtractToDirectory(zipPath, buildPath);
+
+                await ObfuscationHelper.XORFile(selectedPath, zipPath);
+                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, buildPath));
 
                 if (File.Exists(zipPath))
                 {
@@ -216,10 +233,8 @@ namespace grzyClothTool
                     await AddonManager.LoadAddon(metaFile);
                 }
 
-                timer.Stop();
-                LogHelper.Log($"Project imported in {timer.Elapsed}");
+                ProgressHelper.Stop("Project imported in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
-                SaveHelper.SavingPaused = false;
             }
         }
 
@@ -237,38 +252,22 @@ namespace grzyClothTool
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                SaveHelper.SavingPaused = true;
-                var timer = new Stopwatch();
-                timer.Start();
+                ProgressHelper.Start("Started exporting project");
 
-                var tempPath = Path.Combine(Path.GetTempPath(), "grzyClothTool_export");
-                // make sure there is no temp folder
-                if (Directory.Exists(tempPath))
-                {
-                    Directory.Delete(tempPath, true);
-                }
+                var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["export"]);
 
                 var selectedPath = saveFileDialog.FileName;
                 var projectName = Path.GetFileNameWithoutExtension(selectedPath);
                 var buildPath = Path.Combine(tempPath, projectName);
 
                 var bHelper = new BuildResourceHelper(projectName, buildPath, new Progress<int>(), BuildResourceType.FiveM);
-
-                await Task.Run(() => bHelper.BuildFiveMResource());
+                await bHelper.BuildFiveMResource();
 
                 var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
-                ZipFile.CreateFromDirectory(buildPath, zipPath);
+                await Task.Run(() => ZipFile.CreateFromDirectory(buildPath, zipPath, CompressionLevel.Fastest, false));
+                await ObfuscationHelper.XORFile(zipPath, selectedPath);
 
-                ObfuscationHelper.XORFile(zipPath, selectedPath);
-
-                if (Directory.Exists(tempPath))
-                {
-                    Directory.Delete(tempPath, true);
-                }
-
-                timer.Stop();
-                LogHelper.Log($"Project exported in {timer.Elapsed}");
-                SaveHelper.SavingPaused = false;
+                ProgressHelper.Stop("Project exported in {0}", true);
             }
         }
 
@@ -299,6 +298,20 @@ namespace grzyClothTool
         private void LogsOpen_Click(object sender, RoutedEventArgs e)
         {
             LogHelper.OpenLogWindow();
+        }
+
+        private static void TempFoldersCleanup()
+        {
+            // At the start of app we can remove temp folders from previous session
+
+            foreach (var tempName in TempFoldersNames.Values)
+            {
+                var tempPath = Path.Combine(Path.GetTempPath(), tempName);
+                if (Directory.Exists(tempPath))
+                {
+                    Directory.Delete(tempPath, true);
+                }
+            }
         }
     }
 }

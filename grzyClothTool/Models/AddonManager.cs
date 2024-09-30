@@ -98,7 +98,9 @@ namespace grzyClothTool.Models
 
             // Build the appropriate regex pattern based on whether it's male or female
             string genderSpecificPart = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
-            string pattern = $@"^{genderSpecificPart}(_p)?.*?\^";
+            string addonNameWithoutGender = addonName.Replace(genderSpecificPart, "").TrimStart('_');
+
+            string pattern = $@"^{genderSpecificPart}(_p)?.*?{Regex.Escape(addonNameWithoutGender)}\^";
 
             var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
                 .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
