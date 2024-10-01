@@ -160,12 +160,7 @@ public static class FileHelper
 
     public static async Task SaveTexturesAsync(List<GTexture> textures, string folderPath, string format)
     {
-        // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
-        if (!Directory.Exists(folderPath))
-        {
-            Directory.CreateDirectory(folderPath);
-        }
-
+        Directory.CreateDirectory(folderPath);
 
         // Determine file extension
         string fileExtension = format.ToUpper() switch
