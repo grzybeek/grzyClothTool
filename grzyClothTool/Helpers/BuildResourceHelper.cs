@@ -72,10 +72,7 @@ public class BuildResourceHelper
         var directoriesToEnsure = drawableGroups.SelectMany(g => g.Select(d => Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName))).Distinct();
         foreach (var dir in directoriesToEnsure)
         {
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
+            Directory.CreateDirectory(dir);
         }
 
         var fileOperations = new List<Task>();
@@ -288,9 +285,7 @@ public class BuildResourceHelper
         }
 
         foreach(var dir in directoriesToEnsure) {
-            if(!Directory.Exists(dir)) {
-                Directory.CreateDirectory(dir);
-            }
+            Directory.CreateDirectory(dir);
         }
 
         var fileOperations = new List<Task>();

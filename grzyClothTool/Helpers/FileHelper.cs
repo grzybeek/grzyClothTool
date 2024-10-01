@@ -236,12 +236,7 @@ public static class FileHelper
 
     public static async Task SaveDrawablesAsync(List<GDrawable> drawables, string folderPath)
     {
-        // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
-        if (!Directory.Exists(folderPath))
-        {
-            Directory.CreateDirectory(folderPath);
-        }
-
+        Directory.CreateDirectory(folderPath);
         ProgressHelper.Start("Started exporting drawables");
 
         int successfulExports = 0;
@@ -265,8 +260,8 @@ public static class FileHelper
             }
             catch (Exception ex)
             {
-                // Log the error and continue processing other textures
-                LogHelper.Log($"Could not save texture: {drawable.Name}. Error: {ex.Message}.", LogType.Error);
+                // Log the error and continue processing other drawables
+                LogHelper.Log($"Could not save drawable: {drawable.Name}. Error: {ex.Message}.", LogType.Error);
             }
         });
 

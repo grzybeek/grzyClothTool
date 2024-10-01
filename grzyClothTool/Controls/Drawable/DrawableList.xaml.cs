@@ -62,7 +62,7 @@ namespace grzyClothTool.Controls
             FileHelper.OpenFileLocation(drawable.FilePath);
         }
 
-        private void RemoveDrawable_Click(object sender, RoutedEventArgs e)
+        private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
             MainWindow.AddonManager.DeleteDrawable(drawable);
