@@ -19,7 +19,13 @@
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
+                                    <MenuItem Header="Remove" Click="RemoveDrawable_Click" />
+                                    <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
                                     <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+                                    <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
+                                    <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
+                                    <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
+                                    <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
                                 </ContextMenu>
                             </Border.ContextMenu>
                             <Grid>

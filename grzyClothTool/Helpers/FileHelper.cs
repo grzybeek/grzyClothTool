@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -159,7 +160,6 @@ public static class FileHelper
 
     public static async Task SaveTexturesAsync(List<GTexture> textures, string folderPath, string format)
     {
-
         // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
         if (!Directory.Exists(folderPath))
         {
@@ -167,32 +167,111 @@ public static class FileHelper
         }
 
 
-        // Map the format to file extension and MagickImage format. Throw an exception for unsupported formats
-        var (fileExtension, imageFormat) = format.ToUpper() switch
+        // Determine file extension
+        string fileExtension = format.ToUpper() switch
         {
-            "DDS" => (".dds", MagickFormat.Dds),
-            "PNG" => (".png", MagickFormat.Png),
+            "DDS" => ".dds",
+            "PNG" => ".png",
+            "YTD" => ".ytd",
             _ => throw new ArgumentException($"Unsupported format: {format}", nameof(format))
         };
+
+        ProgressHelper.Start("Started exporting textures");
+
+        int successfulExports = 0;
 
         // Process each texture asynchronously and save it to the specified folder
         var tasks = textures.Select(async texture =>
         {
             string filePath = Path.Combine(folderPath, $"{texture.DisplayName}{fileExtension}");
-            using var image = ImgHelper.GetImage(texture.FilePath);
-            image.Format = imageFormat;
 
-            try
+            // check if file exists
+            if (File.Exists(filePath))
             {
-                await File.WriteAllBytesAsync(filePath, image.ToByteArray());
+                LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: File already exists.", LogType.Error);
+                return;
             }
-            catch (Exception ex)
+             
+            if (fileExtension == ".ytd") 
             {
-                // Log the error and continue processing other textures
-                LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}", LogType.Error);
+                // For YTD, simply copy the file
+                try
+                {
+                    await CopyAsync(texture.FilePath, filePath);
+                    successfulExports++;
+                } 
+                catch (Exception ex)
+                {
+                    // Log the error and continue processing other textures
+                    LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}.", LogType.Error);
+                } 
+            }
+            else
+            {
+                using var image = ImgHelper.GetImage(texture.FilePath);
+                image.Format = format.ToUpper() switch
+                {
+                    "DDS" => MagickFormat.Dds,
+                    "PNG" => MagickFormat.Png,
+                    _ => throw new ArgumentException($"Unsupported format for MagickImage: {format}", nameof(format))
+                };
+
+                try
+                {
+                    await File.WriteAllBytesAsync(filePath, image.ToByteArray());
+                    successfulExports++;
+                }
+                catch (Exception ex)
+                {
+                    // Log the error and continue processing other textures
+                    LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}.", LogType.Error);
+                }
             }
         });
 
         await Task.WhenAll(tasks);
+
+        ProgressHelper.Stop($"Exported {successfulExports} texture(s) in {{0}}", true);
+    }
+
+    public static async Task SaveDrawablesAsync(List<GDrawable> drawables, string folderPath)
+    {
+        // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        ProgressHelper.Start("Started exporting drawables");
+
+        int successfulExports = 0;
+
+        // Process each drawable asynchronously and save it to the specified folder
+        var tasks = drawables.Select(async drawable =>
+        {
+            string filePath = Path.Combine(folderPath, $"{drawable.Name}{Path.GetExtension(drawable.FilePath)}");
+
+            // check if file exists
+            if (File.Exists(filePath))
+            {
+                LogHelper.Log($"Could not save drawable: {drawable.Name}. Error: File already exists.", LogType.Error);
+                return;
+            }
+
+            try
+            {
+                await CopyAsync(drawable.FilePath, filePath);
+                successfulExports++;
+            }
+            catch (Exception ex)
+            {
+                // Log the error and continue processing other textures
+                LogHelper.Log($"Could not save texture: {drawable.Name}. Error: {ex.Message}.", LogType.Error);
+            }
+        });
+
+        await Task.WhenAll(tasks);
+
+        ProgressHelper.Stop($"Exported {successfulExports} drawable(s) in {{0}}", true);
     }
 }
