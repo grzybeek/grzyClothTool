@@ -90,6 +90,10 @@
             <StatusBarItem Grid.Column="3" HorizontalAlignment="Right" Padding="5,0,10,2">
                 <Hyperlink NavigateUri="https://ko-fi.com/grzybeek" RequestNavigate="Hyperlink_RequestNavigate">Support me!</Hyperlink>
             </StatusBarItem>
+
+            <StatusBarItem Grid.ColumnSpan="4" Padding="0" VerticalAlignment="Bottom">
+                <ProgressBar x:Name="progressBar" BorderBrush="Transparent" Height="5" Visibility="Hidden" IsIndeterminate="True" Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=StatusBarItem}}" />
+            </StatusBarItem>
         </StatusBar>
 
         <Grid Margin="5,5,5,5">

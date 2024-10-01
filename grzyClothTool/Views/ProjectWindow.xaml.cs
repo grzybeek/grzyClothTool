@@ -77,16 +77,12 @@ namespace grzyClothTool.Views
 
             if (files.ShowDialog() == true)
             {
-                SaveHelper.SavingPaused = true;
-                var timer = new Stopwatch();
-                timer.Start();
+                ProgressHelper.Start();
 
                 await MainWindow.AddonManager.AddDrawables(files.FileNames, sexBtn);
 
-                timer.Stop();
-                LogHelper.Log($"Added drawables in {timer.Elapsed}");
+                ProgressHelper.Stop("Added drawables in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
-                SaveHelper.SavingPaused = false;
             }
         }
 
@@ -104,19 +100,16 @@ namespace grzyClothTool.Views
 
             if (folder.ShowDialog() == true)
             {
-                SaveHelper.SavingPaused = true;
-                var timer = new Stopwatch();
-                timer.Start();
+                ProgressHelper.Start();
+
                 foreach (var fldr in folder.FolderNames)
                 {
                     var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories).OrderBy(f => Path.GetFileName(f)).ToArray();
                     await MainWindow.AddonManager.AddDrawables(files, sexBtn);
                 }
 
-                timer.Stop();
-                LogHelper.Log($"Added drawables in {timer.Elapsed}");
+                ProgressHelper.Stop("Added drawables in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
-                SaveHelper.SavingPaused = false;
             }
         }
 
