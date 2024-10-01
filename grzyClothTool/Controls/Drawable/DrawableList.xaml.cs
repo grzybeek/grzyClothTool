@@ -95,13 +95,14 @@ namespace grzyClothTool.Controls
             MenuItem menuItem = sender as MenuItem;
             var tag = menuItem?.Tag?.ToString();
 
-
-            // pretty ugly way of setting title, might imrpove later
             OpenFolderDialog folder = new()
             {
-                Title = tag == null ? "Select the folder to export drawable" :
-                        tag == "YTD" ? "Select the folder to export drawable with textures" :
-                        $"Select the folder to export textures as {tag}",
+                Title = tag switch
+                {
+                    "DDS" or "PNG" => $"Select the folder to export textures as {tag}",
+                    "YTD" => "Select the folder to export drawable with textures",
+                    _ => "Select the folder to export drawable"
+                },
                 Multiselect = false
             };
 
@@ -114,21 +115,18 @@ namespace grzyClothTool.Controls
 
             try
             {
-                // Export just textures
-                // this is the only case we don't export drawable, so return
-                if (tag == "DDS" || tag == "PNG") 
+                if (!string.IsNullOrEmpty(tag) && (tag == "YTD" || tag == "PNG" || tag == "DDS"))
                 {
-                    await Task.Run(() => FileHelper.SaveTexturesAsync(new List<GTexture>(drawable.Textures), folderPath, tag));
-                    return;
+                    await Task.Run(() => FileHelper.SaveTexturesAsync(new List<GTexture>(drawable.Textures), folderPath, tag).ConfigureAwait(false));
+
+                    if (tag == "DDS" || tag == "PNG")
+                    {
+                        return;
+                    }
+
                 }
 
-                // export drawable
-                await Task.Run(() => FileHelper.SaveDrawablesAsync(new List<GDrawable>([drawable]), folderPath));
-
-                if (tag == "YTD") // export drawables as YTD
-                {
-                    await Task.Run(() => FileHelper.SaveTexturesAsync(new List<GTexture>(drawable.Textures), folderPath, "YTD"));
-                }
+                await FileHelper.SaveDrawablesAsync([drawable], folderPath).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

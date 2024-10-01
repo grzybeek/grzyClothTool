@@ -160,9 +160,6 @@ public static class FileHelper
 
     public static async Task SaveTexturesAsync(List<GTexture> textures, string folderPath, string format)
     {
-        var timer = new Stopwatch();
-        timer.Start();
-
         // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
         if (!Directory.Exists(folderPath))
         {
@@ -178,6 +175,8 @@ public static class FileHelper
             "YTD" => ".ytd",
             _ => throw new ArgumentException($"Unsupported format: {format}", nameof(format))
         };
+
+        ProgressHelper.Start("Started exporting textures");
 
         int successfulExports = 0;
 
@@ -232,24 +231,18 @@ public static class FileHelper
 
         await Task.WhenAll(tasks);
 
-        timer.Stop();
-
-        if (successfulExports > 0)
-        {
-            LogHelper.Log($"Exported {successfulExports} texture(s) in {timer.ElapsedMilliseconds}ms");
-        }
+        ProgressHelper.Stop($"Exported {successfulExports} texture(s) in {{0}}", true);
     }
 
     public static async Task SaveDrawablesAsync(List<GDrawable> drawables, string folderPath)
     {
-        var timer = new Stopwatch();
-        timer.Start();
-
         // Ensure the directory exists or create it. Consider handling any exceptions if directory creation fails
         if (!Directory.Exists(folderPath))
         {
             Directory.CreateDirectory(folderPath);
         }
+
+        ProgressHelper.Start("Started exporting drawables");
 
         int successfulExports = 0;
 
@@ -279,11 +272,6 @@ public static class FileHelper
 
         await Task.WhenAll(tasks);
 
-        timer.Stop();
-
-        if (successfulExports > 0)
-        {
-            LogHelper.Log($"Exported {successfulExports} drawable(s) in {timer.ElapsedMilliseconds}ms");
-        }
+        ProgressHelper.Stop($"Exported {successfulExports} drawable(s) in {{0}}", true);
     }
 }

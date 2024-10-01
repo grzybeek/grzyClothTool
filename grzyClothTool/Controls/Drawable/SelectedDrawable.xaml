@@ -188,7 +188,7 @@
                                                             <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
                                                             <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
                                                             <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
-                                                            <MenuItem Header="Export" Click="ExportTexture_Click" Tag="YTD" />
+                                                            <MenuItem Header="Export as YTD" Click="ExportTexture_Click" Tag="YTD" />
                                                             <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
                                                             <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
                                                         </ContextMenu>
