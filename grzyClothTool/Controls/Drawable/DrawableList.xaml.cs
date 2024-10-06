@@ -1,15 +1,17 @@
-﻿using grzyClothTool.Helpers;
+﻿using grzyClothTool.Extensions;
+using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using static grzyClothTool.Controls.CustomMessageBox;
 
 namespace grzyClothTool.Controls
 {
@@ -29,7 +31,6 @@ namespace grzyClothTool.Controls
             get { return (ObservableCollection<GDrawable>)GetValue(ItemsSourceProperty); }
             set { SetValue(ItemsSourceProperty, value); }
         }
-
 
         public object DrawableListSelectedValue
         {
@@ -56,6 +57,35 @@ namespace grzyClothTool.Controls
 
         }
 
+        private void MoveMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem?.Header is string addonName)
+            {
+                var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                var addon = MainWindow.AddonManager.Addons.FirstOrDefault(a => a.Name == addonName);
+
+                if (addon == null)
+                {
+                    return;
+                }
+
+                if (!addon.CanFitDrawables(selectedDrawables))
+                {
+                    Show("The selected addon cannot fit the selected drawables.", "Addon full", CustomMessageBoxButtons.OKOnly);
+                    return;
+                }
+
+                foreach (var drawable in selectedDrawables)
+                {
+                    MainWindow.AddonManager.MoveDrawable(drawable, addon);
+                }
+
+                MainWindow.AddonManager.Addons.Sort(true);
+            }
+        }
+
         private void OpenFileLocation_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
@@ -64,8 +94,8 @@ namespace grzyClothTool.Controls
 
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
         {
-            var drawable = DrawableListSelectedValue as GDrawable;
-            MainWindow.AddonManager.DeleteDrawable(drawable);
+            var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+            MainWindow.AddonManager.DeleteDrawables(selectedDrawables);
         }
 
         private void ReplaceDrawable_Click(object sender, RoutedEventArgs e)
@@ -88,9 +118,9 @@ namespace grzyClothTool.Controls
             }
         }
 
-        async private void ExportDrawable_Click(object sender, RoutedEventArgs e)
+        private async void ExportDrawable_Click(object sender, RoutedEventArgs e)
         {
-            var drawable = DrawableListSelectedValue as GDrawable;
+            var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
 
             MenuItem menuItem = sender as MenuItem;
             var tag = menuItem?.Tag?.ToString();
@@ -117,7 +147,10 @@ namespace grzyClothTool.Controls
             {
                 if (!string.IsNullOrEmpty(tag) && (tag == "YTD" || tag == "PNG" || tag == "DDS"))
                 {
-                    await Task.Run(() => FileHelper.SaveTexturesAsync(new List<GTexture>(drawable.Textures), folderPath, tag).ConfigureAwait(false));
+                    foreach (var drawable in selectedDrawables)
+                    {
+                        await Task.Run(() => FileHelper.SaveTexturesAsync(new List<GTexture>(drawable.Textures), folderPath, tag).ConfigureAwait(false));
+                    }
 
                     if (tag == "DDS" || tag == "PNG")
                     {
@@ -126,7 +159,7 @@ namespace grzyClothTool.Controls
 
                 }
 
-                await FileHelper.SaveDrawablesAsync([drawable], folderPath).ConfigureAwait(false);
+                await FileHelper.SaveDrawablesAsync(selectedDrawables, folderPath).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

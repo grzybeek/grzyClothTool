@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Models.Drawable;
+﻿using grzyClothTool.Models;
+using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,6 +23,14 @@ public static class ObservableCollectionExtensions
                 sorted[i].SetDrawableName();
             }
             drawables.Move(drawables.IndexOf(sorted[i]), i);
+        }
+    }
+
+    public static void Sort(this ObservableCollection<Addon> addons, bool shouldReassignNumbers = false)
+    {
+        foreach (var addon in addons)
+        {
+            addon.Drawables.Sort(shouldReassignNumbers);
         }
     }
 

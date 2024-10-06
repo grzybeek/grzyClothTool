@@ -72,7 +72,7 @@
         </TabControl>
 
         <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="1" Grid.Row="0" Margin="2" Header="Selected drawable options">
-            <c:SelectedDrawable x:Name="SelDrawable" TextureListSelectedValueChanged="SelectedDrawable_TextureChanged" SelectedDrawableUpdated="SelectedDrawable_Updated" SelectedDraw="{Binding SelectedAddon.SelectedDrawable}" SelectedTxt="{Binding SelectedAddon.SelectedTexture}"  />
+            <c:SelectedDrawable x:Name="SelDrawable" TextureListSelectedValueChanged="SelectedDrawable_TextureChanged" SelectedDrawableUpdated="SelectedDrawable_Updated" SelectedDraw="{Binding SelectedAddon.SelectedDrawable}" SelectedTxt="{Binding SelectedAddon.SelectedTexture}" />
         </GroupBox>
 
         <Grid Grid.Column="0" Grid.Row="1">

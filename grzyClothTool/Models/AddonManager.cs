@@ -3,6 +3,7 @@ using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Other;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,9 @@ namespace grzyClothTool.Models
 
         [JsonProperty]
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
+
+        [JsonIgnore]
+        public ObservableCollection<MoveMenuItem> MoveMenuItems { get; set; } = [];
 
         private ObservableCollection<Addon> _addons = [];
         public ObservableCollection<Addon> Addons
@@ -261,48 +265,10 @@ namespace grzyClothTool.Models
                     }
                 }
 
-                // Check if the number of drawables of this type has reached 128
-                while (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
-                {
-                    // Move to the next Addon
-                    currentAddonIndex++;
-                    if (currentAddonIndex < Addons.Count)
-                    {
-                        // Get the next Addon
-                        currentAddon = Addons[currentAddonIndex];
-                    }
-                    else
-                    {
-                        // Create a new Addon
-                        currentAddon = new Addon("Addon " + (currentAddonIndex + 1));
-                        Addons.Add(currentAddon);
-                    }
-
-                    // Calculate countOfType for the current Addon
-                    countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex);
-
-                    // Update name and number
-                    drawable.Number = countOfType;
-                    drawable.SetDrawableName();
-                }
-
-                // Add the drawable to the current Addon
-                currentAddon.Drawables.Add(drawable);
-
-                //set HasProps only once adding first drawable
-                if (isProp && !currentAddon.HasProps) currentAddon.HasProps = true;
+                AddDrawable(drawable);
             }
 
-            // Sort the ObservableCollection in place, in all existing addons
-            foreach (var addon in Addons)
-            {
-                addon.Drawables.Sort();
-            }
-        }
-
-        public int GetTotalDrawableAndTextureCount()
-        {
-            return Addons.Sum(addon => addon.GetTotalDrawableAndTextureCount());
+            Addons.Sort(true);
         }
 
         public void AddDrawable(GDrawable drawable)
@@ -347,31 +313,26 @@ namespace grzyClothTool.Models
             drawable.SetDrawableName();
 
             currentAddon.Drawables.Add(drawable);
-            currentAddon.Drawables.Sort();
 
             SaveHelper.SetUnsavedChanges(true);
         }
 
-        public void DeleteDrawable(GDrawable drawable)
+        public void DeleteDrawables(List<GDrawable> drawables)
         {
-            // find the addon that contains the drawable
-            var addon = Addons.FirstOrDefault(x => x.Drawables.Contains(drawable));
-            if (addon == null)
-            {
-                return;
-            }
-
             SaveHelper.SetUnsavedChanges(true);
-
-            addon.Drawables.Remove(drawable);
-
-            if (SettingsHelper.Instance.AutoDeleteFiles)
+            var addon = SelectedAddon;
+            foreach (GDrawable drawable in drawables)
             {
-                foreach (var texture in drawable.Textures)
+                addon.Drawables.Remove(drawable);
+
+                if (SettingsHelper.Instance.AutoDeleteFiles)
                 {
-                    File.Delete(texture.FilePath);
+                    foreach (var texture in drawable.Textures)
+                    {
+                        File.Delete(texture.FilePath);
+                    }
+                    File.Delete(drawable.FilePath);
                 }
-                File.Delete(drawable.FilePath);
             }
 
             // if addon is empty, remove it
@@ -384,10 +345,40 @@ namespace grzyClothTool.Models
             addon.Drawables.Sort(true);
         }
 
+        public void MoveDrawable(GDrawable drawable, Addon targetAddon)
+        {
+            if (drawable == null || targetAddon == null)
+            {
+                var nullParam = drawable == null ? nameof(drawable) : nameof(targetAddon);
+                throw new ArgumentNullException(nullParam, $"{nullParam} cannot be null.");
+            }
+
+            var currentAddon = Addons.FirstOrDefault(a => a.Drawables.Contains(drawable));
+            if (currentAddon != null)
+            {
+                currentAddon.Drawables.Remove(drawable);
+
+                drawable.Number = currentAddon.GetNextDrawableNumber(drawable.TypeNumeric, drawable.IsProp, drawable.Sex);
+                drawable.SetDrawableName();
+
+                targetAddon.Drawables.Add(drawable);
+            }
+        }
+
+        public int GetTotalDrawableAndTextureCount()
+        {
+            return Addons.Sum(addon => addon.GetTotalDrawableAndTextureCount());
+        }
+
         private void DeleteAddon(Addon addon)
         {
+            if (Addons.Count <= 1)
+            {
+                return;
+            }
+
             int index = Addons.IndexOf(addon);
-            if (index <= 0) { return; } // if not found or it's Addon 1 - don't remove
+            if (index < 0) { return; } // if not found, don't remove
 
             Addons.RemoveAt(index);
             AdjustAddonNames();

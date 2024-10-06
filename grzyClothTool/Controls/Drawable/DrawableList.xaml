@@ -11,23 +11,58 @@
              mc:Ignorable="d">
 
     <UserControl.Resources>
+        <ContextMenu x:Key="SingleSelectionContextMenu">
+            <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
+            <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
+            <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
+            <MenuItem Header="Move" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                        <EventSetter Event="Click" Handler="MoveMenuItem_Click" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
+            <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+            <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
+            <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
+            <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
+            <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
+        </ContextMenu>
+        <ContextMenu x:Key="MultipleSelectionContextMenu">
+            <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
+            <MenuItem Header="Move" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Header" Value="{Binding Header}" />
+                        <Setter Property="IsEnabled" Value="{Binding IsEnabled}" />
+                        <EventSetter Event="Click" Handler="MoveMenuItem_Click" />
+                    </Style>
+                </MenuItem.ItemContainerStyle>
+            </MenuItem>
+            <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
+            <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
+            <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
+            <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
+        </ContextMenu>
+
+        <Style TargetType="ListBox" x:Key="ListBoxStyleWithContextMenu">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.IsMultipleDrawablesSelected, ElementName=MyDrawableList}" Value="True">
+                    <Setter Property="ContextMenu" Value="{StaticResource MultipleSelectionContextMenu}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding DataContext.IsMultipleDrawablesSelected, ElementName=MyDrawableList}" Value="False">
+                    <Setter Property="ContextMenu" Value="{StaticResource SingleSelectionContextMenu}" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="ListBoxItem" x:Key="ListBoxItemTemplate">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
                         <Border x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
-                            <Border.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
-                                    <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
-                                    <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
-                                    <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
-                                    <MenuItem Header="Export as YDD" Click="ExportDrawable_Click" />
-                                    <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
-                                    <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
-                                    <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
-                                </ContextMenu>
-                            </Border.ContextMenu>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
@@ -128,6 +163,7 @@
         Background="Transparent"
         Foreground="{DynamicResource Brush950}"
         x:Name="MyListBox" 
+        SelectionMode="Extended"
         SelectionChanged="ListBox_SelectionChanged"
         HorizontalContentAlignment="Stretch" 
         ItemContainerStyle="{StaticResource ListBoxItemTemplate}" 
@@ -137,5 +173,6 @@
         d:SelectedIndex="1"
         d:Width="300"
         PreviewKeyDown="DrawableList_PreviewKeyDown"
+        Style="{StaticResource ListBoxStyleWithContextMenu}"
     />
 </UserControl>

@@ -286,6 +286,23 @@
                             </Setter.Value>
                         </Setter>
                     </DataTrigger>
+                    <DataTrigger Binding="{Binding SelectedAddon.IsMultipleDrawablesSelected}" Value="True">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ContentControl">
+                                    <Grid>
+                                        <TextBlock Padding="10" FontSize="16">
+                                            <TextBlock.Text>
+                                                <MultiBinding StringFormat="Selected {0} drawable(s)">
+                                                    <Binding Path="SelectedAddon.SelectedDrawables.Count" />
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
                 </Style.Triggers>
             </Style>
         </ContentControl.Style>

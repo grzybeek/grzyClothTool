@@ -115,7 +115,7 @@ namespace grzyClothTool.Views
 
         public void SelectedDrawable_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key != Key.Delete || Addon.SelectedDrawable is null)
+            if (e.Key != Key.Delete || Addon.SelectedDrawables.Count == 0)
             {
                 return;
             }
@@ -124,11 +124,11 @@ namespace grzyClothTool.Views
             {
                 case ModifierKeys.Shift:
                     // Shift+Delete was pressed, delete the drawable instantly
-                    MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
+                    MainWindow.AddonManager.DeleteDrawables([.. Addon.SelectedDrawables]);
                     break;
                 case ModifierKeys.Control:
                     // Ctrl+Delete was pressed, replace the drawable instantly
-                    ReplaceDrawable(Addon.SelectedDrawable);
+                    ReplaceDrawables([.. Addon.SelectedDrawables]);
                     break;
                 default:
                     // Only Delete was pressed, show the message box
@@ -139,29 +139,40 @@ namespace grzyClothTool.Views
 
         private void Delete_SelectedDrawable(object sender, RoutedEventArgs e)
         {
-            if (Addon.SelectedDrawable is null)
+            var count = Addon.SelectedDrawables.Count;
+
+            if (count == 0)
             {
-                CustomMessageBox.Show("No drawable selected", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.OKOnly);
+                CustomMessageBox.Show("No drawable(s) selected", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.OKOnly);
                 return;
             }
 
-            var result = CustomMessageBox.Show($"Are you sure you want to delete this drawable? ({Addon.SelectedDrawable.Name})\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?", "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
+            var message = count == 1
+                ? $"Are you sure you want to delete this drawable? ({Addon.SelectedDrawable.Name})"
+                : $"Are you sure you want to delete these {count} selected drawables?";
+
+            message += "\nThis will CHANGE NUMBERS of everything after this drawable!\n\nDo you want to replace with reserved slot instead?";
+
+            var result = CustomMessageBox.Show(message, "Delete drawable", CustomMessageBox.CustomMessageBoxButtons.DeleteReplaceCancel);
             if (result == CustomMessageBox.CustomMessageBoxResult.Delete)
             {
-                MainWindow.AddonManager.DeleteDrawable(Addon.SelectedDrawable);
+                MainWindow.AddonManager.DeleteDrawables([.. Addon.SelectedDrawables]);
             }
             else if (result == CustomMessageBox.CustomMessageBoxResult.Replace)
             {
-                ReplaceDrawable(Addon.SelectedDrawable);
+                ReplaceDrawables([.. Addon.SelectedDrawables]);
             }
         }
 
-        private void ReplaceDrawable(GDrawable drawable)
+        private void ReplaceDrawables(List<GDrawable> drawables)
         {
-            var reserved = new GDrawableReserved(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
+            foreach(var drawable in drawables)
+            {
+                var reserved = new GDrawableReserved(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
 
-            //replace drawable with reserved in the same place
-            Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
+                //replace drawable with reserved in the same place
+                Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
+            }
             SaveHelper.SetUnsavedChanges(true);
         }
 
@@ -177,6 +188,11 @@ namespace grzyClothTool.Views
                 {
                     Addon = MainWindow.AddonManager.Addons.ElementAt(index);
                     MainWindow.AddonManager.SelectedAddon = Addon;
+
+                    foreach (var menuItem in MainWindow.AddonManager.MoveMenuItems)
+                    {
+                        menuItem.IsEnabled = menuItem.Header != addon.Name;
+                    }
                 } catch (Exception)  { }
             }
         }
@@ -228,21 +244,33 @@ namespace grzyClothTool.Views
             if (e is not SelectionChangedEventArgs args) return;
             args.Handled = true;
 
-            if (args.AddedItems.Count == 0)
+            foreach (GDrawable drawable in args.RemovedItems)
+            {
+                Addon.SelectedDrawables.Remove(drawable);
+            }
+
+            foreach (GDrawable drawable in args.AddedItems)
+            {
+                Addon.SelectedDrawables.Add(drawable);
+                drawable.IsNew = false;
+            }
+
+            // Handle the case when a single item is selected
+            if (Addon.SelectedDrawables.Count == 1)
+            {
+                Addon.SelectedDrawable = Addon.SelectedDrawables.First();
+                if (Addon.SelectedDrawable.Textures.Count > 0)
+                {
+                    Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
+                    SelDrawable.SelectedIndex = 0;
+                    SelDrawable.SelectedTextures = [Addon.SelectedTexture];
+                }
+            }
+            else
             {
                 Addon.SelectedDrawable = null;
-                return;
+                Addon.SelectedTexture = null;
             }
-
-            Addon.SelectedDrawable = (GDrawable)args.AddedItems[0];
-            if (Addon.SelectedDrawable.Textures.Count > 0)
-            {
-                Addon.SelectedTexture = Addon.SelectedDrawable.Textures.First();
-                SelDrawable.SelectedIndex = 0;
-                SelDrawable.SelectedTextures = new List<GTexture>() { Addon.SelectedTexture };
-            }
-
-            Addon.SelectedDrawable.IsNew = false;
 
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
             CWHelper.SendDrawableUpdateToPreview(e);

@@ -7,7 +7,7 @@ using ImageMagick;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -48,6 +48,9 @@ namespace grzyClothTool.Controls
         public static readonly DependencyProperty SelectedDrawableProperty =
         DependencyProperty.RegisterAttached("SelectedDraw", typeof(GDrawable), typeof(SelectedDrawable), new PropertyMetadata(default(GDrawable)));
 
+        public static readonly DependencyProperty SelectedDrawablesProperty = 
+            DependencyProperty.RegisterAttached("SelectedDrawables", typeof(ObservableCollection<GDrawable>), typeof(SelectedDrawable), new PropertyMetadata(default(ObservableCollection<GDrawable>)));
+
         public static readonly DependencyProperty SelectedTextureProperty =
         DependencyProperty.RegisterAttached("SelectedTxt", typeof(GTexture), typeof(SelectedDrawable), new PropertyMetadata(default(GTexture)));
 
@@ -62,6 +65,12 @@ namespace grzyClothTool.Controls
         {
             get { return (GDrawable)GetValue(SelectedDrawableProperty);}
             set { SetValue(SelectedDrawableProperty, value); }
+        }
+
+        public ObservableCollection<GDrawable> SelectedDrawables
+        {
+            get { return (ObservableCollection<GDrawable>)GetValue(SelectedDrawablesProperty); }
+            set { SetValue(SelectedDrawablesProperty, value); }
         }
 
         public GTexture SelectedTxt

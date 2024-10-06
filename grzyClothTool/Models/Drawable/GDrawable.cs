@@ -13,6 +13,7 @@ using System;
 using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
+using grzyClothTool.Extensions;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -302,6 +303,8 @@ public class GDrawable : INotifyPropertyChanged
             txt.Number = Number;
             txt.TypeNumeric = TypeNumeric;
         }
+
+        OnPropertyChanged(nameof(Name));
     }
 
     public void ChangeDrawableType(string newType)
@@ -318,6 +321,7 @@ public class GDrawable : INotifyPropertyChanged
 
         // re-add changed drawable
         MainWindow.AddonManager.AddDrawable(this);
+        MainWindow.AddonManager.Addons.Sort(true);
     }
 
     public void ChangeDrawableSex(string newSex)
@@ -335,6 +339,7 @@ public class GDrawable : INotifyPropertyChanged
 
         // re-add changed drawable
         MainWindow.AddonManager.AddDrawable(this);
+        MainWindow.AddonManager.Addons.Sort(true);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)

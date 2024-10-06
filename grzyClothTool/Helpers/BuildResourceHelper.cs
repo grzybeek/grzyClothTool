@@ -605,7 +605,7 @@ public class BuildResourceHelper
         var pedName = GetPedName(sex);
         var projectName = GetProjectName(counter);
 
-        var drawables = _addon.Drawables.Where(x => x.Sex == SexType.male).ToList();
+        var drawables = _addon.Drawables.Where(x => x.Sex == sex).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
                                        .GroupBy(x => x.Value.Number / GlobalConstants.MAX_DRAWABLES_IN_ADDON)
                                        .Select(x => x.Select(v => v.Value).ToList())

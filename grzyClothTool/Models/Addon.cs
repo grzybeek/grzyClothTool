@@ -1,7 +1,9 @@
 ﻿using grzyClothTool.Models.Drawable;
+using grzyClothTool.Models.Other;
 using grzyClothTool.Models.Texture;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -42,6 +44,25 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
+    private ObservableCollection<GDrawable> _selectedDrawables;
+    [JsonIgnore]
+    public ObservableCollection<GDrawable> SelectedDrawables
+    {
+        get { return _selectedDrawables; }
+        set
+        {
+            TriggerSelectedDrawableUpdatedEvent = false;
+            _selectedDrawables = value;
+            OnPropertyChanged();
+            TriggerSelectedDrawableUpdatedEvent = true;
+        }
+    }
+
+    public bool IsMultipleDrawablesSelected
+    {
+        get { return SelectedDrawables.Count > 1; }
+    }
+
     private GTexture _selectedTexture;
     [JsonIgnore]
     public GTexture SelectedTexture
@@ -74,6 +95,13 @@ public class Addon : INotifyPropertyChanged
         Name = projectName;
 
         Drawables = [];
+        SelectedDrawables = [];
+        SelectedDrawables.CollectionChanged += (sender, e) =>
+        {
+            OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
+        };
+
+        MainWindow.AddonManager.MoveMenuItems.Add(new MoveMenuItem() { Header = projectName, IsEnabled = true });
 
         if (projectName == "design")
         {
@@ -115,6 +143,40 @@ public class Addon : INotifyPropertyChanged
         }
 
         return nextNumber;
+    }
+
+    public bool CanFitDrawables(List<GDrawable> drawables)
+    {
+        var groupedDrawables = Drawables
+            .GroupBy(d => new { d.TypeNumeric, d.Sex, d.IsProp })
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var newGroupedDrawables = drawables
+            .GroupBy(d => new { d.TypeNumeric, d.Sex, d.IsProp })
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Check if adding the new drawables would exceed the maximum count
+        foreach (var newGroup in newGroupedDrawables)
+        {
+            var key = newGroup.Key;
+            var newCount = newGroup.Value;
+
+            if (groupedDrawables.ContainsKey(key))
+            {
+                groupedDrawables[key] += newCount;
+            }
+            else
+            {
+                groupedDrawables[key] = newCount;
+            }
+
+            if (groupedDrawables[key] > GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public bool HasSex(Enums.SexType sex)
