@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Texture;
 using System.Collections.Generic;
@@ -203,13 +204,20 @@ namespace grzyClothTool.Views
 
         private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
         {
+            if (!IsTextureDownsizeEnabled && !IsTextureCompressionEnabled)
+            {
+                Close();
+                CustomMessageBox.Show("No optimization options selected");
+                return;
+            }
+
             ReloadOutputTexture();
 
             foreach (var txt in GTextures)
             {
                 // We don't want to create it at the time of clicking this button, this should be saved and generated only during build
                 txt.IsOptimizedDuringBuild = true;
-                txt.TxtDetails = new GTextureDetails
+                txt.OptimizeDetails = new GTextureDetails
                 {
                     Width = OutputTextureDetails.Width,
                     Height = OutputTextureDetails.Height,

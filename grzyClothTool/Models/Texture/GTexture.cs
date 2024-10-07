@@ -55,8 +55,32 @@ public class GTexture : INotifyPropertyChanged
     public bool IsProp;
     public bool HasSkin;
 
-    public bool IsOptimizedDuringBuild { get; set; }
-    public GTextureDetails OptimizeDetails;
+    private bool _isOptimizedDuringBuild;
+    public bool IsOptimizedDuringBuild
+    {
+        get => _isOptimizedDuringBuild;
+        set
+        {
+            if (_isOptimizedDuringBuild != value)
+            {
+                _isOptimizedDuringBuild = value;
+                OnPropertyChanged(nameof(IsOptimizedDuringBuild));
+            }
+        }
+    }
+    private GTextureDetails _optimizeDetails;
+    public GTextureDetails OptimizeDetails
+    {
+        get => _optimizeDetails;
+        set
+        {
+            if (_optimizeDetails != value)
+            {
+                _optimizeDetails = value;
+                OnPropertyChanged(nameof(OptimizeDetails));
+            }
+        }
+    }
 
     public bool IsPreviewDisabled { get; set; }
 

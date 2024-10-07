@@ -131,15 +131,33 @@
                                                                 </Style>
                                                             </icons:MaterialIcon.Style>
                                                         </icons:MaterialIcon>
+                                                        <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
+                                                            <icons:MaterialIcon Kind="Success" Width="22" Margin="0,0,2,2">
+                                                                <icons:MaterialIcon.Style>
+                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </icons:MaterialIcon.Style>
+                                                            </icons:MaterialIcon>
+                                                        </ContentControl>
                                                         <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
                                                             <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
                                                                 <icons:MaterialIcon.Style>
                                                                     <Style TargetType="{x:Type icons:MaterialIcon}">
                                                                         <Setter Property="Visibility" Value="Collapsed" />
                                                                         <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True">
+                                                                            <MultiDataTrigger>
+                                                                                <MultiDataTrigger.Conditions>
+                                                                                    <Condition Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True" />
+                                                                                    <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
+                                                                                </MultiDataTrigger.Conditions>
                                                                                 <Setter Property="Visibility" Value="Visible" />
-                                                                            </DataTrigger>
+                                                                            </MultiDataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
                                                                 </icons:MaterialIcon.Style>
@@ -184,7 +202,21 @@
                                                     <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
                                                     <Grid.ContextMenu>
                                                         <ContextMenu>
-                                                            <MenuItem Header="Optimize texture" Click="OptimizeTexture_Click" />
+                                                            <MenuItem Click="HandleTextureOptimization_Click">
+                                                                <MenuItem.Style>
+                                                                    <Style TargetType="MenuItem">
+                                                                        <Setter Property="Header" Value="Optimize texture" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                <Setter Property="Header" Value="Undo optimize" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="False">
+                                                                                <Setter Property="Header" Value="Optimize texture" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </MenuItem.Style>
+                                                            </MenuItem>
                                                             <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
                                                             <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
                                                             <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />

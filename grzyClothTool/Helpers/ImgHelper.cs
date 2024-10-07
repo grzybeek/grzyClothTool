@@ -61,14 +61,14 @@ public static class ImgHelper
         {
             TextureDict = new TextureDictionary()
         };
-        var details = gtxt.TxtDetails;
-        using var img = GetImage(gtxt.FilePath);
 
+        using var img = GetImage(gtxt.FilePath);
         img.Format = MagickFormat.Dds;
 
         // Skip optimization (I think this is best way to not duplicate code, and reuse this for jpg/png textures that don't need optimization)
         if (!shouldSkipOptimization)
         {
+            var details = gtxt.OptimizeDetails;
             img.Resize(details.Width, details.Height);
             img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
             img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);

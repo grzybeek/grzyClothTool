@@ -299,23 +299,66 @@ namespace grzyClothTool.Controls
             }
         }
 
-        private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
+        private void HandleTextureOptimization_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedTextures != null)
+            if (SelectedTextures == null)
+                return;
+
+            bool allOptimized = SelectedTextures.All(texture => texture.IsOptimizedDuringBuild);
+            bool noneOptimized = SelectedTextures.All(texture => !texture.IsOptimizedDuringBuild);
+
+            if (!allOptimized && !noneOptimized)
             {
-                var wrongTextureName = OptimizeWindow.CheckTexturesHaveSameSize(SelectedTextures);
-                if (wrongTextureName != null)
+                Show("Some textures are already optimized while others are not. Please select textures with the same state.", "Warning", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Warning);
+                return;
+            }
+
+            if (allOptimized)
+            {
+                UndoTextureOptimization();
+            }
+            else
+            {
+                OptimizeTextures();
+            }
+
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
+        private void OptimizeTextures()
+        {
+            var wrongTextureName = OptimizeWindow.CheckTexturesHaveSameSize(SelectedTextures);
+            if (wrongTextureName != null)
+            {
+                Show($"Texture {wrongTextureName} does not have the same size as the others!", "Error", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Error);
+                LogHelper.Log($"Texture {wrongTextureName} does not have the same size as the others!", LogType.Error);
+                return;
+            }
+
+            var multipleSelected = SelectedTextures.Count > 1;
+            var optimizeWindow = new OptimizeWindow(SelectedTextures, multipleSelected);
+            optimizeWindow.ShowDialog();
+        }
+
+        private void UndoTextureOptimization()
+        {
+            foreach (var texture in SelectedTextures)
+            {
+                texture.IsOptimizedDuringBuild = false;
+
+                // Deep clone the texture details
+                texture.OptimizeDetails = new GTextureDetails
                 {
-                    Show($"Texture {wrongTextureName} does not have the same size as the others!", "Error", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.Error);
-                    LogHelper.Log($"Texture {wrongTextureName} does not have the same size as the others!", LogType.Error);
-                    return;
-                }
+                    Width = texture.TxtDetails.Width,
+                    Height = texture.TxtDetails.Height,
+                    MipMapCount = texture.TxtDetails.MipMapCount,
+                    Compression = texture.TxtDetails.Compression,
+                    Name = texture.TxtDetails.Name,
+                    IsOptimizeNeeded = texture.TxtDetails.IsOptimizeNeeded,
+                    IsOptimizeNeededTooltip = texture.TxtDetails.IsOptimizeNeededTooltip
+                };
 
-                var multipleSelected = SelectedTextures.Count > 1;
-                var optimizeWindow = new OptimizeWindow(SelectedTextures, multipleSelected);
-                optimizeWindow.ShowDialog();
-
-                SaveHelper.SetUnsavedChanges(true);
+                LogHelper.Log($"Texture optimization for {texture.DisplayName} has been undone", LogType.Info);
             }
         }
 
