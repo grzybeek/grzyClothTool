@@ -1,0 +1,92 @@
+﻿<Window x:Class="grzyClothTool.Views.AccountsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        xmlns:local="clr-namespace:grzyClothTool.Views"
+        xmlns:c="clr-namespace:grzyClothTool.Controls"
+        Background="{DynamicResource Brush50}"
+        mc:Ignorable="d"
+        Title="Patreon" MinHeight="320" MaxHeight="320" MinWidth="300" MaxWidth="300">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="39" />
+            <RowDefinition Height="1" />
+            <RowDefinition Height="70" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid>
+                <StackPanel Orientation="Vertical" Margin="5">
+                    <TextBlock Text="Patreon information" Foreground="{DynamicResource Brush950}" Padding="5"></TextBlock>
+                    <Border Visibility="{Binding IsPatreonLoggedIn, Converter={StaticResource BooleanToVisibilityConverter}}" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" CornerRadius="5" Margin="5">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Image Source="{Binding PatreonImg}" Width="50" Height="50" Margin="5"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="5">
+                                <TextBlock Text="{Binding PatreonUsername}" Foreground="{DynamicResource Brush950}" FontWeight="Bold"/>
+                                <TextBlock Foreground="{DynamicResource Brush950}">
+                                    <TextBlock.Text>
+                                        <Binding Path="PatreonStatus" StringFormat="Status: {0}" />
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock Foreground="{DynamicResource Brush950}">
+                                    <TextBlock.Text>
+                                        <Binding Path="PatreonLastChargeDate" StringFormat="Last Payment: {0}" />
+                                    </TextBlock.Text>
+                                </TextBlock>
+                                <TextBlock Foreground="{DynamicResource Brush950}">
+                                    <TextBlock.Text>
+                                        <Binding Path="PatreonNextChargeDate" StringFormat="Next Payment: {0}" />
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <c:CustomButton Label="LOGIN" Padding="5" Height="50" CornerRadius="5" MyBtnClickEvent="LoginPatreon_Click">
+                        <c:CustomButton.Style>
+                            <Style TargetType="{x:Type c:CustomButton}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPatreonLoggedIn, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </c:CustomButton.Style>
+                    </c:CustomButton>
+                    <c:CustomButton Label="LOGOUT" Padding="5" Height="50" CornerRadius="5" MyBtnClickEvent="LogoutPatreon_Click">
+                        <c:CustomButton.Style>
+                            <Style TargetType="{x:Type c:CustomButton}">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPatreonLoggedIn, UpdateSourceTrigger=PropertyChanged}" Value="False">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </c:CustomButton.Style>
+                    </c:CustomButton>
+                </StackPanel>
+            </Grid>
+        </Grid>
+        <TextBlock Grid.Row="1" Padding="5" HorizontalAlignment="Center"><Hyperlink NavigateUri="https://www.patreon.com/grzybeek" RequestNavigate="Hyperlink_RequestNavigate">www.patreon.com/grzybeek</Hyperlink></TextBlock>
+        <Border Grid.Row="2" BorderBrush="{DynamicResource Brush500}" BorderThickness="1" />
+        <Grid Grid.Row="3" >
+            <c:CustomButton 
+                    x:Name="close"
+                    Margin="5"
+                    Padding="5"
+                    CornerRadius="5"
+                    Height="50"
+                    Label="Close"
+                    MyBtnClickEvent="CloseBtn_Click"
+                />
+        </Grid>
+    </Grid>
+</Window>

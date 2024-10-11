@@ -10,7 +10,7 @@
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
         Background="{DynamicResource Brush50}"
-        Title="(WIP) grzyClothTool" Height="800" Width="1200" MinWidth="800" MinHeight="400"
+        Title="grzyClothTool" Height="800" Width="1200" MinWidth="800" MinHeight="400"
         MouseDown="Window_MouseDown"
         Closed="Window_Closed"
         Closing="Window_Closing"
@@ -34,7 +34,7 @@
 
 
             <MenuItem Header="_Project">
-                <MenuItem Header="_Open Addon" Click="OpenProject_Click" />
+                <MenuItem Header="_Open Addon" Click="OpenAddon_Click" />
                 <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
                     <MenuItem.ItemTemplate>
                         <DataTemplate>
@@ -88,7 +88,7 @@
                 <Hyperlink NavigateUri="https://github.com/grzybeek/grzyClothTool" RequestNavigate="Hyperlink_RequestNavigate">Source code</Hyperlink>
             </StatusBarItem>
             <StatusBarItem Grid.Column="3" HorizontalAlignment="Right" Padding="5,0,10,2">
-                <Hyperlink NavigateUri="https://ko-fi.com/grzybeek" RequestNavigate="Hyperlink_RequestNavigate">Support me!</Hyperlink>
+                <Hyperlink NavigateUri="https://patreon.com/grzybeek" RequestNavigate="Hyperlink_RequestNavigate">Support me!</Hyperlink>
             </StatusBarItem>
 
             <StatusBarItem Grid.ColumnSpan="4" Padding="0" VerticalAlignment="Bottom">

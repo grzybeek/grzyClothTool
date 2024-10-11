@@ -72,7 +72,7 @@
 
     <Grid>
         <Border x:Name="btn" BorderBrush="{DynamicResource Brush400}" BorderThickness="0" CornerRadius="{Binding CornerRadius, ElementName=MyCustomButton}">
-            <Button Content="{Binding Label, ElementName=MyCustomButton}" ToolTip="{Binding Tooltip, ElementName=MyCustomButton}" ToolTipService.InitialShowDelay="0" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="16" Click="Button_Click">
+            <Button Content="{Binding Label, ElementName=MyCustomButton}" ToolTip="{Binding Tooltip, ElementName=MyCustomButton}" ToolTipService.InitialShowDelay="0" BorderThickness="0" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="{Binding FontSize, ElementName=MyCustomButton}" Click="Button_Click">
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource RoundedButton}">
                         <Setter Property="ContentTemplate">

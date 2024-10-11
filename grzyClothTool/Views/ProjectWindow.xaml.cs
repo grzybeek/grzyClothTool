@@ -58,7 +58,6 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            Addon = MainWindow.AddonManager.Addons.First();
             DataContext = MainWindow.AddonManager;
         }
 
@@ -272,7 +271,7 @@ namespace grzyClothTool.Views
                 Addon.SelectedTexture = null;
             }
 
-            if (!MainWindow.AddonManager.IsPreviewEnabled) return;
+            if (!MainWindow.AddonManager.IsPreviewEnabled || Addon.SelectedDrawable == null) return;
             CWHelper.SendDrawableUpdateToPreview(e);
         }
 

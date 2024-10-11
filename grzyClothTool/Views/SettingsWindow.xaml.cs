@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
 using Microsoft.Win32;
+using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -26,7 +27,14 @@ namespace grzyClothTool.Views
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow.NavigationHelper.Navigate("Project");
+            if (MainWindow.AddonManager.Addons.Count > 0)
+            {
+                MainWindow.NavigationHelper.Navigate("Project");
+            }
+            else
+            {
+                MainWindow.NavigationHelper.Navigate("Home");
+            }
         }
 
         private void GTAVPath_Click(object sender, RoutedEventArgs e)
@@ -58,6 +66,12 @@ namespace grzyClothTool.Views
             //CWHelper.SetCacheStartup(c.IsChecked);
 
             LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
+        }
+
+        public void PatreonAccount_Click(object sender, RoutedEventArgs e)
+        {
+            var accountsWindow = new AccountsWindow();
+            accountsWindow.ShowDialog();
         }
 
         public void ThemeModeChange_Click(object sender, RoutedEventArgs e)

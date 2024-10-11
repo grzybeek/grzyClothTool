@@ -1,0 +1,79 @@
+﻿<UserControl x:Class="grzyClothTool.Views.Home"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:grzyClothTool.Views"
+             xmlns:c="clr-namespace:grzyClothTool.Controls"
+
+             mc:Ignorable="d" 
+             d:Background="white"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <c:CustomButton Label="Close" Height="60" DockPanel.Dock="Bottom" Padding="5" CornerRadius="5" MyBtnClickEvent="Close_Click" />
+            
+            <StackPanel>
+                <c:CustomButton Label="Create new project" Height="100" FontSize="20" Padding="5" CornerRadius="5" MyBtnClickEvent="CreateNew_Click" />
+                <c:CustomButton Label="Import project" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="ImportProject_Click" />
+                <c:CustomButton Label="Open addon" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenAddon_Click" />
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Did You Know?" Grid.Column="0" Grid.Row="0" Margin="2">
+                <TextBlock Text="{Binding RandomDidYouKnow}" FontSize="14" FontStyle="Italic" Padding="5" Margin="5" TextWrapping="WrapWithOverflow"  />
+            </GroupBox>
+
+            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Changelog" Grid.Column="0" Grid.Row="1" Margin="2">
+                <WebBrowser x:Name="ChangelogBrowser" Margin="5" IsHitTestVisible="False" />
+            </GroupBox>
+
+            <Grid Grid.Column="1" Grid.RowSpan="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="3*" />
+                    <RowDefinition Height="1*" />
+                </Grid.RowDefinitions>
+
+                <GroupBox Style="{StaticResource FixedGroupBox}" Header="Patreons" Margin="2" Padding="5" Grid.Row="0">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding PatreonList}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Margin="2" FontStyle="Italic" FontSize="14" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </GroupBox>
+
+                <GroupBox Style="{StaticResource FixedGroupBox}" Header="Github Sponsors" Margin="2" Padding="5" Grid.Row="1">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding GhSponsorsList}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" Margin="2" FontStyle="Italic" FontSize="14" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </GroupBox>
+            </Grid>
+
+        </Grid>
+    </Grid>
+</UserControl>

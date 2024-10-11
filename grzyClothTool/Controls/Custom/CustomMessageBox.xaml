@@ -70,6 +70,14 @@
                        Foreground="{DynamicResource Brush950}"
                        Text="Custom Message Box Message"/>
         </Label>
+        <TextBox x:Name="CMBTextBox"
+             Grid.Column="1"
+             Grid.Row="1"
+             VerticalAlignment="Bottom"
+             Width="240"
+             Margin="2,0,4,6"
+             Visibility="Collapsed"
+        />
         <!-- Background for button block -->
         <Rectangle Grid.Row="2" 
                    Grid.ColumnSpan="2" 

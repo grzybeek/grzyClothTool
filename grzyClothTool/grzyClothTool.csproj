@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -11,32 +10,34 @@
 	  <ApplicationIcon>Resources\grzyClothToolIcon.ico</ApplicationIcon>
 	  <FileVersion>0.0.9-alpha</FileVersion>
   </PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)'=='Release'">
-		<DebugSymbols>False</DebugSymbols>
-		<DebugType>None</DebugType>
-		<AllowedReferenceRelatedFileExtensions>*.pdb</AllowedReferenceRelatedFileExtensions>
-		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-	</PropertyGroup>
-
-
-
-	<ItemGroup>
-	  <Resource Include="Resources\grzyClothTool.png" />
-	  <Resource Include="Resources\grzyClothToolIcon.ico" />
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugSymbols>False</DebugSymbols>
+    <DebugType>None</DebugType>
+    <AllowedReferenceRelatedFileExtensions>*.pdb</AllowedReferenceRelatedFileExtensions>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Resources\grzyClothTool.png" />
+    <Resource Include="Resources\grzyClothToolIcon.ico" />
     <Resource Include="Resources\reservedDrawable.ydd" />
     <Resource Include="Resources\reservedTexture.ytd" />
-	</ItemGroup>
-
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="13.6.0" />
     <PackageReference Include="Material.Icons.WPF" Version="2.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="8.0.0" />
+    <PackageReference Include="System.Composition" Version="8.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-  </ItemGroup>
 
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\grzyClothTool.Shared\grzyClothTool.Shared.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="CodeWalker">
       <HintPath>..\packages\CodeWalker.dll</HintPath>
@@ -45,8 +46,6 @@
       <HintPath>..\packages\CodeWalker.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-
   <ItemGroup>
     <Compile Update="Controls\Custom\CustomButton.xaml.cs">
       <SubType>Code</SubType>
@@ -65,14 +64,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="Properties\Settings.settings">
       <Generator>PublicSettingsSingleFileGenerator</Generator>
