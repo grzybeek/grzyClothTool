@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -22,6 +23,7 @@ namespace grzyClothTool.Models
     {
         public AddonManagerDesign()
         {
+            ProjectName = "Design";
             Addons = [];
 
             Addons.Add(new Addon("design"));
@@ -32,6 +34,8 @@ namespace grzyClothTool.Models
     public class AddonManager : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public string ProjectName { get; set; }
 
         [JsonProperty]
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
@@ -92,7 +96,7 @@ namespace grzyClothTool.Models
             OnPropertyChanged("Addons");
         }
 
-        public async Task LoadAddon(string path)
+        public async Task LoadAddon(string path, bool shouldSetProjectName = false)
         {
             var dirPath = Path.GetDirectoryName(path);
             var addonName = Path.GetFileNameWithoutExtension(path);
@@ -103,6 +107,11 @@ namespace grzyClothTool.Models
             // Build the appropriate regex pattern based on whether it's male or female
             string genderSpecificPart = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
             string addonNameWithoutGender = addonName.Replace(genderSpecificPart, "").TrimStart('_');
+
+            if (shouldSetProjectName)
+            {
+                MainWindow.AddonManager.ProjectName = addonNameWithoutGender;
+            }
 
             string pattern = $@"^{genderSpecificPart}(_p)?.*?{Regex.Escape(addonNameWithoutGender)}\^";
 

@@ -19,7 +19,7 @@ namespace grzyClothTool.Controls
     {
         // Field that will temporarily store result before we return it and close CustomMessageBox
         private static CustomMessageBoxResult result = CustomMessageBoxResult.OK;
-
+        public string TextBoxValue => CMBTextBox.Text;
 
         // Buttons defined as properties, because couldn't be created (initialized) with event subscription at same time "on-the-fly".
         // You can add new different buttons by adding new one as property here
@@ -105,7 +105,8 @@ namespace grzyClothTool.Controls
                                  string caption = "",
                                  CustomMessageBoxButtons cmbButtons = CustomMessageBoxButtons.OKOnly,
                                  CustomMessageBoxIcon cmbIcon = CustomMessageBoxIcon.None,
-                                 string path = "")
+                                 string path = "",
+                                 bool showTextBox = false)
         {
             InitializeComponent();
             Owner = Application.Current.MainWindow;
@@ -121,6 +122,8 @@ namespace grzyClothTool.Controls
             CMBMessage.Text = message;
             // Set caption
             CMBCaption.Text = caption;
+            CMBTextBox.Text = "";
+            CMBTextBox.Visibility = showTextBox ? Visibility.Visible : Visibility.Collapsed;
 
             // Setup Buttons (depending on specified CustomMessageBoxButtons value)
             // As StackPanel FlowDirection set as RightToLeft - we should add items in reverse
@@ -222,6 +225,20 @@ namespace grzyClothTool.Controls
             return result;
         }
 
+        public static (CustomMessageBoxResult result, string textBoxValue) Show(string message, string caption, CustomMessageBoxButtons cmbButtons, CustomMessageBoxIcon cmbIcon, bool showTextBox)
+        {
+            var customMessageBox = new CustomMessageBox(message, caption, cmbButtons, cmbIcon, showTextBox: showTextBox);
+            customMessageBox.ShowDialog();
+
+            // If the TextBox is visible, return its value along with the button result
+            if (showTextBox)
+            {
+                return (result, customMessageBox.TextBoxValue);
+            }
+
+            return (result, null);
+        }
+
 
         // Defines button(s), which should be displayed
         public enum CustomMessageBoxButtons
@@ -255,8 +272,8 @@ namespace grzyClothTool.Controls
             No,
             OpenFolder,
             Delete,
-            Replace
-
+            Replace,
+            TextBoxValue
 
 
             // Add another if you wish

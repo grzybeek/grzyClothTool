@@ -39,6 +39,9 @@ namespace grzyClothTool.Controls
                 typeof(CustomButton),
                 new FrameworkPropertyMetadata(new CornerRadius(0)));
 
+        public new static readonly DependencyProperty FontSizeProperty = DependencyProperty
+            .Register("FontSize", typeof(double), typeof(CustomButton), new FrameworkPropertyMetadata(16.0));
+
         public static readonly RoutedEvent BtnClickEvent = EventManager.RegisterRoutedEvent(
             "BtnClickEvent",
             RoutingStrategy.Bubble,
@@ -81,6 +84,13 @@ namespace grzyClothTool.Controls
             get { return (CornerRadius)GetValue(CornerRadiusProperty); }
             set { SetValue(CornerRadiusProperty, value); }
         }
+
+        public new double FontSize
+        {
+            get { return (double)GetValue(FontSizeProperty); }
+            set { SetValue(FontSizeProperty, value); }
+        }
+
         public bool DropdownEnabled
         {
             get { return (bool)GetValue(DropdownEnabledProperty); }

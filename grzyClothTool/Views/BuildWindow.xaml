@@ -10,7 +10,7 @@
         WindowStartupLocation="CenterOwner"
         MouseDown="Window_MouseDown"
         Closing="Window_Closing"
-        Title="(WIP) grzyClothTool - Build resource"
+        Title="grzyClothTool - Build resource"
         Background="{DynamicResource Brush50}"
         Height="450"
         Width="500">

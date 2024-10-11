@@ -24,7 +24,7 @@ namespace grzyClothTool.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public string ProjectName { get; set; }
+        public string ProjectName { get; set; } = MainWindow.AddonManager.ProjectName;
 
         private bool _isBuilding;
         public bool IsBuilding

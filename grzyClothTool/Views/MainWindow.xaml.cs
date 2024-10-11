@@ -45,14 +45,14 @@ namespace grzyClothTool
 
             _instance = this;
             _addonManager = new AddonManager();
-            _addonManager.CreateAddon();
 
             _navigationHelper = new NavigationHelper();
+            _navigationHelper.RegisterPage("Home", () => new Home());
             _navigationHelper.RegisterPage("Project", () => new ProjectWindow());
             _navigationHelper.RegisterPage("Settings", () => new SettingsWindow());
 
             DataContext = _navigationHelper;
-            _navigationHelper.Navigate("Project");
+            _navigationHelper.Navigate("Home");
             version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
             TempFoldersCleanup();
@@ -128,7 +128,12 @@ namespace grzyClothTool
             _navigationHelper.Navigate(tag);
         }
 
-        private async void OpenProject_Click(object sender, RoutedEventArgs e)
+        public void OpenAddon_Click(object sender, RoutedEventArgs e)
+        {
+            _ = OpenAddonAsync();
+        }
+
+        public async Task OpenAddonAsync(bool shouldSetProjectName = false)
         {
             if (!SaveHelper.CheckUnsavedChangesMessage())
             {
@@ -164,7 +169,7 @@ namespace grzyClothTool
                         }
                     }
 
-                    await AddonManager.LoadAddon(dir);
+                    await AddonManager.LoadAddon(dir, shouldSetProjectName);
                 }
 
                 ProgressHelper.Stop("Addon loaded in {0}", true);
@@ -185,7 +190,12 @@ namespace grzyClothTool
             }
         }
 
-        private async void ImportProject_Click(object sender, RoutedEventArgs e)
+        private void ImportProject_Click(object sender, RoutedEventArgs e)
+        {
+            _ = ImportProjectAsync();
+        }
+
+        public async Task ImportProjectAsync(bool shouldSetProjectName = false)
         {
 
             // open file dialog to select project file
@@ -204,6 +214,11 @@ namespace grzyClothTool
 
                 var selectedPath = openFileDialog.FileName;
                 var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+
+                if (shouldSetProjectName)
+                {
+                    AddonManager.ProjectName = projectName;
+                }
 
                 var buildPath = Path.Combine(tempPath, projectName + "_" + DateTime.UtcNow.Ticks.ToString());
 
@@ -243,11 +258,12 @@ namespace grzyClothTool
             // As export we can build current project as a fivem resource, because fivem is most common and it's easy to load it later
             // Then zip it and save it as a project file
 
+            var savedProjectName = string.IsNullOrWhiteSpace(AddonManager.ProjectName) ? "project" : AddonManager.ProjectName;
             SaveFileDialog saveFileDialog = new()
             {
                 Title = "Export project",
                 Filter = "grzyClothTool project (*.gctproject)|*.gctproject",
-                FileName = "project.gctproject"
+                FileName = $"{savedProjectName}.gctproject"
             };
 
             if (saveFileDialog.ShowDialog() == true)
@@ -264,6 +280,16 @@ namespace grzyClothTool
                 await bHelper.BuildFiveMResource();
 
                 var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
+
+                if (File.Exists(zipPath))
+                {
+                    File.Delete(zipPath);
+                }
+                if (File.Exists(selectedPath))
+                {
+                    File.Delete(selectedPath);
+                }
+
                 await Task.Run(() => ZipFile.CreateFromDirectory(buildPath, zipPath, CompressionLevel.Fastest, false));
                 await ObfuscationHelper.XORFile(zipPath, selectedPath);
 
