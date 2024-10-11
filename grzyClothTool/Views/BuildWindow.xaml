@@ -12,7 +12,7 @@
         Closing="Window_Closing"
         Title="(WIP) grzyClothTool - Build resource"
         Background="{DynamicResource Brush50}"
-        Height="450"
+        Height="500"
         Width="500">
     <Grid>
         <Grid.RowDefinitions>
@@ -61,6 +61,13 @@
                 HorizontalAlignment="Stretch"
                 IsFolderSelection="True"
                 Text="{Binding BuildPath}" />
+
+            <c:ModernLabelCheckBox 
+                Label="Build addons as separate resources" 
+                x:Name="split_addons" 
+                VerticalAlignment="Top" 
+                Margin="10,10,10,0"
+                IsChecked="{Binding SplitAddons, Mode=TwoWay}"/>
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="15,5,15,5" >
