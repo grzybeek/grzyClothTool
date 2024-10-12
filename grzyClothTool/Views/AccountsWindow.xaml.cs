@@ -146,7 +146,7 @@ namespace grzyClothTool.Views
             }
             catch
             {
-                throw new Exception("Error while logging in, most likely missing files. Report it please");
+                MessageBox.Show("Failed to login");
             }
         }
 

@@ -26,4 +26,11 @@ public static class ObfuscationHelper
             await fsOutput.WriteAsync(buffer.AsMemory(0, bytesRead));
         }
     }
+
+    public static string HashString(string input)
+    {
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(input);
+        byte[] hash = System.Security.Cryptography.SHA256.HashData(data);
+        return BitConverter.ToString(hash).Replace("-", string.Empty);
+    }
 }

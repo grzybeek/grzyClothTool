@@ -146,7 +146,14 @@ namespace grzyClothTool
         {
             if(patreonAuthPlugin != null)
             {
-                await patreonAuthPlugin?.Run();
+                try
+                {
+                    await patreonAuthPlugin?.Run();
+                } 
+                catch
+                {
+                    //todo ignore?
+                }
             }
         }
 

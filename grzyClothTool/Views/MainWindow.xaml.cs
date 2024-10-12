@@ -42,6 +42,7 @@ namespace grzyClothTool
             InitializeComponent();
             this.Visibility = Visibility.Hidden;
             CWHelper.Init();
+            _ = TelemetryHelper.LogSession(true);
 
             _instance = this;
             _addonManager = new AddonManager();
@@ -187,6 +188,7 @@ namespace grzyClothTool
                 }
 
                 await SaveHelper.LoadAsync(saveFile);
+                NavigationHelper.Navigate("Project");
             }
         }
 
@@ -300,6 +302,8 @@ namespace grzyClothTool
         // if main window is closed, close CW window too
         private void Window_Closed(object sender, System.EventArgs e)
         {
+            _ = TelemetryHelper.LogSession(false);
+
             if (CWHelper.CWForm.formopen)
             {
                 CWHelper.CWForm.Close();
