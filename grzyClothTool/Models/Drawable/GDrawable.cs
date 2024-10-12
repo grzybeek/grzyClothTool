@@ -123,7 +123,19 @@ public class GDrawable : INotifyPropertyChanged
     public int Number { get; set; }
     public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
-    public GDrawableDetails Details { get; set; }
+    private GDrawableDetails _details;
+    public GDrawableDetails Details
+    {
+        get => _details;
+        set
+        {
+            if (_details != value)
+            {
+                _details = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public string? FirstPersonPath { get; set; } = null;
     public string? ClothPhysicsPath { get; set; } = null;
@@ -287,7 +299,6 @@ public class GDrawable : INotifyPropertyChanged
     [OnDeserialized]
     private void OnDeserialized(StreamingContext context)
     {
-       
         SetDrawableName();
     }
 
@@ -344,7 +355,7 @@ public class GDrawable : INotifyPropertyChanged
         MainWindow.AddonManager.Addons.Sort(true);
     }
 
-    private void OnTexturesChanged()
+    private void OnTexturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (Details == null)
         {
@@ -353,25 +364,6 @@ public class GDrawable : INotifyPropertyChanged
 
         Details.TexturesCount = Textures.Count;
         Details.Validate();
-    }
-
-    private void OnTexturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        switch (e.Action)
-        {
-            case NotifyCollectionChangedAction.Add:
-                OnTexturesChanged();
-                break;
-            case NotifyCollectionChangedAction.Remove:
-                OnTexturesChanged();
-                break;
-            case NotifyCollectionChangedAction.Reset:
-                OnTexturesChanged();
-                break;
-            default:
-                break;
-
-        }
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
