@@ -14,6 +14,7 @@ using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
 using grzyClothTool.Extensions;
+using System.Collections.Specialized;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -241,6 +242,7 @@ public class GDrawable : INotifyPropertyChanged
 
         FilePath = drawablePath;
         Textures = textures;
+        Textures.CollectionChanged += OnTexturesCollectionChanged;
         TypeNumeric = compType;
         Number = count;
         HasSkin = hasSkin;
@@ -253,7 +255,7 @@ public class GDrawable : INotifyPropertyChanged
 
         if (FilePath != null)
         {
-            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl(FilePath).ContinueWith(t =>
+            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl().ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
@@ -342,17 +344,47 @@ public class GDrawable : INotifyPropertyChanged
         MainWindow.AddonManager.Addons.Sort(true);
     }
 
+    private void OnTexturesChanged()
+    {
+        if (Details == null)
+        {
+            return;
+        }
+
+        Details.TexturesCount = Textures.Count;
+        Details.Validate();
+    }
+
+    private void OnTexturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        switch (e.Action)
+        {
+            case NotifyCollectionChangedAction.Add:
+                OnTexturesChanged();
+                break;
+            case NotifyCollectionChangedAction.Remove:
+                OnTexturesChanged();
+                break;
+            case NotifyCollectionChangedAction.Reset:
+                OnTexturesChanged();
+                break;
+            default:
+                break;
+
+        }
+    }
+
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    private static async Task<GDrawableDetails?> LoadDrawableDetailsWithConcurrencyControl(string path)
+    private async Task<GDrawableDetails?> LoadDrawableDetailsWithConcurrencyControl()
     {
         await _semaphore.WaitAsync();
         try
         {
-            return await GetDrawableDetailsAsync(path);
+            return await GetDrawableDetailsAsync();
         }
         finally
         {
@@ -360,9 +392,9 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
-    private static async Task<GDrawableDetails?> GetDrawableDetailsAsync(string path)
+    private async Task<GDrawableDetails?> GetDrawableDetailsAsync()
     {
-        var bytes = await File.ReadAllBytesAsync(path);
+        var bytes = await File.ReadAllBytesAsync(FilePath);
 
         var yddFile = new YddFile();
         await yddFile.LoadAsync(bytes);
@@ -423,6 +455,8 @@ public class GDrawable : INotifyPropertyChanged
                 };
             }
         }
+
+        details.TexturesCount = Textures.Count;
 
         details.Validate();
         return details;

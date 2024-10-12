@@ -24,6 +24,8 @@ public class GDrawableDetails : INotifyPropertyChanged
         Normal
     }
 
+    public int TexturesCount = 0;
+
     public Dictionary<DetailLevel, GDrawableModel?> AllModels { get; set; } = new()
     {
         { DetailLevel.High, null },
@@ -110,6 +112,12 @@ public class GDrawableDetails : INotifyPropertyChanged
                     Tooltip += $"[Embedded {key}] {message}\n";
                 }
             }
+        }
+
+        if (TexturesCount == 0)
+        {
+            IsWarning = true;
+            Tooltip += "Drawable lacks textures.\n";
         }
 
         // Remove trailing newline character
