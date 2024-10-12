@@ -1,5 +1,6 @@
 ﻿using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
+using grzyClothTool.Models;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -52,6 +53,20 @@ namespace grzyClothTool.Views
                 }
             }
         }
+
+        private bool _splitAddons;
+        public bool SplitAddons
+        {
+            get => _splitAddons;
+            set
+            {
+                if (_splitAddons != value)
+                {
+                    _splitAddons = value;
+                    OnPropertyChanged(nameof(SplitAddons));
+                }
+            }
+        }
         public string BuildPath { get; set; }
 
         private BuildResourceType _resourceType;
@@ -60,6 +75,10 @@ namespace grzyClothTool.Views
         {
             InitializeComponent();
             DataContext = this;
+
+            // check if there are more than one addon, if not disable split addons
+            // maybe this this could be handled by a separate variable or in XAML (?) - not sure
+            split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -125,7 +144,7 @@ namespace grzyClothTool.Views
                 timer.Start();
 
                 var progress = new Progress<int>(value => ProgressValue += value);
-                var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, progress, _resourceType);
+                var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, progress, _resourceType, SplitAddons);
 
                 await Task.Run(() => BuildResource(buildHelper)); // moved out of ui thread, so users don't think tool stopped responding
 
@@ -163,6 +182,18 @@ namespace grzyClothTool.Views
                     "Singleplayer" => BuildResourceType.Singleplayer,
                     _ => throw new NotImplementedException()
                 };
+
+
+                // Singleplayer doesn't support splitting addons
+                if (_resourceType == BuildResourceType.Singleplayer)
+                {
+                    SplitAddons = false;
+                    split_addons.IsEnabled = false;
+                }
+                else if (DataContext != null) // check if DataContext exist, to prevent error (happens on initialization)
+                {
+                    split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
+                }
             }
         }
 

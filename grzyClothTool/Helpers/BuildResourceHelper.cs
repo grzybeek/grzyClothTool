@@ -18,7 +18,9 @@ public class BuildResourceHelper
     private Addon _addon;
     private int _number;
     private readonly string _projectName;
-    private readonly string _buildPath;
+    private string _buildPath;
+    private readonly string _baseBuildPath;
+    private readonly bool _splitAddons;
     private readonly IProgress<int> _progress;
 
     private readonly bool shouldUseNumber = false;
@@ -26,12 +28,14 @@ public class BuildResourceHelper
     private readonly List<string> firstPersonFiles = [];
     private BuildResourceType _buildResourceType;
 
-    public BuildResourceHelper(string name, string path, IProgress<int> progress, BuildResourceType resourceType)
+    public BuildResourceHelper(string name, string path, IProgress<int> progress, BuildResourceType resourceType, bool splitAddons)
     {
         _projectName = name;
         _buildPath = path;
+        _baseBuildPath = path; // store base build path, as we will be modyfiyng _buildPath, when splitting addons
         _progress = progress;
         _buildResourceType = resourceType;
+        _splitAddons = splitAddons;
 
         shouldUseNumber = MainWindow.AddonManager.Addons.Count > 1;
     }
@@ -44,6 +48,11 @@ public class BuildResourceHelper
     public void SetNumber(int number)
     {
         _number = number;
+    }
+
+    public void UpdateBuildPath()
+    {
+        _buildPath = Path.Combine(_baseBuildPath, GetProjectName());
     }
 
     public string GetProjectName(int? number = null)
@@ -164,20 +173,48 @@ public class BuildResourceHelper
         var metaFiles = new List<string>();
         var tasks = new List<Task>();
 
-        foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+
+        // this could be merged into one if, but I prefer to keep it separate for readability
+        if (_splitAddons)
         {
-            SetAddon(selectedAddon);
-            SetNumber(counter);
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                SetAddon(selectedAddon);
+                SetNumber(counter);
+                UpdateBuildPath();
 
-            AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
-            AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
 
-            counter++;
+                await Task.WhenAll(tasks);
+                BuildFirstPersonAlternatesMeta();
+                BuildFxManifest(metaFiles);
+
+                counter++;
+
+                // we don't have to clear firstpersonalternates meta files, because they are cleared in BuildFxManifest
+                metaFiles.Clear();
+                tasks.Clear();
+            }
+        } 
+        else
+        {
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                SetAddon(selectedAddon);
+                SetNumber(counter);
+
+                AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
+
+                counter++;
+            }
+
+            await Task.WhenAll(tasks);
+            BuildFirstPersonAlternatesMeta();
+            BuildFxManifest(metaFiles);
         }
 
-        await Task.WhenAll(tasks);
-        BuildFirstPersonAlternatesMeta();
-        BuildFxManifest(metaFiles);
     }
 
     private void BuildFxManifest(List<string> metaFiles)
@@ -232,19 +269,42 @@ public class BuildResourceHelper
         var metaFiles = new List<string>();
         var tasks = new List<Task>();
 
-        foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+        if (_splitAddons)
         {
-            SetAddon(selectedAddon);
-            SetNumber(counter);
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                SetAddon(selectedAddon);
+                SetNumber(counter);
+                UpdateBuildPath();
 
-            AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
-            AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
 
-            counter++;
+                counter++;
+
+                await Task.WhenAll(tasks);
+                BuildAltVTomls(metaFiles);
+
+                metaFiles.Clear();
+                tasks.Clear();
+            }
         }
+        else
+        {
+            foreach (var selectedAddon in MainWindow.AddonManager.Addons)
+            {
+                SetAddon(selectedAddon);
+                SetNumber(counter);
 
-        await Task.WhenAll(tasks);
-        BuildAltVTomls(metaFiles);
+                AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
+                AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
+
+                counter++;
+            }
+
+            await Task.WhenAll(tasks);
+            BuildAltVTomls(metaFiles);
+        }
     }
 
     private async Task BuildAltVFilesAsync(SexType sex, byte[] ymtBytes, int counter)
