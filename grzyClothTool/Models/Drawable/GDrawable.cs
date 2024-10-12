@@ -14,6 +14,7 @@ using grzyClothTool.Controls;
 using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
 using grzyClothTool.Extensions;
+using System.Collections.Specialized;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -122,7 +123,19 @@ public class GDrawable : INotifyPropertyChanged
     public int Number { get; set; }
     public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
-    public GDrawableDetails Details { get; set; }
+    private GDrawableDetails _details;
+    public GDrawableDetails Details
+    {
+        get => _details;
+        set
+        {
+            if (_details != value)
+            {
+                _details = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public string? FirstPersonPath { get; set; } = null;
     public string? ClothPhysicsPath { get; set; } = null;
@@ -241,6 +254,7 @@ public class GDrawable : INotifyPropertyChanged
 
         FilePath = drawablePath;
         Textures = textures;
+        Textures.CollectionChanged += OnTexturesCollectionChanged;
         TypeNumeric = compType;
         Number = count;
         HasSkin = hasSkin;
@@ -253,7 +267,7 @@ public class GDrawable : INotifyPropertyChanged
 
         if (FilePath != null)
         {
-            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl(FilePath).ContinueWith(t =>
+            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl().ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
@@ -285,7 +299,6 @@ public class GDrawable : INotifyPropertyChanged
     [OnDeserialized]
     private void OnDeserialized(StreamingContext context)
     {
-       
         SetDrawableName();
     }
 
@@ -342,17 +355,28 @@ public class GDrawable : INotifyPropertyChanged
         MainWindow.AddonManager.Addons.Sort(true);
     }
 
+    private void OnTexturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (Details == null)
+        {
+            return;
+        }
+
+        Details.TexturesCount = Textures.Count;
+        Details.Validate();
+    }
+
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
-    private static async Task<GDrawableDetails?> LoadDrawableDetailsWithConcurrencyControl(string path)
+    private async Task<GDrawableDetails?> LoadDrawableDetailsWithConcurrencyControl()
     {
         await _semaphore.WaitAsync();
         try
         {
-            return await GetDrawableDetailsAsync(path);
+            return await GetDrawableDetailsAsync();
         }
         finally
         {
@@ -360,9 +384,9 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
-    private static async Task<GDrawableDetails?> GetDrawableDetailsAsync(string path)
+    private async Task<GDrawableDetails?> GetDrawableDetailsAsync()
     {
-        var bytes = await File.ReadAllBytesAsync(path);
+        var bytes = await File.ReadAllBytesAsync(FilePath);
 
         var yddFile = new YddFile();
         await yddFile.LoadAsync(bytes);
@@ -423,6 +447,8 @@ public class GDrawable : INotifyPropertyChanged
                 };
             }
         }
+
+        details.TexturesCount = Textures.Count;
 
         details.Validate();
         return details;

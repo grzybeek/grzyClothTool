@@ -24,6 +24,8 @@ public class GDrawableDetails : INotifyPropertyChanged
         Normal
     }
 
+    public int TexturesCount = 0;
+
     public Dictionary<DetailLevel, GDrawableModel?> AllModels { get; set; } = new()
     {
         { DetailLevel.High, null },
@@ -71,6 +73,7 @@ public class GDrawableDetails : INotifyPropertyChanged
             var model = AllModels[detailLevel];
             if (model == null)
             {
+                IsWarning = true;
                 Tooltip += $"[{detailLevel}] Missing LOD model.\n";
                 continue;
             }
@@ -95,6 +98,7 @@ public class GDrawableDetails : INotifyPropertyChanged
             var txt = EmbeddedTextures[key];
             if (txt == null)
             {
+                IsWarning = true;
                 Tooltip += $"Missing {key} texture.\n";
                 continue;
             }
@@ -110,6 +114,12 @@ public class GDrawableDetails : INotifyPropertyChanged
                     Tooltip += $"[Embedded {key}] {message}\n";
                 }
             }
+        }
+
+        if (TexturesCount == 0)
+        {
+            IsWarning = true;
+            Tooltip += "Drawable has no textures.\n";
         }
 
         // Remove trailing newline character
