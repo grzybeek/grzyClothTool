@@ -38,10 +38,10 @@ jobs:
 
       - name: Publish application
         run: |
-          dotnet publish -c Release -r win-x64 --self-contained false --output ./publish \
-          /p:PublishSingleFile=true \
-          /p:PublishReadyToRun=true \
-          /p:TargetFramework=net8.0-windows
+          dotnet publish ./grzyClothTool/grzyClothTool.csproj -c Release -r win-x64 --self-contained false --output ./publish `
+          -p:PublishSingleFile=true `
+          -p:PublishReadyToRun=true `
+          -p:TargetFramework=net8.0-windows
 
       - name: Create Zip
         run: |
