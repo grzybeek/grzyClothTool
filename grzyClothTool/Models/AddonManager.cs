@@ -4,15 +4,14 @@ using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -37,7 +36,7 @@ namespace grzyClothTool.Models
 
         public string ProjectName { get; set; }
 
-        [JsonProperty]
+        [JsonInclude]
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
 
         [JsonIgnore]

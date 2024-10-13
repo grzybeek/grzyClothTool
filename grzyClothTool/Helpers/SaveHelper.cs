@@ -1,12 +1,12 @@
 ﻿using grzyClothTool.Extensions;
 using grzyClothTool.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using static grzyClothTool.Controls.CustomMessageBox;
@@ -31,6 +31,11 @@ public static class SaveHelper
 
     public static bool HasUnsavedChanges { get; set; }
     public static bool SavingPaused { get; set; }
+
+    public static JsonSerializerOptions SerializerOptions
+    {
+        get { return new JsonSerializerOptions { WriteIndented = true }; }
+    }
 
     static SaveHelper()
     {
@@ -75,7 +80,7 @@ public static class SaveHelper
             timer.Start();
             LogHelper.Log("Started saving...");
 
-            var json = JsonConvert.SerializeObject(MainWindow.AddonManager, Formatting.Indented);
+            var json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             var filename = $"save_{_saveCounter}.json";
             var path = Path.Combine(SavesPath, filename);
 
@@ -134,7 +139,7 @@ public static class SaveHelper
         var path = Path.Combine(SavesPath, $"{save.FileName}.json");
 
         var json = await File.ReadAllTextAsync(path);
-        var addonManager = JsonConvert.DeserializeObject<AddonManager>(json);
+        var addonManager = JsonSerializer.Deserialize<AddonManager>(json);
 
         MainWindow.AddonManager.Addons.Clear();
         foreach (var addon in addonManager.Addons)

@@ -1,13 +1,13 @@
 ﻿using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
 using grzyClothTool.Models.Texture;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace grzyClothTool.Models;
 

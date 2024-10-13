@@ -1,5 +1,4 @@
 ﻿using grzyClothTool.Helpers;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -15,6 +14,7 @@ using System.Runtime.Serialization;
 using grzyClothTool.Models.Texture;
 using grzyClothTool.Extensions;
 using System.Collections.Specialized;
+using System.Text.Json.Serialization;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable

@@ -1,8 +1,7 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -111,7 +110,7 @@ namespace grzyClothTool.Views
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                PatreonList = JsonConvert.DeserializeObject<List<string>>(content);
+                PatreonList = JsonSerializer.Deserialize<List<string>>(content);
             }
         }
 
@@ -119,27 +118,41 @@ namespace grzyClothTool.Views
         {
             var url = "https://ghs.vercel.app/v3/sponsors/grzybeek";
 
-            var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
-            if (response.IsSuccessStatusCode)
+            try
             {
-                GhSponsorsList = [];
-                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var json = JObject.Parse(content);
-
-                var currentSponsors = json["sponsors"]?["current"];
-                if (currentSponsors != null)
+                var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
+                if (response.IsSuccessStatusCode)
                 {
-                    foreach (var sponsor in currentSponsors)
+                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    Console.WriteLine("JSON Response: " + content); // Log the JSON response
+
+                    GhSponsorsList = new List<string>();
+                    using var jsonDocument = JsonDocument.Parse(content);
+
+                    var currentSponsors = jsonDocument.RootElement.GetProperty("sponsors").GetProperty("current");
+                    foreach (var sponsor in currentSponsors.EnumerateArray())
                     {
-                        var username = sponsor["username"]?.ToString();
+                        var username = sponsor.GetProperty("username").GetString();
                         if (!string.IsNullOrEmpty(username))
                         {
                             GhSponsorsList.Add(username);
                         }
                     }
-                }
 
-                OnPropertyChanged(nameof(GhSponsorsList));
+                    OnPropertyChanged(nameof(GhSponsorsList));
+                }
+                else
+                {
+                    Console.WriteLine("Failed to fetch GitHub sponsors. Status code: " + response.StatusCode);
+                }
+            }
+            catch (JsonException jsonEx)
+            {
+                Console.WriteLine("JSON Parsing Error: " + jsonEx.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: " + ex.Message);
             }
         }
 

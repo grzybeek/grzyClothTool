@@ -51,7 +51,7 @@ namespace grzyClothTool
 
             CheckPluginsVersion().Wait();
             LoadPlugins();
-            RunPlugins();
+            RunPlugins().Wait();
 
             //get value from settings properties
             bool isDarkTheme = Settings.Default.IsDarkMode;
@@ -162,16 +162,18 @@ namespace grzyClothTool
                 var response = await httpClient.GetAsync(url).ConfigureAwait(false);
                 if (response.IsSuccessStatusCode)
                 {
+                    if (response.Content.Headers.ContentLength == 0)
+                    {
+                        // plugin is up-to-date
+                        return;
+                    }
+
                     if (response.Content.Headers.ContentType.MediaType == "application/octet-stream")
                     {
                         var bytes = await response.Content.ReadAsByteArrayAsync();
                         var filename = response.Content.Headers.ContentDisposition?.FileName?.Trim('"');
                         var savePath = Path.Combine(pluginsPath, filename);
                         await File.WriteAllBytesAsync(savePath, bytes);
-                    }
-                    else
-                    {
-                        // The response does not contain a file.
                     }
                 }
                 else
@@ -189,7 +191,7 @@ namespace grzyClothTool
             }
         }
 
-        private static async void RunPlugins()
+        private static async Task RunPlugins()
         {
             if(patreonAuthPlugin != null)
             {
@@ -217,8 +219,6 @@ namespace grzyClothTool
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            Show($"An error occurred: {e.Exception.Message}", "Error", CustomMessageBoxButtons.OKOnly);
-
             File.WriteAllText("error.log", e.Exception.ToString());
             SentrySdk.CaptureException(e.Exception);
 
