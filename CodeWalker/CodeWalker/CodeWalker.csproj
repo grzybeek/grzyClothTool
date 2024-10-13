@@ -10,6 +10,7 @@
     <Company>dexyfex software</Company>
     <Authors>dexyfex</Authors>
     <BaseOutputPath>..\..\packages\</BaseOutputPath>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
 	<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
@@ -24,6 +25,7 @@
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageReference Include="SharpDX.XAudio2" Version="4.2.0" />
     <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
+    <PackageReference Include="System.Resources.Extensions" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
