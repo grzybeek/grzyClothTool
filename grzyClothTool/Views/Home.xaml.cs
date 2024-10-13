@@ -69,6 +69,7 @@ namespace grzyClothTool.Views
             InitializeComponent();
             DataContext = this;
 
+            GhSponsorsList = [];
             Loaded += Home_Loaded;
         }
 
