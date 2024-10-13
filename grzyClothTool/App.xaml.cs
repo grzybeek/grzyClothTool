@@ -14,6 +14,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Net.Http;
+using Sentry;
+using System.Windows.Threading;
+using Sentry.Profiling;
 
 namespace grzyClothTool
 {
@@ -25,7 +28,8 @@ namespace grzyClothTool
         public static ISplashScreen splashScreen;
         private ManualResetEvent ResetSplashCreated;
         private Thread SplashThread;
-        public static readonly HttpClient httpClient = new();
+        private static readonly SentryHttpMessageHandler httpHandler = new();
+        public static readonly HttpClient httpClient = new(httpHandler);
         private static readonly string pluginsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "grzyClothTool", "plugins");
 
         [ImportMany]
@@ -57,8 +61,51 @@ namespace grzyClothTool
         public App()
         {
             MaterialIconDataProvider.Instance = new CustomIconProvider(); // use custom icons
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
             httpClient.DefaultRequestHeaders.Add("X-GrzyClothTool", "true");
+
+            try
+            {
+                var sentryDsn = GetSentryDsnAsync().GetAwaiter().GetResult();
+
+                SentrySdk.Init(options =>
+                {
+                    options.Dsn = sentryDsn;
+                    options.StackTraceMode = StackTraceMode.Enhanced;
+                    options.IsGlobalModeEnabled = true;
+                    options.AutoSessionTracking = true;
+
+                    options.Debug = true;
+                    options.TracesSampleRate = 1.0;
+                    options.ProfilesSampleRate = 1.0;
+
+                    options.AddIntegration(new ProfilingIntegration());
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to initialize Sentry: {ex.Message}");
+            }
+
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+        }
+
+        private static async Task<string> GetSentryDsnAsync()
+        {
+            try
+            {
+                string url = "https://www.grzybeek.pl/grzyClothTool/sentry-dsn";
+                var response = await httpClient.GetAsync(url).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+
+                var dsn = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                return dsn;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                throw;
+            }
         }
 
         private void LoadPlugins()
@@ -164,13 +211,16 @@ namespace grzyClothTool
             Show($"An error occurred: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly);
             File.WriteAllText("error.log", ex.ToString());
             Console.WriteLine("Unhandled exception: " + ex.ToString());
+
+            SentrySdk.CaptureException(ex);
         }
 
-        private void DispatcherUnhandledExceptionHandler(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
             Show($"An error occurred: {e.Exception.Message}", "Error", CustomMessageBoxButtons.OKOnly);
+
             File.WriteAllText("error.log", e.Exception.ToString());
-            Console.WriteLine("Dispatcher unhandled exception: " + e.Exception.ToString());
+            SentrySdk.CaptureException(e.Exception);
 
             e.Handled = true;
         }

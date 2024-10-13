@@ -249,7 +249,7 @@ namespace CodeWalker.Utils
                                 if (images[index].rowPitch <= 0)
                                     throw new Exception("Invalid row pitch.");
                                 if (images[index].slicePitch <= 0)
-                                    throw new Exception("Invalid slice pitch.");
+                                    throw new Exception($"Invalid slice pitch. Texture: {texture.Name}");
                                 //if (images[index].pixels)
                                 //    return E_POINTER;
 
@@ -312,7 +312,7 @@ namespace CodeWalker.Utils
                                 if (images[index].rowPitch <= 0)
                                     throw new Exception("Invalid row pitch.");
                                 if (images[index].slicePitch <= 0)
-                                    throw new Exception("Invalid slice pitch.");
+                                    throw new Exception($"Invalid slice pitch. Texture: {texture.Name}");
                                 //if (!images[index].pixels)
                                 //    return E_POINTER;
 

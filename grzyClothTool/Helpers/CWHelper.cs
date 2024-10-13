@@ -101,8 +101,15 @@ public static class CWHelper
 
     public static void SendDrawableUpdateToPreview(EventArgs args)
     {
+        // MainWindow.AddonManager.IsPreviewEnabled is still true, but preview window is closed already
+        // It causes deadlock if user is fast enough to select different drawable. Check if form is open
+        if (!CWForm.formopen || CWForm.isLoading) return;
+
         GDrawable selectedDrawable = MainWindow.AddonManager.SelectedAddon.SelectedDrawable;
         GTexture selectedTexture = MainWindow.AddonManager.SelectedAddon.SelectedTexture;
+
+        // Don't send anything if no drawable selected
+        if (selectedDrawable == null) return;
 
         var ydd = CreateYddFile(selectedDrawable);
         YtdFile ytd = null;
@@ -112,7 +119,8 @@ public static class CWHelper
             CWForm.LoadedTexture = ytd.TextureDict;
         }
 
-        var firstDrawable = ydd.Drawables.First();
+        var firstDrawable = ydd.Drawables.FirstOrDefault();
+        if (firstDrawable == null) return;
 
         CWForm.LoadedDrawable = firstDrawable;
         CWForm.Refresh();

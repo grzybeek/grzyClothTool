@@ -27,6 +27,8 @@ namespace CodeWalker
         public object RenderSyncRoot { get { return Renderer.RenderSyncRoot; } }
 
         public volatile bool formopen = false;
+
+        public bool isLoading = true;
         volatile bool running = false;
         volatile bool pauserendering = false;
         //volatile bool initialised = false;
@@ -477,7 +479,7 @@ namespace CodeWalker
 
 
             LoadWorld();
-
+            isLoading = false;
             Task.Run(() => {
                 while (formopen && !IsDisposed) //renderer content loop
                 {

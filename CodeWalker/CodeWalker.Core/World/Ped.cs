@@ -73,6 +73,7 @@ namespace CodeWalker.World
 
 
             CPedModelInfo__InitData initdata = null;
+            if (gfc.PedsInitDict == null) return;
             if (!gfc.PedsInitDict.TryGetValue(pedhash, out initdata)) return;
 
             var ycdhash = JenkHash.GenHash(initdata.ClipDictionaryName.ToLowerInvariant());

@@ -235,7 +235,7 @@ namespace grzyClothTool.Views
 
         private void CWForm_FormClosed(object sender, FormClosedEventArgs e)
         {
-            MainWindow.AddonManager.IsPreviewEnabled = false;
+                MainWindow.AddonManager.IsPreviewEnabled = false;
         }
 
         private void SelectedDrawable_Changed(object sender, EventArgs e)
