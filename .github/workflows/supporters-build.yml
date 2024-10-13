@@ -19,13 +19,13 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.x'
+          dotnet-version: '8.0.400'
 
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build solution
-        run: dotnet build --configuration Release
+      - name: Build
+        run: dotnet build --configuration Release --verbosity detailed
 
       - name: Publish application
         run: |
@@ -34,24 +34,45 @@ jobs:
           /p:PublishReadyToRun=true \
           /p:TargetFramework=net8.0-windows
 
-      - name: Zip published app
+      - name: Create Zip
         run: |
-          powershell Compress-Archive -Path ./publish/* -DestinationPath ./grzyClothTool-supporters.zip
+          cd publish
+          powershell Compress-Archive -Path * -DestinationPath ../grzyClothTool-supporters.zip
 
-      - name: Notify Discord with the zip file (on success)
-        if: success()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Send Discord Notification
         run: |
-          curl -F "payload_json={\"content\": \"✅ Build grzyClothTool succeeded. Here's the build zip:\"}" \
-               -F "file=@./grzyClothTool-supporters.zip" \
-               $DISCORD_WEBHOOK
+          # Prepare the zip file path and Discord webhook URL
+          $zipFilePath = "grzyClothTool-supporters.zip"
+          $webhookUrl = "${{ secrets.DISCORD_WEBHOOK }}"
 
-      - name: Notify Discord on failure
-        if: failure()
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{\"content\": \"❌ Build failed for grzyClothTool!\"}" \
-          $DISCORD_WEBHOOK
+          # Create the JSON payload
+          $jsonPayload = @{
+            username = "GitHub"
+            content = "Hello"
+            embeds = @(
+              @{
+                type = "rich"
+                title = "Build Status Update"
+                description = "✅ Build grzyClothTool succeeded! Here's the build zip:"
+                color = 2123412
+                thumbnail = @{
+                  url = "https://avatars.githubusercontent.com/u/160980408?v=4"
+                }
+                author = @{
+                  name = "${{ github.actor }}"
+                  url = "https://github.com/${{ github.actor }}"
+                  icon_url = "https://avatars.githubusercontent.com/u/${{ github.actor_id }}?v=4"
+                }
+                url = "https://github.com/grzybeek/grzyClothTool"  # Change to your repository URL
+                fields = @(
+                  @{
+                    name = "Download Build Zip"
+                    value = "[grzyClothTool-supporters.zip](attachment://grzyClothTool-supporters.zip)"
+                  }
+                )
+              }
+            )
+          } | ConvertTo-Json
+
+          # Send the message with the zip file
+          curl -X POST $webhookUrl -F "payload_json=$jsonPayload" -F "file=@$zipFilePath"
