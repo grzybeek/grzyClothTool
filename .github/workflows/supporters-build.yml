@@ -1,0 +1,57 @@
+name: Build grzyClothTool for supporters
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --configuration Release
+
+      - name: Publish application
+        run: |
+          dotnet publish -c Release -r win-x64 --self-contained false --output ./publish \
+          /p:PublishSingleFile=true \
+          /p:PublishReadyToRun=true \
+          /p:TargetFramework=net8.0-windows
+
+      - name: Zip published app
+        run: |
+          powershell Compress-Archive -Path ./publish/* -DestinationPath ./grzyClothTool-supporters.zip
+
+      - name: Notify Discord with the zip file (on success)
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -F "payload_json={\"content\": \"✅ Build grzyClothTool succeeded. Here's the build zip:\"}" \
+               -F "file=@./grzyClothTool-supporters.zip" \
+               $DISCORD_WEBHOOK
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{\"content\": \"❌ Build failed for grzyClothTool!\"}" \
+          $DISCORD_WEBHOOK
