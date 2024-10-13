@@ -51,7 +51,7 @@ namespace grzyClothTool
 
             CheckPluginsVersion().Wait();
             LoadPlugins();
-            RunPlugins().Wait();
+            _ = RunPlugins();
 
             //get value from settings properties
             bool isDarkTheme = Settings.Default.IsDarkMode;
