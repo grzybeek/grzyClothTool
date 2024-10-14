@@ -27,6 +27,15 @@ jobs:
         with:
           dotnet-version: "8.0.400"
 
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Clean
+        run: dotnet clean
+
+      - name: Build
+        run: dotnet build
+
       - name: Publish application
         run: |
           dotnet publish ./grzyClothTool/grzyClothTool.csproj -c Release -r win-x64 --self-contained false --output ./publish `
