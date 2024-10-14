@@ -54,6 +54,6 @@ jobs:
           MESSAGE_TEXT: "✅ Build grzyClothTool succeeded! Here is the build ZIP:"
         run: |
           # Set up the file path for the attachment
-          set "attachment=./grzyClothTool/grzyClothTool-supporters.zip"
+          set "attachment=./grzyClothTool-supporters.zip"
           set "message_text=%MESSAGE_TEXT%"
           curl -k -F "payload_json={\"content\": \"%message_text%\"}" -F "file1=@%attachment%" %WEBHOOK_URL%
