@@ -48,6 +48,10 @@ jobs:
           cd publish
           powershell Compress-Archive -Path * -DestinationPath ../grzyClothTool-supporters.zip
 
+      - name: List files in the root directory
+        run: |
+          Get-ChildItem -Path . -Recurse
+
       - name: Send notification to Discord
         env:
           WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
