@@ -1800,9 +1800,9 @@ namespace CodeWalker.Rendering
                             { continue; } //filter out certain geometries like certain hair parts that shouldn't render by default
                         }
 
-                        if (SelDrawable != null && (SelDrawable.IsHairScaleEnabled || SelectedDrawableChanged))
+                        if (geom.isHair)
                         {
-                            if (geom.isHair)
+                            if (SelDrawable != null && (SelDrawable.IsHairScaleEnabled || SelectedDrawableChanged))
                             {
                                 Bone[] scaleBones = new Bone[2];
                                 if (rndbl.Skeleton?.Bones == null) continue;
@@ -1816,14 +1816,14 @@ namespace CodeWalker.Rendering
                                 {
                                     b.Scale = SelDrawable.IsHairScaleEnabled ? new Vector3(SelDrawable.HairScaleValue, SelDrawable.HairScaleValue, SelDrawable.HairScaleValue) : new Vector3(1.0f, 1.0f, 1.0f);
                                 }
-                            }
 
-                            if (SelectedDrawableChanged)
-                            {
-                                renderfloor = SelDrawable.IsHighHeelsEnabled;
-                                rndbl.ResetBoneTransforms();
-                                geom.Init(dgeom);
-                                SelectedDrawableChanged = false;
+                                if (SelectedDrawableChanged)
+                                {
+                                    renderfloor = SelDrawable.IsHighHeelsEnabled;
+                                    rndbl.ResetBoneTransforms();
+                                    geom.Init(dgeom);
+                                    SelectedDrawableChanged = false;
+                                }
                             }
                         }
 
