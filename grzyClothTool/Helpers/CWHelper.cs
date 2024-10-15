@@ -75,28 +75,35 @@ public static class CWHelper
 
     public static YddFile CreateYddFile(GDrawable d)
     {
-        byte[] data = File.ReadAllBytes(d.FilePath);
-
-        RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
-        var decompressedData = ResourceBuilder.Decompress(data);
-        YddFile ydd = RpfFile.GetFile<YddFile>(rpf, decompressedData);
-        var drawable = ydd.Drawables.First();
-        drawable.Name = Path.GetFileNameWithoutExtension(d.Name);
-
-        drawable.IsHairScaleEnabled = d.EnableHairScale;
-        if (drawable.IsHairScaleEnabled)
+        try
         {
-            drawable.HairScaleValue = d.HairScaleValue;
-        }
+            byte[] data = File.ReadAllBytes(d.FilePath);
 
-        drawable.IsHighHeelsEnabled = d.EnableHighHeels;
-        if (drawable.IsHighHeelsEnabled)
+            RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
+            var decompressedData = ResourceBuilder.Decompress(data);
+            YddFile ydd = RpfFile.GetFile<YddFile>(rpf, decompressedData);
+            var drawable = ydd.Drawables.First();
+            drawable.Name = Path.GetFileNameWithoutExtension(d.Name);
+
+            drawable.IsHairScaleEnabled = d.EnableHairScale;
+            if (drawable.IsHairScaleEnabled)
+            {
+                drawable.HairScaleValue = d.HairScaleValue;
+            }
+
+            drawable.IsHighHeelsEnabled = d.EnableHighHeels;
+            if (drawable.IsHighHeelsEnabled)
+            {
+                drawable.HighHeelsValue = d.HighHeelsValue / 10;
+            }
+
+            return ydd;
+        }
+        catch (Exception ex)
         {
-            drawable.HighHeelsValue = d.HighHeelsValue / 10;
+            TelemetryHelper.CaptureExceptionWithAttachment(ex, d.FilePath);
+            throw;
         }
-
-
-        return ydd;
     }
 
     public static void SendDrawableUpdateToPreview(EventArgs args)

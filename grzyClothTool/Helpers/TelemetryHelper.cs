@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Sentry;
+using System;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +46,23 @@ public class TelemetryHelper
         catch (HttpRequestException)
         {
             // ignore?
+        }
+    }
+
+    public static void CaptureExceptionWithAttachment(Exception ex, string path)
+    {
+        if (File.Exists(path))
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+            SentrySdk.CaptureException(ex, scope =>
+            {
+                scope.SetExtra("AttachedFileName", Path.GetFileName(path));
+                scope.AddAttachment(stream, Path.GetFileName(path));
+            });
+        }
+        else
+        {
+            SentrySdk.CaptureException(ex);
         }
     }
 }

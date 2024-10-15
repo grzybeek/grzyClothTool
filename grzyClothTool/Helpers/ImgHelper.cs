@@ -18,22 +18,30 @@ public static class ImgHelper
     {
         string ext = Path.GetExtension(path);
 
-        if(ext == ".ytd")
+        try
         {
-            var ytd = CWHelper.GetYtdFile(path);
-
-            if (ytd.TextureDict.Textures.Count == 0)
+            if(ext == ".ytd")
             {
-                return null;
-            }
-            var txt = ytd.TextureDict.Textures[0];
-            var dds = CodeWalker.Utils.DDSIO.GetDDSFile(txt);
+                var ytd = CWHelper.GetYtdFile(path);
 
-            return new MagickImage(dds);
+                if (ytd.TextureDict.Textures.Count == 0)
+                {
+                    return null;
+                }
+                var txt = ytd.TextureDict.Textures[0];
+                var dds = CodeWalker.Utils.DDSIO.GetDDSFile(txt);
+
+                return new MagickImage(dds);
+            }
+            else
+            {
+                return new MagickImage(path);
+            }
         }
-        else
+        catch (Exception e) when (e.Message.Contains("Invalid slice pitch"))
         {
-            return new MagickImage(path);
+            TelemetryHelper.CaptureExceptionWithAttachment(e, path);
+            throw;
         }
     }
 
