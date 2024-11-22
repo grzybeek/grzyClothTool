@@ -144,9 +144,10 @@ public static class SaveHelper
         MainWindow.AddonManager.Addons.Clear();
         foreach (var addon in addonManager.Addons)
         {
+            addon.OnDeserialized();
             MainWindow.AddonManager.Addons.Add(addon);
         }
-
+        
         LogHelper.Log($"Loaded save: {save.SaveDate}");
     }
 

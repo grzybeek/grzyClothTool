@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,8 +18,8 @@ public class GTexture : INotifyPropertyChanged
     private readonly static SemaphoreSlim _semaphore = new(3);
 
     public event PropertyChangedEventHandler PropertyChanged;
-    public string FilePath;
-    public string Extension;
+    public string FilePath { get; set; }
+    public string Extension { get; set; }
 
     public string DisplayName
     {
@@ -83,6 +84,9 @@ public class GTexture : INotifyPropertyChanged
     }
 
     public bool IsPreviewDisabled { get; set; }
+
+    [JsonConstructor]
+    public GTexture() {}
 
     public GTexture(string path, int compType, int drawableNumber, int txtNumber, bool hasSkin, bool isProp)
     {

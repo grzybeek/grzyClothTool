@@ -90,6 +90,27 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
+    [JsonConstructor]
+    public Addon()
+    {
+        Drawables = [];
+        SelectedDrawables = [];
+        SelectedDrawables.CollectionChanged += (sender, e) =>
+        {
+            OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
+        };
+        
+    }
+    
+    public void OnDeserialized()
+    {
+        foreach (var drawable in Drawables)
+        {
+            drawable.OnDeserialized();
+        }
+        MainWindow.AddonManager.MoveMenuItems.Add(new MoveMenuItem() { Header = Name, IsEnabled = true });
+    }
+
     public Addon(string projectName)
     {
         Name = projectName;

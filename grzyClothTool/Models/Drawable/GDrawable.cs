@@ -248,6 +248,12 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
+    [JsonConstructor]
+    public GDrawable(ObservableCollection<GTexture> textures)
+    {
+        Textures = textures;
+    }
+
     public GDrawable(string drawablePath, Enums.SexType sex, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
@@ -296,8 +302,7 @@ public class GDrawable : INotifyPropertyChanged
 
 
     //this will be called after deserialization
-    [OnDeserialized]
-    private void OnDeserialized(StreamingContext context)
+    public void OnDeserialized()
     {
         SetDrawableName();
     }
