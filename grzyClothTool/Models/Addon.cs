@@ -90,9 +90,9 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-    public Addon(string projectName)
+    public Addon(string name)
     {
-        Name = projectName;
+        Name = name;
 
         Drawables = [];
         SelectedDrawables = [];
@@ -101,9 +101,9 @@ public class Addon : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
         };
 
-        MainWindow.AddonManager.MoveMenuItems.Add(new MoveMenuItem() { Header = projectName, IsEnabled = true });
+        MainWindow.AddonManager.MoveMenuItems.Add(new MoveMenuItem() { Header = name, IsEnabled = true });
 
-        if (projectName == "design")
+        if (name == "design")
         {
             for (int i = 1; i < 50; i++)
             {
@@ -111,7 +111,7 @@ public class Addon : INotifyPropertyChanged
                 Drawables.Add(
                     new GDrawable("grzyClothTool/Assets/jbib_000_u.ydd", sexEnum, false, 11, i, false,
                     [
-                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false), 
+                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false),
                         new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 1, false, false)
                     ]
                 ));

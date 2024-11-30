@@ -17,15 +17,15 @@ public class GTexture : INotifyPropertyChanged
     private readonly static SemaphoreSlim _semaphore = new(3);
 
     public event PropertyChangedEventHandler PropertyChanged;
-    public string FilePath;
-    public string Extension;
+    public string FilePath { get; set; }
+    public string Extension { get; set; }
 
     public string DisplayName
     {
         get { return GetName(HasSkin); }
     }
 
-    public int Number;
+    public int Number { get; set; }
     private int _txtNumber;
     public int TxtNumber
     {
@@ -36,7 +36,7 @@ public class GTexture : INotifyPropertyChanged
             OnPropertyChanged("DisplayName");
         }
     }
-    public char TxtLetter;
+    public char TxtLetter { get; set; }
     public int TypeNumeric { get; set; }
     public string TypeName => EnumHelper.GetName(TypeNumeric, IsProp);
 
@@ -52,8 +52,8 @@ public class GTexture : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsLoading));
         }
     }
-    public bool IsProp;
-    public bool HasSkin;
+    public bool IsProp { get; set; }
+    public bool HasSkin { get; set; }
 
     private bool _isOptimizedDuringBuild;
     public bool IsOptimizedDuringBuild
@@ -84,21 +84,21 @@ public class GTexture : INotifyPropertyChanged
 
     public bool IsPreviewDisabled { get; set; }
 
-    public GTexture(string path, int compType, int drawableNumber, int txtNumber, bool hasSkin, bool isProp)
+    public GTexture(string filePath, int typeNumeric, int number, int txtNumber, bool hasSkin, bool isProp)
     {
         IsLoading = true;
 
-        FilePath = path;
-        Extension = Path.GetExtension(path);
-        Number = drawableNumber;
+        FilePath = filePath;
+        Extension = Path.GetExtension(filePath);
+        Number = number;
         TxtNumber = txtNumber;
-        TypeNumeric = compType;
+        TypeNumeric = typeNumeric;
         IsProp = isProp;
         HasSkin = hasSkin;
 
-        if (path != null)
+        if (filePath != null)
         {
-            Task<GTextureDetails?> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(path).ContinueWith(t =>
+            Task<GTextureDetails?> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(filePath).ContinueWith(t =>
             {
                 if (t.IsFaulted)
                 {
@@ -127,7 +127,6 @@ public class GTexture : INotifyPropertyChanged
             });
         }
     }
-
 
     private string GetName(bool hasSkin)
     {
@@ -194,6 +193,6 @@ public class GTexture : INotifyPropertyChanged
         }
 
         return null;
-
     }
 }
+

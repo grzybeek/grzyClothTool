@@ -248,15 +248,15 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
-    public GDrawable(string drawablePath, Enums.SexType sex, bool isProp, int compType, int count, bool hasSkin, ObservableCollection<GTexture> textures)
+    public GDrawable(string filePath, Enums.SexType sex, bool isProp, int typeNumeric, int number, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
 
-        FilePath = drawablePath;
+        FilePath = filePath;
         Textures = textures;
         Textures.CollectionChanged += OnTexturesCollectionChanged;
-        TypeNumeric = compType;
-        Number = count;
+        TypeNumeric = typeNumeric;
+        Number = number;
         HasSkin = hasSkin;
         Sex = sex;
         IsProp = isProp;
@@ -292,14 +292,6 @@ public class GDrawable : INotifyPropertyChanged
                 return t.Result;
             });
         }
-    }
-
-
-    //this will be called after deserialization
-    [OnDeserialized]
-    private void OnDeserialized(StreamingContext context)
-    {
-        SetDrawableName();
     }
 
     protected GDrawable(Enums.SexType sex, bool isProp, int compType, int count) { /* Used in GReservedDrawable */ }
