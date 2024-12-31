@@ -158,6 +158,18 @@ public static class FileHelper
         return (false, -1);
     }
 
+    public static int? GetDrawableNumberFromFileName(string fileName)
+    {
+        Regex numberRegex = new(@"_(\d{3})_([a-zA-Z])\.yld$", RegexOptions.Compiled);
+        Match match = numberRegex.Match(fileName);
+
+        if (match.Success)
+        {
+            return int.Parse(match.Groups[1].Value);
+        }
+        return null;
+    }
+
     public static async Task SaveTexturesAsync(List<GTexture> textures, string folderPath, string format)
     {
         Directory.CreateDirectory(folderPath);

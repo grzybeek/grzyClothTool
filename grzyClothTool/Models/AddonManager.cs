@@ -207,7 +207,19 @@ namespace grzyClothTool.Models
                 {
                     if (filePath.EndsWith("_1.ydd")) {
                         // Add only first alternate variation as first person file
-                        drawablesOfType.FirstOrDefault(x => x.Number == countOfType - 1).FirstPersonPath = filePath;
+
+                        var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                        if (number == null)
+                        {
+                            LogHelper.Log($"Could not find associated YDD file for first person file: {filePath}, please do it manually", Views.LogType.Warning);
+                            continue;
+                        }
+
+                        var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
+                        if (foundDrawable != null)
+                        {
+                            foundDrawable.FirstPersonPath = filePath;
+                        }
                     }
 
                     // Skip all other alternate variations (_2, _3, etc.)
@@ -216,7 +228,18 @@ namespace grzyClothTool.Models
 
                 if (physicsRegex.IsMatch(filePath))
                 {
-                    drawablesOfType.FirstOrDefault(x => x.Number == countOfType - 1).ClothPhysicsPath = filePath;
+                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                    if (number == null)
+                    {
+                        LogHelper.Log($"Could not find associated YDD file for this YLD: {filePath}, please do it manually", Views.LogType.Warning);
+                        continue;
+                    }
+
+                    var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
+                    if (foundDrawable != null)
+                    {
+                        foundDrawable.ClothPhysicsPath = filePath;
+                    }
 
                     continue;
                 }
