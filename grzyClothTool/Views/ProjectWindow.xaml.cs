@@ -229,6 +229,8 @@ namespace grzyClothTool.Views
                 CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
             }
 
+            CWHelper.SetPedModel(Addon.SelectedDrawable.Sex);
+
             CWHelper.CWForm.Show();
             MainWindow.AddonManager.IsPreviewEnabled = true;
         }

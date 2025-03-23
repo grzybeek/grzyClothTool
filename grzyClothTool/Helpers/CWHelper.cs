@@ -106,6 +106,13 @@ public static class CWHelper
         }
     }
 
+    public static void SetPedModel(Enums.SexType sexType)
+    {
+        string pedModel = sexType == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
+        PrevDrawableSex = sexType;
+        CWForm.PedModel = pedModel;
+    }
+
     public static void SendDrawableUpdateToPreview(EventArgs args)
     {
         // MainWindow.AddonManager.IsPreviewEnabled is still true, but preview window is closed already
@@ -144,10 +151,8 @@ public static class CWHelper
 
         if (PrevDrawableSex != selectedDrawable.Sex)
         {
-            PrevDrawableSex = selectedDrawable.Sex;
-            updateName = "GenderChanged";
-            value = selectedDrawable.Sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
-            updateDict.Add(updateName, value);
+            SetPedModel(selectedDrawable.Sex);
+            updateDict.Add("GenderChanged", "");
         }
 
         CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateDict);

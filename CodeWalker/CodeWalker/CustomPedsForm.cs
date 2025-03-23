@@ -65,6 +65,7 @@ namespace CodeWalker
         int toolsPanelResizeStartRight = 0;
 
 
+        public string PedModel = "mp_f_freemode_01";
         Ped SelectedPed = new Ped();
         public Drawable LoadedDrawable = null;
         public TextureDictionary LoadedTexture = null;
@@ -763,10 +764,11 @@ namespace CodeWalker
             else
             {
 
-                //todo load ped depending on sex from clothtool
+                var index = PedModel == "mp_f_freemode_01" ? 0 : 1;
+
                 PedNameComboBox.Items.Add("mp_f_freemode_01");
                 PedNameComboBox.Items.Add("mp_m_freemode_01");
-                PedNameComboBox.SelectedIndex = 0;
+                PedNameComboBox.SelectedIndex = index;
             }
 
         }
@@ -948,7 +950,7 @@ namespace CodeWalker
                         highheelvaluechanged = true;
                         break;
                     case "GenderChanged":
-                        LoadPed(value);
+                        LoadPed(PedModel);
                         break;
                     default:
                         break;
