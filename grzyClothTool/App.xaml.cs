@@ -211,7 +211,9 @@ namespace grzyClothTool
             Exception ex = (Exception)e.ExceptionObject;
 
             Show($"An error occurred: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly);
-            File.WriteAllText("error.log", ex.ToString());
+            var date = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            var path = Path.Combine(AppContext.BaseDirectory, $"error-{date}.log");
+            File.WriteAllText(path, ex.ToString());
             Console.WriteLine("Unhandled exception: " + ex.ToString());
 
             SentrySdk.CaptureException(ex);
@@ -219,7 +221,9 @@ namespace grzyClothTool
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            File.WriteAllText("error.log", e.Exception.ToString());
+            var date = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
+            var path = Path.Combine(AppContext.BaseDirectory, $"error-{date}.log");
+            File.WriteAllText(path, e.Exception.ToString());
             SentrySdk.CaptureException(e.Exception);
 
             e.Handled = true;
