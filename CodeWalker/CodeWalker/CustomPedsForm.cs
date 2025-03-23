@@ -350,6 +350,11 @@ namespace CodeWalker
                 return;
             }
 
+            if(t.Textures.data_items.Count() == 0)
+            {
+                return;
+            }
+
             Renderer.RenderDrawable(d, null, SelectedPed.RenderEntity, 0, t, t.Textures.data_items[0], SelectedPed.AnimClip, null, null, isProp, true);
         }
 
