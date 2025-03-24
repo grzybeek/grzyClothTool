@@ -59,11 +59,12 @@
         </Style>
 
         <Style TargetType="ListBoxItem" x:Key="ListBoxItemTemplate">
+            <Setter Property="AllowDrop" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
-                            <Grid>
+                        <Border Background="Transparent" x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
+                            <Grid >
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
                                     <ColumnDefinition Width="150"/>
@@ -159,20 +160,27 @@
         </Style>
     </UserControl.Resources>
 
-    <ListBox 
-        Background="Transparent"
-        Foreground="{DynamicResource Brush950}"
-        x:Name="MyListBox" 
-        SelectionMode="Extended"
-        SelectionChanged="ListBox_SelectionChanged"
-        HorizontalContentAlignment="Stretch" 
-        ItemContainerStyle="{StaticResource ListBoxItemTemplate}" 
-        ItemsSource="{Binding ItemsSource, ElementName=MyDrawableList, UpdateSourceTrigger=PropertyChanged}"
-        d:ItemsSource="{Binding Drawables}"
-        BorderThickness="0" 
-        d:SelectedIndex="1"
-        d:Width="300"
-        PreviewKeyDown="DrawableList_PreviewKeyDown"
-        Style="{StaticResource ListBoxStyleWithContextMenu}"
-    />
+    <AdornerDecorator>
+        <ListBox 
+            Background="Transparent"
+            Foreground="{DynamicResource Brush950}"
+            x:Name="MyListBox" 
+            SelectionMode="Extended"
+            SelectionChanged="ListBox_SelectionChanged"
+            HorizontalContentAlignment="Stretch" 
+            ItemContainerStyle="{StaticResource ListBoxItemTemplate}" 
+            ItemsSource="{Binding ItemsSource, ElementName=MyDrawableList, UpdateSourceTrigger=PropertyChanged}"
+            d:ItemsSource="{Binding Drawables}"
+            BorderThickness="0" 
+            d:SelectedIndex="1"
+            d:Width="300"
+            PreviewKeyDown="DrawableList_PreviewKeyDown"
+            Style="{StaticResource ListBoxStyleWithContextMenu}"
+            AllowDrop="True"
+            PreviewMouseLeftButtonDown="MyListBox_PreviewMouseLeftButtonDown"
+            PreviewMouseMove="MyListBox_PreviewMouseMove"
+            Drop="MyListBox_Drop"
+            DragOver="MyListBox_DragOver"
+            />
+    </AdornerDecorator>
 </UserControl>

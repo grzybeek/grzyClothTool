@@ -26,6 +26,17 @@ public static class ObservableCollectionExtensions
         }
     }
 
+    public static void ReassignNumbers(this ObservableCollection<GDrawable> drawables, GDrawable drawable)
+    {
+        int counter = 0;
+
+        foreach (var item in drawables.Where(x => x.IsProp == drawable.IsProp && x.Sex == drawable.Sex && x.TypeNumeric == drawable.TypeNumeric))
+        {
+            item.Number = counter++;
+            item.SetDrawableName();
+        }
+    }
+
     public static void Sort(this ObservableCollection<Addon> addons, bool shouldReassignNumbers = false)
     {
         foreach (var addon in addons)

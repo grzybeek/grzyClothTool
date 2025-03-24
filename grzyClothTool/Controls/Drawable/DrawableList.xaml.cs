@@ -10,7 +10,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using static grzyClothTool.Controls.CustomMessageBox;
 
 namespace grzyClothTool.Controls
@@ -32,10 +35,7 @@ namespace grzyClothTool.Controls
             set { SetValue(ItemsSourceProperty, value); }
         }
 
-        public object DrawableListSelectedValue
-        {
-            get { return MyListBox.SelectedValue; }
-        }
+        public object DrawableListSelectedValue => MyListBox.SelectedValue;
 
         public DrawableList()
         {
@@ -44,23 +44,22 @@ namespace grzyClothTool.Controls
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-             DrawableListSelectedValueChanged?.Invoke(sender, e);
+            DrawableListSelectedValueChanged?.Invoke(sender, e);
         }
 
-        private void DrawableList_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        private void DrawableList_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             DrawableListKeyDown?.Invoke(sender, e);
         }
 
         private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
         {
-
+            //todo: Implement texture optimization logic here
         }
 
         private void MoveMenuItem_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = sender as MenuItem;
-
             if (menuItem?.Header is string addonName)
             {
                 var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
@@ -89,7 +88,7 @@ namespace grzyClothTool.Controls
         private void OpenFileLocation_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
-            FileHelper.OpenFileLocation(drawable.FilePath);
+            FileHelper.OpenFileLocation(drawable?.FilePath);
         }
 
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
@@ -156,7 +155,6 @@ namespace grzyClothTool.Controls
                     {
                         return;
                     }
-
                 }
 
                 await FileHelper.SaveDrawablesAsync(selectedDrawables, folderPath).ConfigureAwait(false);
@@ -165,6 +163,245 @@ namespace grzyClothTool.Controls
             {
                 MessageBox.Show($"An error occurred during export: {ex.Message}", "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        #region Drag and Drop
+
+        private Point _dragStartPoint;
+        private AdornerLayer _adornerLayer;
+        private GhostLineAdorner _ghostLineAdorner;
+
+
+        private void MyListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+        }
+
+        private void MyListBox_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Point mousePos = e.GetPosition(null);
+            Vector diff = _dragStartPoint - mousePos;
+
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                 Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                ListBox listBox = sender as ListBox;
+                ListBoxItem listBoxItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+
+                if (listBoxItem != null)
+                {
+                    if (_ghostLineAdorner != null)
+                    {
+                        _adornerLayer?.Remove(_ghostLineAdorner);
+                        _ghostLineAdorner = null;
+                    }
+
+                    _ghostLineAdorner = new GhostLineAdorner(MyListBox);
+
+                    _adornerLayer = AdornerLayer.GetAdornerLayer(MyListBox);
+                    _adornerLayer?.Add(_ghostLineAdorner);
+
+                    var selectedItem = listBox?.SelectedItem;
+
+                    if (selectedItem is GDrawable)
+                    {
+                        DataObject data = new DataObject(typeof(GDrawable), selectedItem);
+                        DragDrop.DoDragDrop(listBox, data, DragDropEffects.Move);
+                    }
+                }
+            }
+        }
+
+        private void MyListBox_DragOver(object sender, DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.Move;
+            Point position = e.GetPosition(MyListBox);
+            int index = GetCurrentIndex(position);
+
+            if (_ghostLineAdorner != null)
+            {
+                if (index >= 0 && index < ItemsSource.Count)
+                {
+                    _ghostLineAdorner.UpdatePosition(index);
+                }
+            }
+
+            var scrollViewer = FindChildOfType<ScrollViewer>(MyListBox);
+            if (scrollViewer != null)
+            {
+                const double heightOfAutoScrollZone = 35;
+                double mousePos = e.GetPosition(MyListBox).Y;
+
+                if (mousePos < heightOfAutoScrollZone)
+                {
+                    scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - 1);
+                }
+                else if (mousePos > MyListBox.ActualHeight - heightOfAutoScrollZone)
+                {
+                    scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + 1);
+                }
+            }
+        }
+
+        private void MyListBox_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(GDrawable)))
+            {
+                GDrawable droppedData = e.Data.GetData(typeof(GDrawable)) as GDrawable;
+                ListBox listBox = sender as ListBox;
+                GDrawable target = ((FrameworkElement)e.OriginalSource).DataContext as GDrawable;
+
+                if (droppedData != null && target != null && ItemsSource != null)
+                {
+                    if (droppedData.Sex != target.Sex || droppedData.TypeNumeric != target.TypeNumeric || droppedData.IsProp != target.IsProp)
+                    {
+                        return;
+                    }
+
+                    int oldIndex = ItemsSource.IndexOf(droppedData);
+                    int newIndex = ItemsSource.IndexOf(target);
+
+                    if (oldIndex == newIndex)
+                        return; // No movement needed
+
+                    if (oldIndex < newIndex)
+                    {
+                        for (int i = oldIndex; i < newIndex; i++)
+                        {
+                            (ItemsSource[i + 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i + 1]);
+                        }
+                    }
+                    else
+                    {
+                        for (int i = oldIndex; i > newIndex; i--)
+                        {
+                            (ItemsSource[i - 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i - 1]);
+                        }
+                    }
+
+                    LogHelper.Log($"Drawable '{droppedData.Name}' moved from position {oldIndex} to {newIndex}");
+                    MainWindow.AddonManager.SelectedAddon.Drawables.ReassignNumbers(droppedData);
+
+                    MyListBox.SelectedItem = droppedData;
+                    MyListBox.ScrollIntoView(droppedData);
+
+
+                    _adornerLayer?.Remove(_ghostLineAdorner);
+                    _ghostLineAdorner = null;
+                }
+            }
+        }
+
+        private int GetCurrentIndex(Point position)
+        {
+            int index = -1;
+            for (int i = 0; i < MyListBox.Items.Count; i++)
+            {
+                ListBoxItem item = (ListBoxItem)MyListBox.ItemContainerGenerator.ContainerFromIndex(i);
+                if (item != null)
+                {
+                    Rect bounds = VisualTreeHelper.GetDescendantBounds(item);
+                    Point topLeft = item.TranslatePoint(new Point(), MyListBox);
+                    Rect itemBounds = new(topLeft, bounds.Size);
+
+                    if (itemBounds.Contains(position))
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            return index;
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T t)
+                {
+                    return t;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            };
+            return null;
+        }
+
+        private static TChild FindChildOfType<TChild>(DependencyObject parent) where TChild : DependencyObject
+        {
+            if (parent == null) return null;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                var result = (child as TChild) ?? FindChildOfType<TChild>(child);
+                if (result != null) return result;
+            }
+            return null;
+        }
+
+        #endregion
+    }
+
+    public class GhostLineAdorner : Adorner
+    {
+        private readonly Rectangle _ghostLine;
+        private int _index;
+
+        public GhostLineAdorner(UIElement adornedElement) : base(adornedElement)
+        {
+            _ghostLine = new Rectangle
+            {
+                Height = 4,
+                Width = adornedElement.RenderSize.Width,
+                Fill = Brushes.Black,
+                Opacity = 1,
+                StrokeThickness = 2,
+                Stroke = Brushes.Black,
+                IsHitTestVisible = false
+            };
+            AddVisualChild(_ghostLine);
+        }
+
+        public void UpdatePosition(int index)
+        {
+            _index = index;
+            InvalidateArrange();
+            InvalidateVisual();
+            AdornedElement.InvalidateVisual();
+        }
+
+        protected override int VisualChildrenCount => 1;
+
+        protected override Visual GetVisualChild(int index) => _ghostLine;
+
+        protected override Size MeasureOverride(Size constraint)
+        {
+            _ghostLine.Measure(constraint);
+            return new Size(constraint.Width, _ghostLine.DesiredSize.Height);
+        }
+
+        protected override Size ArrangeOverride(Size finalSize)
+        {
+            if (_index < 0) return finalSize;
+
+            ListBox listBox = AdornedElement as ListBox;
+            if (listBox == null) return finalSize;
+
+            ListBoxItem item = listBox.ItemContainerGenerator.ContainerFromIndex(_index) as ListBoxItem;
+            if (item != null)
+            {
+                Point relativePosition = item.TransformToAncestor(listBox).Transform(new Point(0, 0));
+                double itemHeight = item.ActualHeight;
+
+                double yOffset = relativePosition.Y + itemHeight;
+
+                _ghostLine.Arrange(new Rect(new Point(0, yOffset), new Size(finalSize.Width, _ghostLine.Height)));
+            }
+
+            return finalSize;
         }
     }
 }
