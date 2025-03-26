@@ -45,6 +45,12 @@ namespace grzyClothTool.Controls
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             DrawableListSelectedValueChanged?.Invoke(sender, e);
+
+            if (_ghostLineAdorner != null)
+            {
+                _adornerLayer?.Remove(_ghostLineAdorner);
+                _ghostLineAdorner = null;
+            }
         }
 
         private void DrawableList_PreviewKeyDown(object sender, KeyEventArgs e)

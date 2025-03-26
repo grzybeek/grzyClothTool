@@ -184,7 +184,8 @@ namespace grzyClothTool.Controls
                         }
                         else
                         {
-                            SelectedItems.Remove(selectableItem);
+                            var item = SelectedItems.Where(x => x.Value == selectableItem.Value).FirstOrDefault();
+                            SelectedItems.Remove(item);
 
                             // If no flags are selected, automatically select "NONE"
                             if (SelectedItems.Count == 0 && noneItem != null)
@@ -199,6 +200,17 @@ namespace grzyClothTool.Controls
                 MyComboBox.SelectedItem = null;
                 e.Handled = true;
                 SetValue(SelectedItemsProperty, SelectedItems);
+
+
+                // when multiple drawables selected, it doesn't update fields automatically, we have to set it from backend
+                if (MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+                {
+                    var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                    foreach (var drawable in selectedDrawables)
+                    {
+                        drawable.SelectedFlags = new ObservableCollection<SelectableItem>(SelectedItems);
+                    }
+                }
             }
         }
 

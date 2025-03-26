@@ -67,11 +67,10 @@ namespace CodeWalker
 
         public string PedModel = "mp_f_freemode_01";
         Ped SelectedPed = new Ped();
-        public Drawable LoadedDrawable = null;
-        public TextureDictionary LoadedTexture = null;
-        public TextureDictionary LoadedTattoo = null;
+        public Dictionary<string, Drawable> SavedDrawables = new Dictionary<string, Drawable>();
         public Dictionary<string, Drawable> LoadedDrawables = new Dictionary<string, Drawable>();
         public Dictionary<Drawable, TextureDictionary> LoadedTextures = new Dictionary<Drawable, TextureDictionary>();
+        public Dictionary<Drawable, TextureDictionary> SavedTextures = new Dictionary<Drawable, TextureDictionary>();
 
         string liveTexturePath = null;
         DateTime liveTextureLastWriteTime;
@@ -300,19 +299,28 @@ namespace CodeWalker
 
         private void RenderSelectedItems()
         {
-            if(LoadedDrawable != null && LoadedTexture != null)
+            foreach(var drawable in LoadedDrawables.Values)
             {
-                RenderSelectedItem(LoadedDrawable, LoadedTexture);
+                if (LoadedTextures.TryGetValue(drawable, out var texture))
+                {
+                    RenderSelectedItem(drawable, texture);
+                }
             }
 
-            if(LoadedDrawables.Count > 0)
+            if (SavedDrawables.Count > 0)
             {
-                foreach (var drawable in LoadedDrawables.Values)
+                foreach (var drawable in SavedDrawables.Values)
                 {
-                    if (LoadedDrawable.Name.Equals(drawable.Name)) continue;
-                    if (!LoadedTextures.ContainsKey(drawable)) continue;
+                    if (LoadedDrawables.TryGetValue(drawable.Name, out var loadedDrawable) && loadedDrawable.Name.Equals(drawable.Name))
+                    {
+                        continue;
+                    }
+                    if (!SavedTextures.ContainsKey(drawable))
+                    {
+                        continue;
+                    }
 
-                    RenderSelectedItem(drawable, LoadedTextures[drawable]);
+                    RenderSelectedItem(drawable, SavedTextures[drawable]);
                 }
             }
         }
@@ -819,16 +827,16 @@ namespace CodeWalker
                 }
             }
 
-            if (LoadedDrawable != null)
+            foreach (var drawable in LoadedDrawables.Values)
             {
-                AddDrawableTreeNode(LoadedDrawable, $"Selected ({LoadedDrawable.Name})", true);
+                AddDrawableTreeNode(drawable, $"Selected ({drawable.Name})", true);
             }
 
-            if (LoadedDrawables.Count > 0)
+            if (SavedDrawables.Count > 0)
             {
-                foreach (var drawable in LoadedDrawables.Values)
+                foreach (var drawable in SavedDrawables.Values)
                 {
-                    if (drawable == LoadedDrawable) continue;
+                    if (LoadedDrawables.Values.Contains(drawable)) continue;
                     AddDrawableTreeNode(drawable, $"Saved ({drawable.Name})", true);
                 }
             }
@@ -928,29 +936,29 @@ namespace CodeWalker
                     case "EnableKeepPreview":
                         var v = bool.Parse(value);
                         //if loadeddrawables already contains drawable, remove it
-                        if (v == true && !LoadedDrawables.ContainsKey(d.Name))
+                        if (v == true && !SavedDrawables.ContainsKey(d.Name))
                         {
-                            LoadedDrawables.Add(d.Name, d);
-                            LoadedTextures.Add(d, t);
+                            SavedDrawables.Add(d.Name, d);
+                            SavedTextures.Add(d, t);
                             UpdateModelsUI();
                         }
-                        else if (v == false && LoadedDrawables.ContainsKey(d.Name))
+                        else if (v == false && SavedDrawables.ContainsKey(d.Name))
                         {
-                            LoadedDrawables.Remove(d.Name);
-                            LoadedTextures.Remove(d);
+                            SavedDrawables.Remove(d.Name);
+                            SavedTextures.Remove(d);
                             UpdateModelsUI();
                         }
                         break;
                     case "EnableHairScale":
                         Renderer.SelDrawable.IsHairScaleEnabled = bool.Parse(value);
                         break;
-                    case "HairScale":
+                    case "HairScaleValue":
                         Renderer.SelDrawable.HairScaleValue = Convert.ToSingle(value);
                         break;
                     case "EnableHighHeels":
                         Renderer.SelDrawable.IsHighHeelsEnabled = bool.Parse(value);
                         break;
-                    case "HighHeels":
+                    case "HighHeelsValue":
                         Renderer.SelDrawable.HighHeelsValue = Convert.ToSingle(value) / 10;
                         highheelvaluechanged = true;
                         break;

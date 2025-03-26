@@ -119,42 +119,74 @@ public static class CWHelper
         // It causes deadlock if user is fast enough to select different drawable. Check if form is open
         if (!CWForm.formopen || CWForm.isLoading) return;
 
-        GDrawable selectedDrawable = MainWindow.AddonManager.SelectedAddon.SelectedDrawable;
-        GTexture selectedTexture = MainWindow.AddonManager.SelectedAddon.SelectedTexture;
+        var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables;
 
-        // Don't send anything if no drawable selected
-        if (selectedDrawable == null) return;
-
-        var ydd = CreateYddFile(selectedDrawable);
-        YtdFile ytd = null;
-        if (selectedTexture != null)
-        {
-            ytd = CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
-            CWForm.LoadedTexture = ytd.TextureDict;
-        }
-
-        var firstDrawable = ydd.Drawables.FirstOrDefault();
-        if (firstDrawable == null) return;
-
-        CWForm.LoadedDrawable = firstDrawable;
-        CWForm.Refresh();
+        // Don't send anything if no drawables are selected
+        if (selectedDrawables.Count == 0) return;
 
         Dictionary<string, string> updateDict = [];
-        string updateName, value;
-
         if (args is DrawableUpdatedArgs dargs)
         {
-            updateName = dargs.UpdatedName;
-            value = dargs.Value.ToString();
-            updateDict.Add(updateName, value);
+            updateDict[dargs.UpdatedName] = dargs.Value.ToString();
         }
 
-        if (PrevDrawableSex != selectedDrawable.Sex)
+        // Identify drawables that are no longer selected and remove them
+        var selectedNames = selectedDrawables.Select(d => d.Name).ToHashSet();
+        var removedDrawables = CWForm.LoadedDrawables.Keys.Where(name => !selectedNames.Contains(name)).ToList();
+        foreach (var removed in removedDrawables)
         {
-            SetPedModel(selectedDrawable.Sex);
-            updateDict.Add("GenderChanged", "");
+
+            if (CWForm.LoadedDrawables.TryGetValue(removed, out var removedDrawable))
+            {
+                CWForm.LoadedTextures.Remove(removedDrawable);
+            }
+            CWForm.LoadedDrawables.Remove(removed);
         }
 
-        CWForm.UpdateSelectedDrawable(firstDrawable, ytd?.TextureDict, updateDict);
+        if (selectedDrawables.Count == 1)
+        {
+            var firstSelected = selectedDrawables.First();
+            if (PrevDrawableSex != firstSelected.Sex)
+            {
+                SetPedModel(firstSelected.Sex);
+                updateDict.Add("GenderChanged", "");
+            }
+        }
+
+        // Add or update selected drawables and their textures
+        foreach (var drawable in selectedDrawables)
+        {
+            var ydd = CreateYddFile(drawable);
+            if (ydd == null || ydd.Drawables.Length == 0) continue;
+
+            var firstDrawable = ydd.Drawables.First();
+            CWForm.LoadedDrawables[drawable.Name] = firstDrawable;
+
+            GTexture selectedTexture = MainWindow.AddonManager.SelectedAddon.SelectedTexture;
+            YtdFile ytd = null;
+            if (selectedTexture != null)
+            {
+                ytd = CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
+                CWForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
+            }
+
+            if (selectedTexture == null && selectedDrawables.Count > 1)
+            {
+                // If multiple drawables are selected, we need to load the first texture of the first drawable
+                // to prevent the preview from being empty
+                var firstTexture = drawable.Textures.FirstOrDefault();
+                if (firstTexture != null)
+                {
+                    ytd = CreateYtdFile(firstTexture, firstTexture.DisplayName);
+                    CWForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
+                }
+            }
+
+            CWForm.UpdateSelectedDrawable(
+                firstDrawable,
+                ytd.TextureDict,
+                updateDict
+            );
+        }
     }
 }

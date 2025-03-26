@@ -4,6 +4,7 @@ using grzyClothTool.Models.Texture;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -48,19 +49,114 @@ public class Addon : INotifyPropertyChanged
     [JsonIgnore]
     public ObservableCollection<GDrawable> SelectedDrawables
     {
-        get { return _selectedDrawables; }
+        get => _selectedDrawables;
         set
         {
+            if (_selectedDrawables == value) return;
+
             TriggerSelectedDrawableUpdatedEvent = false;
+
+            if (_selectedDrawables != null)
+                _selectedDrawables.CollectionChanged -= SelectedDrawables_CollectionChanged;
+
             _selectedDrawables = value;
+
+            if (_selectedDrawables != null)
+                _selectedDrawables.CollectionChanged += SelectedDrawables_CollectionChanged;
+
             OnPropertyChanged();
             TriggerSelectedDrawableUpdatedEvent = true;
         }
     }
 
+    private void SelectedDrawables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+    {
+        AllowOverrideDrawables = false; //reset to false
+        OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
+        OnPropertyChanged(nameof(IsMultipleDrawablesSameType));
+        OnPropertyChanged(nameof(IsMultipleDrawablesExactlyTheSame));
+        OnPropertyChanged(nameof(CanEditMultipleDrawables));
+    }
+
+    [JsonIgnore]
     public bool IsMultipleDrawablesSelected
     {
         get { return SelectedDrawables.Count > 1; }
+    }
+
+    [JsonIgnore]
+    public bool IsMultipleDrawablesSameType
+    {
+        get
+        {
+            if (IsMultipleDrawablesSelected)
+            {
+                var first = SelectedDrawables.First();
+                var isSameType = SelectedDrawables.All(x =>
+                    x.IsReserved == false && //allow only not-reserved drawables
+                    x.IsProp == first.IsProp &&
+                    x.TypeNumeric == first.TypeNumeric);
+
+                return isSameType;
+            }
+            return true;
+        }
+    }
+
+    [JsonIgnore]
+    public bool IsMultipleDrawablesExactlyTheSame
+    {
+        get
+        {
+            if(IsMultipleDrawablesSelected && IsMultipleDrawablesSameType)
+            {
+                var first = SelectedDrawables.First();
+                var isSameFields = SelectedDrawables.All(x =>
+                    x.Audio == first.Audio &&
+                    x.EnableHairScale == first.EnableHairScale &&
+                    x.EnableHighHeels == first.EnableHighHeels &&
+                    x.Flags == first.Flags &&
+                    x.HasSkin == first.HasSkin &&
+                    x.RenderFlag == first.RenderFlag);
+                return isSameFields;
+            }
+
+            return false;
+        }
+    }
+
+    private bool _allowOverrideDrawables;
+    [JsonIgnore]
+    public bool AllowOverrideDrawables
+    {
+        get { return _allowOverrideDrawables; }
+        set
+        {
+            _allowOverrideDrawables = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanEditMultipleDrawables));
+        }
+    }
+
+    [JsonIgnore]
+    public bool CanEditMultipleDrawables
+    {
+        // allow to edit multiple drawables only if they are the same type and button clicked
+        // or if they are exactly the same
+        get
+        {
+            return (IsMultipleDrawablesSelected && IsMultipleDrawablesSameType && AllowOverrideDrawables)
+                   || (IsMultipleDrawablesSelected && IsMultipleDrawablesExactlyTheSame);
+        }
+    }
+
+    [JsonIgnore]
+    public GDrawable FirstDrawable
+    {
+        get
+        {
+            return SelectedDrawables.FirstOrDefault() ?? SelectedDrawable;
+        }
     }
 
     private GTexture _selectedTexture;

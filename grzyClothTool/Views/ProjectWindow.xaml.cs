@@ -221,12 +221,12 @@ namespace grzyClothTool.Views
             }
 
             var ydd = CWHelper.CreateYddFile(Addon.SelectedDrawable);
-            CWHelper.CWForm.LoadedDrawable = ydd.Drawables.First();
+            CWHelper.CWForm.LoadedDrawables.Add(Addon.SelectedDrawable.Name, ydd.Drawables.First());
 
             if (Addon.SelectedTexture != null)
             {
                 var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
-                CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
+                CWHelper.CWForm.LoadedTextures.Add(ydd.Drawables.First(), ytd.TextureDict);
             }
 
             CWHelper.SetPedModel(Addon.SelectedDrawable.Sex);
@@ -273,13 +273,16 @@ namespace grzyClothTool.Views
                 Addon.SelectedTexture = null;
             }
 
-            if (!MainWindow.AddonManager.IsPreviewEnabled || Addon.SelectedDrawable == null) return;
+            if (!MainWindow.AddonManager.IsPreviewEnabled || (Addon.SelectedDrawable == null && Addon.SelectedDrawables.Count == 0)) return;
             CWHelper.SendDrawableUpdateToPreview(e);
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
         {
-            if (!Addon.TriggerSelectedDrawableUpdatedEvent || !MainWindow.AddonManager.IsPreviewEnabled || Addon.SelectedDrawable is null || Addon.SelectedDrawable.Textures.Count == 0)
+            if (!Addon.TriggerSelectedDrawableUpdatedEvent ||
+                !MainWindow.AddonManager.IsPreviewEnabled ||
+                (Addon.SelectedDrawable is null && Addon.SelectedDrawables.Count == 0) ||
+                Addon.SelectedDrawables.All(d => d.Textures.Count == 0))
             {
                 return;
             }
@@ -301,7 +304,8 @@ namespace grzyClothTool.Views
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
 
             var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
-            CWHelper.CWForm.LoadedTexture = ytd.TextureDict;
+            var cwydd = CWHelper.CWForm.LoadedDrawables[Addon.SelectedDrawable.Name];
+            CWHelper.CWForm.LoadedTextures[cwydd] = ytd.TextureDict;
             CWHelper.CWForm.Refresh();
         }
 

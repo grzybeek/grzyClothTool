@@ -40,8 +40,6 @@ namespace grzyClothTool.Controls
     /// </summary>
     public partial class SelectedDrawable : UserControl
     {
-        private ListBox textureListBox;
-
         public event EventHandler TextureListSelectedValueChanged;
         public event EventHandler<DrawableUpdatedArgs> SelectedDrawableUpdated;
 
@@ -93,14 +91,7 @@ namespace grzyClothTool.Controls
 
         public SelectedDrawable()
         {
-            InitializeComponent(); 
-            Loaded += SelectedDrawable_Loaded;
-        }
-
-        private void SelectedDrawable_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Find and store a reference to the TextureListBox
-            textureListBox = FindTextureListBox(this);
+            InitializeComponent();
         }
 
         private void TextureListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -123,10 +114,8 @@ namespace grzyClothTool.Controls
             Button btn = sender as Button;
             GTexture gtxt = (GTexture)btn.DataContext;
 
-            if (textureListBox != null)
-            {
-                textureListBox.SelectedIndex = gtxt.TxtNumber;
-            }
+            var textureListBox = FindTextureListBox(this);
+            textureListBox.SelectedIndex = gtxt.TxtNumber;
 
             MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
             if (img == null)
@@ -217,6 +206,27 @@ namespace grzyClothTool.Controls
             };
             SelectedDrawableUpdated?.Invoke(control, args);
             SaveHelper.SetUnsavedChanges(true);
+
+
+            // when multiple drawables selected, it doesn't update fields automatically, we have to set it from backend
+            if (MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+            {
+                if (control is ModernLabelComboBox b && b.IsMultiSelect)
+                {
+                    // it's horrible but multiselect in ModernLabelComboBox needs to be handled differently
+                    return;
+                }
+
+                var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                foreach (var drawable in selectedDrawables)
+                {
+                    var property = drawable.GetType().GetProperty(args.UpdatedName);
+                    if (property != null && property.CanWrite)
+                    {
+                        property.SetValue(drawable, Convert.ChangeType(args.Value, property.PropertyType));
+                    }
+                }
+            }
         }
 
         private static ListBox FindTextureListBox(DependencyObject parent)
@@ -244,6 +254,9 @@ namespace grzyClothTool.Controls
         {
             if (SelectedTextures != null)
             {
+                var textureListBox = FindTextureListBox(this);
+                int removedIndex = textureListBox.SelectedIndex;
+
                 foreach (var texture in SelectedTextures)
                 {
                     SelectedDraw.Textures.Remove(texture);
@@ -256,6 +269,19 @@ namespace grzyClothTool.Controls
                 SelectedDraw.Textures.ReassignNumbers();
 
                 SaveHelper.SetUnsavedChanges(true);
+
+                if (SelectedDraw.Textures.Count > 0)
+                {
+                    int newIndex = Math.Min(removedIndex, SelectedDraw.Textures.Count - 1);
+                    textureListBox.SelectedIndex = newIndex;
+                    SelectedTxt = textureListBox.SelectedItem as GTexture;
+                    SelectedTextures = textureListBox.SelectedItems.Cast<GTexture>().ToList();
+                }
+                else
+                {
+                    SelectedTxt = null;
+                    SelectedTextures = null;
+                }
             }
         }
 
@@ -496,13 +522,19 @@ namespace grzyClothTool.Controls
             MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Textures[index] = newTexture;
             MainWindow.AddonManager.SelectedAddon.SelectedTexture = newTexture;
 
-            // not sure why it doens't update selection
             SelectedTxt = newTexture;
             SelectedTextures = new List<GTexture>([newTexture]);
+
+            var textureListBox = FindTextureListBox(this);
+            textureListBox.SelectedItem = newTexture;
 
             SaveHelper.SetUnsavedChanges(true);
             CWHelper.SendDrawableUpdateToPreview(e);
         }
-        
+
+        private void AllowOverride_Click(object sender, RoutedEventArgs e)
+        {
+            MainWindow.AddonManager.SelectedAddon.AllowOverrideDrawables = true;
+        }
     }
 }
