@@ -218,148 +218,136 @@ namespace CodeWalker.Utils
             Image[] images = GetMipmapImages(img, format);
             TexMetadata meta = GetImageMetadata(img, format);
 
-
-
-
-            MemoryStream ms = new MemoryStream();
-            BinaryWriter bw = new BinaryWriter(ms);
-
-            int nimages = img.MipMapLevels;
-
-            // Create DDS Header
-            int required;
-            if (!DXTex._EncodeDDSHeader(meta, 0, bw, out required))
+            using (MemoryStream ms = new MemoryStream())
             {
-                throw new Exception("Couldn't make DDS header");
-            }
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    int nimages = img.MipMapLevels;
 
-            // Write images
-            switch (meta.dimension)
-            {
-                case TEX_DIMENSION.TEX_DIMENSION_TEXTURE1D:
-                case TEX_DIMENSION.TEX_DIMENSION_TEXTURE2D:
+                    // Create DDS Header
+                    int required;
+                    if (!DXTex._EncodeDDSHeader(meta, 0, bw, out required))
                     {
-                        int index = 0;
-                        for (int item = 0; item < meta.arraySize; ++item)
-                        {
-                            for (int level = 0; level < meta.mipLevels; ++level, ++index)
+                        throw new Exception("Couldn't make DDS header");
+                    }
+
+                    switch (meta.dimension)
+                    {
+                        case TEX_DIMENSION.TEX_DIMENSION_TEXTURE1D:
+                        case TEX_DIMENSION.TEX_DIMENSION_TEXTURE2D:
                             {
-                                if (index >= nimages)
-                                    throw new Exception("Tried to write mip out of range");
-                                if (images[index].rowPitch <= 0)
-                                    throw new Exception("Invalid row pitch.");
-                                if (images[index].slicePitch <= 0)
-                                    throw new Exception($"Invalid slice pitch. Texture: {texture.Name}");
-                                //if (images[index].pixels)
-                                //    return E_POINTER;
-
-                                int ddsRowPitch, ddsSlicePitch;
-                                DXTex.ComputePitch(meta.format, images[index].width, images[index].height, out ddsRowPitch, out ddsSlicePitch, 0);// CP_FLAGS.CP_FLAGS_NONE);
-
-                                if (images[index].slicePitch == ddsSlicePitch)
+                                int index = 0;
+                                for (int item = 0; item < meta.arraySize; ++item)
                                 {
-                                    int lengt = ddsSlicePitch;
-                                    if (images[index].pixels + ddsSlicePitch > img.Data.Length)
+                                    for (int level = 0; level < meta.mipLevels; ++level, ++index)
                                     {
-                                        lengt = img.Data.Length - images[index].pixels;
-                                        if (lengt <= 0)
+                                        int mipWidth = Math.Max(1, meta.width >> level);
+                                        int mipHeight = Math.Max(1, meta.height >> level);
+
+                                        if (index >= nimages)
+                                            throw new Exception("Tried to write mip out of range");
+
+                                        if (images[index].slicePitch <= 0 || images[index].rowPitch <= 0)
                                         {
-                                            //throw new Exception("Not enough data to read...");
+                                            DXTex.ComputePitch(meta.format, mipWidth, mipHeight, out int computedRowPitch, out int computedSlicePitch, 0);
+                                            images[index].rowPitch = computedRowPitch;
+                                            images[index].slicePitch = computedSlicePitch;
+                                        }
+
+                                        DXTex.ComputePitch(meta.format, mipWidth, mipHeight, out int ddsRowPitch, out int ddsSlicePitch, 0);
+
+                                        if (images[index].slicePitch == ddsSlicePitch)
+                                        {
+                                            int length = ddsSlicePitch;
+                                            if (images[index].pixels + ddsSlicePitch > img.Data.Length)
+                                            {
+                                                length = img.Data.Length - images[index].pixels;
+                                                if (length <= 0)
+                                                {
+                                                    continue; // or throw
+                                                }
+                                            }
+
+                                            if (length > 0)
+                                            {
+                                                bw.Write(img.Data, images[index].pixels, length);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            int rowPitch = images[index].rowPitch;
+                                            if (rowPitch < ddsRowPitch)
+                                                throw new Exception("Input pitch isn't a full line of data");
+
+                                            int sPtr = images[index].pixels;
+                                            int lines = DXTex.ComputeScanlines(meta.format, mipHeight);
+
+                                            for (int j = 0; j < lines; ++j)
+                                            {
+                                                bw.Write(img.Data, sPtr, ddsRowPitch);
+                                                sPtr += rowPitch;
+                                            }
                                         }
                                     }
-                                    if (lengt > 0)
-                                    {
-                                        bw.Write(img.Data, images[index].pixels, lengt);
-                                    }
-                                }
-                                else
-                                {
-                                    int rowPitch = images[index].rowPitch;
-                                    if (rowPitch < ddsRowPitch)
-                                    {
-                                        // DDS uses 1-byte alignment, so if this is happening then the input pitch isn't actually a full line of data
-                                        throw new Exception("Input pitch isn't a full line of data");
-                                    }
-
-                                    int sPtr = images[index].pixels;
-
-                                    int lines = DXTex.ComputeScanlines(meta.format, images[index].height);
-                                    for (int j = 0; j < lines; ++j)
-                                    {
-                                        bw.Write(img.Data, sPtr, ddsRowPitch);
-                                        sPtr += rowPitch;
-                                    }
                                 }
                             }
-                        }
-                    }
-                    break;
+                            break;
 
-                case TEX_DIMENSION.TEX_DIMENSION_TEXTURE3D:
-                    {
-                        if (meta.arraySize != 1)
-                            throw new Exception("Texture3D must have arraySize == 1"); //return null;// E_FAIL;
-
-                        int d = meta.depth;
-
-                        int index = 0;
-                        for (int level = 0; level < meta.mipLevels; ++level)
-                        {
-                            for (int slice = 0; slice < d; ++slice, ++index)
+                        case TEX_DIMENSION.TEX_DIMENSION_TEXTURE3D:
                             {
-                                if (index >= nimages)
-                                    throw new Exception("Tried to write mip out of range");
-                                if (images[index].rowPitch <= 0)
-                                    throw new Exception("Invalid row pitch.");
-                                if (images[index].slicePitch <= 0)
-                                    throw new Exception($"Invalid slice pitch. Texture: {texture.Name}");
-                                //if (!images[index].pixels)
-                                //    return E_POINTER;
+                                if (meta.arraySize != 1)
+                                    throw new Exception("Texture3D must have arraySize == 1");
 
-                                int ddsRowPitch, ddsSlicePitch;
-                                DXTex.ComputePitch(meta.format, images[index].width, images[index].height, out ddsRowPitch, out ddsSlicePitch, 0);// CP_FLAGS_NONE);
-
-                                if (images[index].slicePitch == ddsSlicePitch)
+                                int index = 0;
+                                for (int level = 0; level < meta.mipLevels; ++level)
                                 {
-                                    bw.Write(img.Data, images[index].pixels, ddsSlicePitch);
-                                }
-                                else
-                                {
-                                    int rowPitch = images[index].rowPitch;
-                                    if (rowPitch < ddsRowPitch)
-                                    {
-                                        // DDS uses 1-byte alignment, so if this is happening then the input pitch isn't actually a full line of data
-                                        throw new Exception("Input pitch isn't a full line of data");
-                                    }
+                                    int mipWidth = Math.Max(1, meta.width >> level);
+                                    int mipHeight = Math.Max(1, meta.height >> level);
+                                    int mipDepth = Math.Max(1, meta.depth >> level);
 
-                                    int sPtr = images[index].pixels;
-
-                                    int lines = DXTex.ComputeScanlines(meta.format, images[index].height);
-                                    for (int j = 0; j < lines; ++j)
+                                    for (int slice = 0; slice < mipDepth; ++slice, ++index)
                                     {
-                                        bw.Write(img.Data, sPtr, ddsRowPitch);
-                                        sPtr += rowPitch;
+                                        if (index >= nimages)
+                                            throw new Exception("Tried to write mip out of range");
+
+                                        if (images[index].rowPitch <= 0 || images[index].slicePitch <= 0)
+                                            throw new Exception($"Invalid pitch in mip {level}, slice {slice}, texture: {texture.Name}");
+
+                                        DXTex.ComputePitch(meta.format, mipWidth, mipHeight, out int ddsRowPitch, out int ddsSlicePitch, 0);
+
+                                        if (images[index].slicePitch == ddsSlicePitch)
+                                        {
+                                            bw.Write(img.Data, images[index].pixels, ddsSlicePitch);
+                                        }
+                                        else
+                                        {
+                                            int rowPitch = images[index].rowPitch;
+                                            if (rowPitch < ddsRowPitch)
+                                                throw new Exception("Input pitch isn't a full line of data");
+
+                                            int sPtr = images[index].pixels;
+                                            int lines = DXTex.ComputeScanlines(meta.format, mipHeight);
+
+                                            for (int j = 0; j < lines; ++j)
+                                            {
+                                                bw.Write(img.Data, sPtr, ddsRowPitch);
+                                                sPtr += rowPitch;
+                                            }
+                                        }
                                     }
                                 }
                             }
+                            break;
 
-                            if (d > 1)
-                                d >>= 1;
-                        }
+                        default:
+                            throw new Exception("Unsupported texture dimension");
                     }
-                    break;
 
-                default:
-                    throw new Exception("Unsupported texture dimension");
+                    return ms.ToArray();
+                }
             }
-
-
-            byte[] buff = ms.GetBuffer();
-            byte[] outbuf = new byte[ms.Length]; //need to copy to the right size buffer for File.WriteAllBytes().
-            Array.Copy(buff, outbuf, outbuf.Length);
-
-            return outbuf;
         }
+
 
 
         public static Texture GetTexture(byte[] ddsfile)
