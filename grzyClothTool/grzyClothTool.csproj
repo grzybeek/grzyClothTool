@@ -4,8 +4,10 @@
     <TargetFramework>net8.0-windows</TargetFramework>
 	  <UseWPF>true</UseWPF>
 	  <UseWindowsForms>true</UseWindowsForms>
-	  <PublishReadyToRun>true</PublishReadyToRun>
+	  <PublishReadyToRun>false</PublishReadyToRun>
 	  <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	  <ApplicationIcon>Resources\grzyClothToolIcon.ico</ApplicationIcon>
 	  <FileVersion>1.0.3</FileVersion>

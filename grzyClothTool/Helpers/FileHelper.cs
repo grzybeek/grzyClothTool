@@ -160,7 +160,7 @@ public static class FileHelper
 
     public static int? GetDrawableNumberFromFileName(string fileName)
     {
-        Regex numberRegex = new(@"_(\d{3})_([a-zA-Z])\.yld$", RegexOptions.Compiled);
+        Regex numberRegex = new(@"_(\d{3})_([a-zA-Z])(?:_\d+)?\.(yld|ydd)$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         Match match = numberRegex.Match(fileName);
 
         if (match.Success)
