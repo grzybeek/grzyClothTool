@@ -958,7 +958,97 @@ namespace CodeWalker.Properties {
                 this["FeetComp"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.0")]
+        public decimal Floor
+        {
+            get
+            {
+                return ((decimal)(this["Floor"]));
+            }
+            set
+            {
+                this["Floor"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowSkeleton
+        {
+            get
+            {
+                return ((bool)(this["ShowSkeleton"]));
+            }
+            set
+            {
+                this["ShowSkeleton"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool AutoRotatePed
+        {
+            get
+            {
+                return ((bool)(this["AutoRotatePed"]));
+            }
+            set
+            {
+                this["AutoRotatePed"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool OnlySelectedDrawable
+        {
+            get
+            {
+                return ((bool)(this["OnlySelectedDrawable"]));
+            }
+            set
+            {
+                this["OnlySelectedDrawable"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ControlLightDirection
+        {
+            get
+            {
+                return ((bool)(this["ControlLightDirection"]));
+            }
+            set
+            {
+                this["ControlLightDirection"] = value;
+            }
+        }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[]")]
+        public string CameraPresets
+        {
+            get
+            {
+                return ((string)(this["CameraPresets"]));
+            }
+            set
+            {
+                this["CameraPresets"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>

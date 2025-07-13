@@ -8,14 +8,19 @@ using SharpDX.Direct3D11;
 using SharpDX.XInput;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Xml.Linq;
 using Color = SharpDX.Color;
+using ComboBox = System.Windows.Forms.ComboBox;
+using RadioButton = System.Windows.Forms.RadioButton;
+using TextBox = System.Windows.Forms.TextBox;
 
 namespace CodeWalker
 {
@@ -104,6 +109,9 @@ namespace CodeWalker
         private float autoRotateAngle = 0f;
         private const float AutoRotateSpeed = 1.0f;
 
+        private volatile bool _inputsUpdatePending;
+        private Throttler throttler;
+
         public class ComponentComboItem
         {
             public MCPVDrawblData DrawableData { get; set; }
@@ -158,6 +166,8 @@ namespace CodeWalker
                 new List<ComponentComboItem>(),
                 new List<ComponentComboItem>(),
             };
+
+            throttler = new Throttler(1000);
 
             Renderer = new Renderer(this, GameFileCache);
             camera = Renderer.camera;
@@ -271,6 +281,8 @@ namespace CodeWalker
 
             if (!Monitor.TryEnter(Renderer.RenderSyncRoot, 50))
             { return; } //couldn't get a lock, try again next time
+
+            throttler.Throttle(() => UpdateCameraInputs());
 
             UpdateControlInputs(elapsed);
 
@@ -521,25 +533,61 @@ namespace CodeWalker
         private void LoadSettings()
         {
             var s = Settings.Default;
-            WireframeCheckBox.Checked = false;
-            HDRRenderingCheckBox.Checked = false;
-            ShadowsCheckBox.Checked = true;
 
+            // Ped
             EnableAnimationCheckBox.Checked = false;
             ClipComboBox.Enabled = false;
             ClipDictComboBox.Enabled = false;
             EnableRootMotionCheckBox.Enabled = false;
             PlaybackSpeedTrackBar.Enabled = false;
 
+            // Options
+            HDRRenderingCheckBox.Checked = Settings.Default.HDR;
+            
+            floorCheckbox.Checked = Settings.Default.Floor > 0;
+            floorUpDown.Value = Settings.Default.Floor;
+            if (Settings.Default.Floor > 0)
+                FloorUpDown_ValueChanged(floorUpDown, null);
+
+            ShadowsCheckBox.Checked = Settings.Default.Shadows;
+
+
+            SkeletonsCheckBox.Checked = Settings.Default.ShowSkeleton;
+            WireframeCheckBox.Checked = Settings.Default.Wireframe;
+            AutoRotatePedCheckBox.Checked = Settings.Default.AutoRotatePed;
+            OnlySelectedCheckBox.Checked = Settings.Default.OnlySelectedDrawable;
             RenderModeComboBox.SelectedIndex = Math.Max(RenderModeComboBox.FindString(s.RenderMode), 0);
             TextureSamplerComboBox.SelectedIndex = Math.Max(TextureSamplerComboBox.FindString(s.RenderTextureSampler), 0);
             TextureCoordsComboBox.SelectedIndex = Math.Max(TextureCoordsComboBox.FindString(s.RenderTextureSamplerCoord), 0);
+            ControlLightDirCheckBox.Checked = Settings.Default.ControlLightDirection;
+
+            float tod = ConvertTimeStringToFloat(Settings.Default.TimeOfDay);
+            TimeOfDayTrackBar.Value = (int)(tod * 60.0f);
+            TimeOfDayTrackBar_Scroll(TimeOfDayTrackBar, null);
+
+            // Camera
+            FillDataGridView();
         }
+
+        private float ConvertTimeStringToFloat(string time)
+        {
+            string[] parts = time.Split(':');
+            if (parts.Length != 2)
+            {
+                throw new FormatException("Invalid time format. Expected format is HH:mm.");
+            }
+
+            int hours = int.Parse(parts[0]);
+            int minutes = int.Parse(parts[1]);
+
+            float totalHours = hours + (minutes / 60f);
+            return totalHours;
+        }
+
         private void LoadWorld()
         {
             UpdateStatus("Loading timecycles...");
             timecycle.Init(GameFileCache, UpdateStatus);
-            timecycle.SetTime(Renderer.timeofday);
 
             UpdateStatus("Loading materials...");
             BoundsMaterialTypes.Init(GameFileCache);
@@ -1681,6 +1729,226 @@ namespace CodeWalker
         private void RestartCamera_Click(object sender, EventArgs e)
         {
             SetDefaultCameraPosition();
+        }
+
+        private void Save_defaultComp2_Click(object sender, EventArgs e)
+        {
+            Settings.Default.HDR = HDRRenderingCheckBox.Checked;
+            // floor
+            Settings.Default.Shadows = ShadowsCheckBox.Checked;
+            Settings.Default.ShowSkeleton = SkeletonsCheckBox.Checked;
+            Settings.Default.Wireframe = WireframeCheckBox.Checked;
+            
+            Settings.Default.AutoRotatePed = AutoRotatePedCheckBox.Checked;
+
+            Settings.Default.OnlySelectedDrawable = OnlySelectedCheckBox.Checked;
+
+            Settings.Default.RenderMode = RenderModeComboBox.Text;
+            Settings.Default.RenderTextureSampler = TextureSamplerComboBox.Text;
+            Settings.Default.RenderTextureSamplerCoord = TextureCoordsComboBox.Text;
+
+            Settings.Default.ControlLightDirection = ControlLightDirCheckBox.Checked;
+
+            Settings.Default.TimeOfDay = TimeOfDayLabel.Text;
+
+            Settings.Default.Save();
+        }
+
+        private void UpdateCameraInputsText()
+        {
+            if (CameraPositionTextBox.Focused || CameraRotationTextBox.Focused || CameraDistanceTextBox.Focused)
+                return;
+            
+            CameraPositionTextBox.Text = Vector3ToText(camEntity.Position);
+            CameraRotationTextBox.Text = Vector3ToText(RadiansToDegrees(camera.CurrentRotation));
+            CameraDistanceTextBox.Text = $"{camera.CurrentDistance.ToString("F4", CultureInfo.InvariantCulture)}";
+        }
+
+        private void UpdateCameraInputs()
+        {
+            if (_inputsUpdatePending) return;
+
+            if (CameraPositionTextBox.InvokeRequired)
+            {
+                _inputsUpdatePending = true;
+
+                BeginInvoke((Action)(() =>
+                {
+                    try
+                    {
+                        UpdateCameraInputsText();
+                    }
+                    finally
+                    {
+                        _inputsUpdatePending = false;
+                    }
+                }));
+            }
+            else
+            {
+                UpdateCameraInputsText();
+            }
+        }
+
+        private string Vector3ToText(Vector3 v)
+        {
+            return $"{v.X.ToString("F4", CultureInfo.InvariantCulture)}, {v.Y.ToString("F4", CultureInfo.InvariantCulture)}, {v.Z.ToString("F4", CultureInfo.InvariantCulture)}";
+        }
+
+        private bool TryParseVector3FromText(string text, out Vector3 result)
+        {
+            result = Vector3.Zero;
+
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            var parts = text.Split(',');
+
+            if (parts.Length != 3)
+                return false;
+
+            float x, y, z;
+
+            if (!float.TryParse(parts[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out x)) return false;
+            if (!float.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out y)) return false;
+            if (!float.TryParse(parts[2].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out z)) return false;
+
+            result = new Vector3(x, y, z);
+            return true;
+        }
+
+        private static Vector3 DegreesToRadians(Vector3 degrees)
+        {
+            float radiansX = 3.14f * degrees.X / 180f;
+            float radiansY = 3.14f * degrees.Y / 180f;
+            float radiansZ = 3.14f * degrees.Z / 180f;
+
+            return new Vector3(radiansX, radiansY, radiansZ);
+        }
+
+        private static Vector3 RadiansToDegrees(Vector3 radians)
+        {
+            float degreesX = radians.X * 180f / 3.14f;
+            float degreesY = radians.Y * 180f / 3.14f;
+            float degreesZ = radians.Z * 180f / 3.14f;
+
+            return new Vector3(degreesX, degreesY, degreesZ);
+        }
+
+        private void CameraPositionTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (TryParseVector3FromText(CameraPositionTextBox.Text, out Vector3 position))
+            {
+                camEntity.Position = position;
+            }
+        }
+
+        private void CameraRotationTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (TryParseVector3FromText(CameraRotationTextBox.Text, out Vector3 rotationDeg))
+            {
+                var rotationRad = DegreesToRadians(rotationDeg);
+                camera.CurrentRotation = rotationRad;
+                camera.TargetRotation = rotationRad;
+            }
+        }
+
+        private void CameraDistanceTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (float.TryParse(CameraDistanceTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out float distance))
+            {
+                camera.CurrentDistance = distance;
+                camera.TargetDistance = distance;
+            }
+        }
+
+        private void FillDataGridView()
+        {
+            CameraPresetsDataGridView.Rows.Clear();
+
+            var presets = CameraPresetCollection.FromJson(Settings.Default.CameraPresets);
+            foreach (var mapValue in presets.Values)
+            {
+                DataGridViewRow NewPresetRow = new DataGridViewRow();
+
+                NewPresetRow.CreateCells(CameraPresetsDataGridView);
+                NewPresetRow.Cells[0].Value = mapValue.Name;
+                NewPresetRow.Cells[1].Value = "✔";
+
+                CameraPresetsDataGridView.Rows.Add(NewPresetRow);
+            }
+        }
+
+        private void btn_addCameraPreset_Click(object sender, EventArgs e)
+        {
+            if (CameraSavePresetTextBox.Text.Length == 0)
+                return;
+
+            DataGridViewRow NewPresetRow = new DataGridViewRow();
+
+            NewPresetRow.CreateCells(CameraPresetsDataGridView);
+            NewPresetRow.Cells[0].Value = CameraSavePresetTextBox.Text;
+            NewPresetRow.Cells[1].Value = "✔";
+
+            CameraPresetsDataGridView.Rows.Add(NewPresetRow);
+
+            var presets = CameraPresetCollection.FromJson(Settings.Default.CameraPresets);
+            var position = CameraPositionTextBox.Text;
+            var rotation = CameraRotationTextBox.Text;
+            var distance = CameraDistanceTextBox.Text;
+            presets.Add(new CameraPreset(CameraSavePresetTextBox.Text, position, rotation, distance));
+            Settings.Default.CameraPresets = presets.ToJson();
+            Settings.Default.Save();
+        }
+
+        private void btn_removeCameraPreset_Click(object sender, EventArgs e)
+        {
+            if (CameraSavePresetTextBox.Text.Length == 0)
+                return;
+
+            var presetNameToDelete = CameraSavePresetTextBox.Text;
+
+            foreach (DataGridViewRow row in CameraPresetsDataGridView.Rows)
+            {
+                var presetName = row.Cells[0].Value.ToString();
+                if (row.Cells[0].Value != null && row.Cells[0].Value.ToString() == presetNameToDelete)
+                {
+                    CameraPresetsDataGridView.Rows.Remove(row);
+
+                    var presets = CameraPresetCollection.FromJson(Settings.Default.CameraPresets);
+                    presets.RemoveByName(presetNameToDelete);
+                    Settings.Default.CameraPresets = presets.ToJson();
+                    Settings.Default.Save();
+
+                    break;
+                }
+            }
+        }
+
+        private void CameraPresetsDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex != CameraPresetsDataGridView.Columns["DataGridViewAction"].Index)
+                return;
+
+            var presets = CameraPresetCollection.FromJson(Settings.Default.CameraPresets);
+            var preset = presets.GetByIndex(e.RowIndex);
+
+            CameraPositionTextBox.Text = preset.Position;
+            CameraRotationTextBox.Text = preset.Rotation;
+            CameraDistanceTextBox.Text = preset.Distance;
+        }
+
+        private void CameraPresetsDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex != CameraPresetsDataGridView.Columns["DataGridViewName"].Index)
+                return;
+
+            var presets = CameraPresetCollection.FromJson(Settings.Default.CameraPresets);
+            var preset = presets.GetByIndex(e.RowIndex);
+
+            CameraPositionTextBox.Text = preset.Position;
+            CameraRotationTextBox.Text = preset.Rotation;
+            CameraDistanceTextBox.Text = preset.Distance;
         }
     }
 }

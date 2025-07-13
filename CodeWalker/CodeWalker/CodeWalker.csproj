@@ -21,6 +21,7 @@
   <ItemGroup>
     <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.0.6" />
     <PackageReference Include="FCTB" Version="2.16.24" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageReference Include="SharpDX.XAudio2" Version="4.2.0" />
