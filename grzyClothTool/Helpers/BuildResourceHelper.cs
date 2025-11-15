@@ -524,7 +524,7 @@ public class BuildResourceHelper
                 filesToEnable.Add($"dlc_{_projectName}:/common/data/mp_m_freemode_01_{_projectName}.meta");
                 filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_male.rpf");
 
-                if (addon.HasProps)
+                if (addon.HasProps())
                 {
                     sb.AppendLine($"    <Item>");
                     sb.AppendLine($"      <filename>dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_male_p.rpf</filename>");
@@ -567,7 +567,7 @@ public class BuildResourceHelper
                 filesToEnable.Add($"dlc_{_projectName}:/common/data/mp_f_freemode_01_{_projectName}.meta");
                 filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_female.rpf");
 
-                if (addon.HasProps)
+                if (addon.HasProps())
                 {
                     sb.AppendLine($"    <Item>");
                     sb.AppendLine($"      <filename>dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_female_p.rpf</filename>");
@@ -680,14 +680,12 @@ public class BuildResourceHelper
 
         var fileOperations = new List<Task>();
 
-        var hasProps = drawables.Any(x => x.IsProp);
-
         var genderRpfName = sex == SexType.male ? "_male" : "_female";
         var componentsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + ".rpf");
         var componentsFolder = RpfFile.CreateDirectory(componentsRpf.Root, pedName + "_" + projectName);
         RpfFile propsRpf = null;
         RpfDirectoryEntry propsFolder = null;
-        if (hasProps)
+        if (_addon.HasProps())
         {
             propsRpf = RpfFile.CreateNew(cdimages, projectName + genderRpfName + "_p" + ".rpf");
             propsFolder = RpfFile.CreateDirectory(propsRpf.Root, pedName + "_p_" + projectName);

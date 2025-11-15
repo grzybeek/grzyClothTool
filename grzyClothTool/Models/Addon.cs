@@ -26,7 +26,6 @@ public class Addon : INotifyPropertyChanged
             OnPropertyChanged(); 
         }
     }
-    public bool HasProps { get; set; }
 
     [JsonIgnore]
     public bool TriggerSelectedDrawableUpdatedEvent { get; set; }
@@ -280,6 +279,11 @@ public class Addon : INotifyPropertyChanged
     public bool HasSex(Enums.SexType sex)
     {
         return Drawables.Any(x => x.Sex == sex);
+    }
+
+    public bool HasProps()
+    {
+        return Drawables.Any(x => x.IsProp);
     }
 
     public int GetTotalDrawableAndTextureCount()
