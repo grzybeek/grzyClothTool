@@ -14,6 +14,7 @@
         <ContextMenu x:Key="SingleSelectionContextMenu">
             <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
             <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
+            <MenuItem Header="Duplicate to opposite gender" Click="DuplicateToOppositeGender_Click" />
             <MenuItem Header="Move" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">
                 <MenuItem.ItemContainerStyle>
                     <Style TargetType="MenuItem">

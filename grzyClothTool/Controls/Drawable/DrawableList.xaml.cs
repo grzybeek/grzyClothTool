@@ -98,6 +98,89 @@ namespace grzyClothTool.Controls
             MainWindow.AddonManager.DeleteDrawables(selectedDrawables);
         }
 
+        private void DuplicateToOppositeGender_Click(object sender, RoutedEventArgs e)
+        {
+            if (DrawableListSelectedValue is not GDrawable drawable)
+                return;
+
+            var oppositeGender = drawable.Sex == Enums.SexType.male ? Enums.SexType.female : Enums.SexType.male;
+
+            try
+            {
+                var newTextures = new ObservableCollection<GTexture>();
+                foreach (var texture in drawable.Textures)
+                {
+                    var newTexture = new GTexture(
+                        Guid.Empty,
+                        texture.FilePath,
+                        texture.TypeNumeric,
+                        texture.Number,
+                        texture.TxtNumber,
+                        texture.HasSkin,
+                        texture.IsProp
+                    )
+                    {
+                        IsOptimizedDuringBuild = texture.IsOptimizedDuringBuild
+                    };
+
+                    if (texture.IsOptimizedDuringBuild && texture.OptimizeDetails != null)
+                    {
+                        newTexture.OptimizeDetails = new GTextureDetails
+                        {
+                            Width = texture.OptimizeDetails.Width,
+                            Height = texture.OptimizeDetails.Height,
+                            MipMapCount = texture.OptimizeDetails.MipMapCount,
+                            Compression = texture.OptimizeDetails.Compression,
+                            Name = texture.OptimizeDetails.Name,
+                            IsOptimizeNeeded = texture.OptimizeDetails.IsOptimizeNeeded,
+                            IsOptimizeNeededTooltip = texture.OptimizeDetails.IsOptimizeNeededTooltip
+                        };
+                    }
+                    newTexture.LoadThumbnailAsync();
+                    newTextures.Add(newTexture);
+                }
+
+                var newDrawable = new GDrawable(
+                    Guid.NewGuid(),
+                    drawable.FilePath,
+                    oppositeGender,
+                    drawable.IsProp,
+                    drawable.TypeNumeric,
+                    0, // Number will be assigned by AddDrawable
+                    drawable.HasSkin,
+                    newTextures
+                )
+                {
+                    Audio = drawable.Audio,
+                    EnableHighHeels = drawable.EnableHighHeels,
+                    HighHeelsValue = drawable.HighHeelsValue,
+                    EnableHairScale = drawable.EnableHairScale,
+                    HairScaleValue = drawable.HairScaleValue,
+                    EnableKeepPreview = drawable.EnableKeepPreview,
+                    RenderFlag = drawable.RenderFlag,
+                    FirstPersonPath = drawable.FirstPersonPath,
+                    ClothPhysicsPath = drawable.ClothPhysicsPath
+                };
+
+                newDrawable.SelectedFlags.Clear();
+                foreach (var flag in drawable.SelectedFlags)
+                {
+                    newDrawable.SelectedFlags.Add(new SelectableItem(flag.Text, flag.Value, flag.IsSelected));
+                }
+
+                MainWindow.AddonManager.AddDrawable(newDrawable);
+                MainWindow.AddonManager.Addons.Sort(true);
+                
+                SaveHelper.SetUnsavedChanges(true);
+                LogHelper.Log($"Duplicated drawable '{drawable.Name}' to opposite gender ({oppositeGender}) - new drawable is {newDrawable.Name}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error duplicating drawable to opposite gender: {ex.Message}", Views.LogType.Error);
+                Show($"Failed to duplicate drawable: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+            }
+        }
+
         private void ReplaceDrawable_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
