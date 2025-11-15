@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using CodeWalker.Utils;
 using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
 using System;
@@ -93,11 +94,13 @@ public class BuildResourceHelper
 
             foreach (var d in group)
             {
+                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+
                 var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
                 var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
                 var prefix = RemoveInvalidChars($"{drawablePedName}_{projectName}^");
                 var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
-                fileOperations.Add(FileHelper.CopyAsync(d.FilePath, finalPath));
+                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, finalPath));
 
                 if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
                 {
@@ -115,8 +118,8 @@ public class BuildResourceHelper
 
                 foreach (var t in d.Textures)
                 {
-                    var displayName = RemoveInvalidChars(t.DisplayName);
-                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{displayName}.ytd");
+                    var buildName = RemoveInvalidChars(t.GetBuildName());
+                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{buildName}.ytd");
 
                     byte[] txtBytes = null;
                     if (t.IsOptimizedDuringBuild)
@@ -355,18 +358,23 @@ public class BuildResourceHelper
             fileOperations.Add(File.WriteAllBytesAsync(ymtPath, ymtBytes));
 
             foreach(var d in group) {
-                var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
                 var folderPath = d.IsProp ? thirdLevelPropFolder : thirdLevelFolder;
 
-                fileOperations.Add(FileHelper.CopyAsync(d.FilePath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FilePath)}")));
+                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FilePath)}")));
 
-                foreach(var t in d.Textures) {
-                    var displayName = RemoveInvalidChars(t.DisplayName);
-                    var finalTexPath = Path.Combine(folderPath, $"{displayName}{Path.GetExtension(t.FilePath)}");
-                    if(t.IsOptimizedDuringBuild) {
+                foreach(var t in d.Textures)
+                {
+                    var buildName = RemoveInvalidChars(t.GetBuildName());
+                    var finalTexPath = Path.Combine(folderPath, $"{buildName}{Path.GetExtension(t.FilePath)}");
+
+                    if (t.IsOptimizedDuringBuild)
+                    {
                         var optimizedBytes = await ImgHelper.Optimize(t);
                         fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, optimizedBytes));
-                    } else {
+                    } 
+                    else
+                    {
                         fileOperations.Add(FileHelper.CopyAsync(t.FilePath, finalTexPath));
                     }
                 }
@@ -692,14 +700,15 @@ public class BuildResourceHelper
         {
             foreach (var d in group)
             {
-                var drawableBytes = File.ReadAllBytes(d.FilePath);
+                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+                var drawableBytes = File.ReadAllBytes(tempYddPath);
 
                 RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;
                 RpfFile.CreateFile(folder, $"{d.Name}{Path.GetExtension(d.FilePath)}", drawableBytes);
 
                 foreach (var t in d.Textures)
                 {
-                    var displayName = RemoveInvalidChars(t.DisplayName);
+                    var displayName = RemoveInvalidChars(t.GetBuildName());
 
                     if (t.IsOptimizedDuringBuild)
                     {
@@ -1029,6 +1038,126 @@ public class BuildResourceHelper
 
         RbfFile rbf = XmlRbf.GetRbf(xmldoc);
         return rbf;
+    }
+
+    public static async Task<string> ResaveYdd(string inputPath, GDrawableDetails details, GDrawable? dtest)
+    {
+        try
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_buildtemp");
+            Directory.CreateDirectory(tempDir);
+            string outputPath = Path.Combine(tempDir, Path.GetFileName(inputPath));
+
+            var fileBytes = await File.ReadAllBytesAsync(inputPath);
+            var yddFile = new YddFile();
+            await yddFile.LoadAsync(fileBytes);
+
+            var drawable = yddFile.Drawables.FirstOrDefault()
+                          ?? throw new InvalidOperationException($"No drawables found in YDD: {inputPath}");
+
+            // If details is null or has no embedded textures, just save the file as-is
+            if (details?.EmbeddedTextures == null || details.EmbeddedTextures.Count == 0)
+            {
+                byte[] outputBytesNull = yddFile.Save();
+                await File.WriteAllBytesAsync(outputPath, outputBytesNull);
+                return outputPath;
+            }
+
+            foreach (var kvp in details.EmbeddedTextures)
+            {
+                var embeddedDto = kvp.Value;
+
+                if (!embeddedDto.IsOptimizedDuringBuild &&
+                    !embeddedDto.HasReplacement &&
+                    embeddedDto.OriginalName == embeddedDto.Details.Name)
+                    continue;
+
+                var originalTexturePair = drawable.ShaderGroup.TextureDictionary.Dict
+                    .FirstOrDefault(x => x.Value.Name == embeddedDto.OriginalName);
+
+                if (originalTexturePair.Value == null)
+                    continue;
+
+                Texture textureToUpdate;
+                if (embeddedDto.HasReplacement && embeddedDto.IsOptimizedDuringBuild)
+                {
+                    var dds = DDSIO.GetDDSFile(embeddedDto.ReplacementTextureData);
+                    var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                    textureToUpdate = DDSIO.GetTexture(optimizedBytes);
+                }
+                else if (embeddedDto.HasReplacement)
+                {
+                    textureToUpdate = embeddedDto.ReplacementTextureData;
+                }
+                else if (embeddedDto.IsOptimizedDuringBuild)
+                {
+                    var dds = DDSIO.GetDDSFile(originalTexturePair.Value);
+                    var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                    textureToUpdate = DDSIO.GetTexture(optimizedBytes);
+                }
+                else
+                {
+                    textureToUpdate = originalTexturePair.Value;
+                }
+
+                if (textureToUpdate.Name != embeddedDto.Details.Name)
+                {
+                    textureToUpdate.Name = embeddedDto.Details.Name;
+                    textureToUpdate.NameHash = JenkHash.GenHash(textureToUpdate.Name);
+                }
+
+                if (embeddedDto.HasReplacement || embeddedDto.IsOptimizedDuringBuild)
+                {
+                    drawable.ShaderGroup.TextureDictionary.Dict[originalTexturePair.Key] = textureToUpdate;
+
+                    var texturesList = drawable.ShaderGroup.TextureDictionary.Textures;
+                    for (int i = 0; i < texturesList.Count; i++)
+                    {
+                        if (texturesList[i].Name == embeddedDto.OriginalName)
+                        {
+                            texturesList[i] = textureToUpdate;
+                            break;
+                        }
+                    }
+                }
+
+                foreach (var shader in drawable.ShaderGroup.Shaders.data_items)
+                {
+                    var parameters = shader.ParametersList.Parameters;
+                    var hashes = shader.ParametersList.Hashes;
+
+                    for (int i = 0; i < hashes.Length && i < parameters.Length; i++)
+                    {
+                        if (parameters[i].Data is CodeWalker.GameFiles.Texture embeddedTex)
+                        {
+                            if (embeddedTex.Name == embeddedDto.OriginalName)
+                            {
+                                parameters[i].Data = textureToUpdate;
+                            }
+                        }
+                        else if (parameters[i].Data is TextureBase tb)
+                        {
+                            var referencedTexture = drawable.ShaderGroup.TextureDictionary?.Lookup(tb.NameHash);
+                            if (referencedTexture?.Name == embeddedDto.OriginalName)
+                            {
+                                tb.Name = textureToUpdate.Name;
+                                tb.NameHash = JenkHash.GenHash(textureToUpdate.Name);
+                            }
+                        }
+                    }
+                }
+            }
+
+            byte[] outputBytes = yddFile.Save();
+            await File.WriteAllBytesAsync(outputPath, outputBytes);
+
+            return outputPath;
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Exception occurred while processing file: {dtest.Name}\nException: {ex}", Views.LogType.Error);
+            throw;
+        }
     }
 
     private static string RemoveInvalidChars(string input)

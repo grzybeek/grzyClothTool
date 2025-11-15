@@ -23,6 +23,7 @@ namespace grzyClothTool
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static string AppVersion => "Version: " + UpdateHelper.GetCurrentVersion();
         private static MainWindow _instance;
         public static MainWindow Instance => _instance;
         private static NavigationHelper _navigationHelper;
@@ -54,7 +55,6 @@ namespace grzyClothTool
 
             DataContext = _navigationHelper;
             _navigationHelper.Navigate("Home");
-            version.Header = "Version: " + UpdateHelper.GetCurrentVersion();
 
             TempFoldersCleanup();
 

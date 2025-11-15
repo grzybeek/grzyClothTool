@@ -1663,7 +1663,12 @@ namespace CodeWalker.GameFiles
             }
             set
             {
-                throw new NotImplementedException();
+                if (data_items == null)
+                    throw new InvalidOperationException("data_items array is not initialized");
+                if (index < 0 || index >= EntriesCount)
+                    throw new ArgumentOutOfRangeException(nameof(index));
+
+                data_items[index] = value;
             }
         }
 

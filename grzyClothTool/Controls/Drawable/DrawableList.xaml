@@ -12,7 +12,6 @@
 
     <UserControl.Resources>
         <ContextMenu x:Key="SingleSelectionContextMenu">
-            <MenuItem IsEnabled="False" Header="Optimize embedded textures" Click="OptimizeTexture_Click" />
             <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
             <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
             <MenuItem Header="Move" ItemsSource="{Binding AddonManager.MoveMenuItems, RelativeSource={RelativeSource AncestorType=Window}}">

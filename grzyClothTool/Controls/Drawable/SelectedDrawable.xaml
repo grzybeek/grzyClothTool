@@ -8,6 +8,7 @@
              xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              xmlns:views="clr-namespace:grzyClothTool.Views"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="Control"
              d:Width="900"
@@ -171,11 +172,10 @@
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0">
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="30" />
+                                        <RowDefinition Height="3*" />
+                                        <RowDefinition Height="4*" />
                                     </Grid.RowDefinitions>
-                                    <StackPanel Orientation="Vertical" Margin="0" IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" >
+                                    <StackPanel Style="{StaticResource DisableWhenReserved}" Orientation="Vertical" Margin="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" >
                                         <TextBox FontStyle="Italic" Text="{Binding SelectedAddon.SelectedDrawable.FilePath}" 
                                              TextWrapping="Wrap" Foreground="{DynamicResource Brush500}"
                                              Background="Transparent" BorderThickness="0" IsReadOnly="True"
@@ -194,160 +194,329 @@
                                         </TextBox>
                                         <StackPanel Orientation="Horizontal" Margin="2">
                                             <!--<c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />-->
-                                            <c:ModernLabelTextBox Width="150" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2"/>
+                                            <c:ModernLabelTextBox Width="150" Tag="Name" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2" IsUpdated="SelectedDrawable_Updated"/>
                                             <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
                                             <c:ModernLabelComboBox Width="75" Label="Sex" SelectedItem="{Binding SelectedAddon.SelectedDrawable.SexName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableSex}" IsUpdated="DrawableSex_Changed" />
+                                            
                                         </StackPanel>
                                         <StackPanel Orientation="Vertical" Margin="2">
-                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Width="300" Label="First person file" IsFileSelection="True" FileExtension=".ydd" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath}" ToolTipService.InitialShowDelay="400" />
-                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Width="300" Label="Cloth physics file (.yld)" IsFileSelection="True" FileExtension=".yld" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath}" ToolTipService.InitialShowDelay="400" />
+                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Tag="FirstPersonPath" Width="300" Label="First person file" IsFileSelection="True" FileExtension=".ydd" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath}" ToolTipService.InitialShowDelay="400" IsUpdated="SelectedDrawable_Updated" />
+                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Tag="ClothPhysicsPath" Width="300" Label="Cloth physics file (.yld)" IsFileSelection="True" FileExtension=".yld" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath}" ToolTipService.InitialShowDelay="400" IsUpdated="SelectedDrawable_Updated" />
                                         </StackPanel>
 
                                     </StackPanel>
-                                    <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="1">
+                                    <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="2">
                                         <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />
                                     </StackPanel>
-                                    <ListBox 
-                                        Grid.Row="1"
-                                        Style="{StaticResource FixedListBox}"
-                                        x:Name="TextureListBox"
-                                        SelectionChanged="TextureListBox_SelectionChanged"
-                                        BorderBrush="{DynamicResource Brush200}"
-                                        Background="Transparent"
-                                        Foreground="{DynamicResource Brush950}"
-                                        SelectionMode="Extended"
-                                        SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
-                                        ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
-                                        HorizontalContentAlignment="Stretch"
-                                        IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
-                                        d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Height="20" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="25" />
-                                                        <ColumnDefinition Width="60" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal" >
-                                                        <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
-                                                            <icons:MaterialIcon.Style>
-                                                                <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                        </DataTrigger>
-                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="False">
-                                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </icons:MaterialIcon.Style>
-                                                        </icons:MaterialIcon>
-                                                        <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
-                                                            <icons:MaterialIcon Kind="Success" Width="22" Margin="0,0,2,2">
-                                                                <icons:MaterialIcon.Style>
-                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
-                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </icons:MaterialIcon.Style>
-                                                            </icons:MaterialIcon>
-                                                        </ContentControl>
-                                                        <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
-                                                            <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
-                                                                <icons:MaterialIcon.Style>
-                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                        <Style.Triggers>
-                                                                            <MultiDataTrigger>
-                                                                                <MultiDataTrigger.Conditions>
-                                                                                    <Condition Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True" />
-                                                                                    <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
-                                                                                </MultiDataTrigger.Conditions>
-                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                            </MultiDataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </icons:MaterialIcon.Style>
-                                                            </icons:MaterialIcon>
-                                                        </ContentControl>
-                                                        <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty" ToolTipService.InitialShowDelay="0">
-                                                            <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2">
-                                                                <icons:MaterialIcon.Style>
-                                                                    <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
-                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </icons:MaterialIcon.Style>
-                                                            </icons:MaterialIcon>
-                                                        </ContentControl>
-                                                        
 
-                                                        <TextBlock>
-                                                            <TextBlock.Style>
-                                                                <Style TargetType="{x:Type TextBlock}">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </TextBlock.Style>
-                                                            <TextBlock.Text>
-                                                                <MultiBinding StringFormat="{}{0}">
-                                                                    <Binding Path="DisplayName" />
-                                                                </MultiBinding>
-                                                            </TextBlock.Text>
-                                                        </TextBlock>
-                                                    </StackPanel>
+                                    <TabControl Grid.Row="1" Background="Transparent" BorderBrush="{DynamicResource Brush200}">
+                                        <TabItem Header="Textures">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="20" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="30" />
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBox 
+                                                     Text="{Binding SelectedAddon.SelectedDrawable.Textures.Count,
+                                                           Mode=OneWay,
+                                                           StringFormat='Textures:  {0} / 26'}"
+                                                     Grid.Row="0"
+                                                     TextWrapping="Wrap" 
+                                                     Foreground="{StaticResource Brush950}"
+                                                     Background="Transparent" BorderThickness="0"
+                                                     IsReadOnly="True"
+                                                     Cursor="Arrow"
+                                                     IsReadOnlyCaretVisible="False">
+                                                </TextBox>
+                                                
+                                                <ListBox 
+                                                    Grid.Row="1"
+                                                    Style="{StaticResource FixedListBox}"
+                                                    x:Name="TextureListBox"
+                                                    SelectionChanged="TextureListBox_SelectionChanged"
+                                                    BorderBrush="{DynamicResource Brush200}"
+                                                    Background="Transparent"
+                                                    Foreground="{DynamicResource Brush950}"
+                                                    SelectionMode="Extended"
+                                                    SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
+                                                    ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
+                                                    d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Height="30" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="25" />
+                                                                    <ColumnDefinition Width="75" />
+                                                                    <ColumnDefinition Width="70" />
+                                                                    <ColumnDefinition Width="60" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" >
+                                                                    <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="False">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                    <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
+                                                                        <icons:MaterialIcon Kind="Success" Width="22" Margin="0,0,2,2">
+                                                                            <icons:MaterialIcon.Style>
+                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </icons:MaterialIcon.Style>
+                                                                        </icons:MaterialIcon>
+                                                                    </ContentControl>
+                                                                    <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
+                                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
+                                                                            <icons:MaterialIcon.Style>
+                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    <Style.Triggers>
+                                                                                        <MultiDataTrigger>
+                                                                                            <MultiDataTrigger.Conditions>
+                                                                                                <Condition Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True" />
+                                                                                                <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
+                                                                                            </MultiDataTrigger.Conditions>
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                        </MultiDataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </icons:MaterialIcon.Style>
+                                                                        </icons:MaterialIcon>
+                                                                    </ContentControl>
+                                                                    <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty" ToolTipService.InitialShowDelay="0">
+                                                                        <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2">
+                                                                            <icons:MaterialIcon.Style>
+                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </icons:MaterialIcon.Style>
+                                                                        </icons:MaterialIcon>
+                                                                    </ContentControl>
+                                                                    
 
-
-                                                    <Button Grid.Column="2" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
-                                                    <Grid.ContextMenu>
-                                                        <ContextMenu>
-                                                            <MenuItem Click="HandleTextureOptimization_Click">
-                                                                <MenuItem.Style>
-                                                                    <Style TargetType="MenuItem">
-                                                                        <Setter Property="Header" Value="Optimize texture" />
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
-                                                                                <Setter Property="Header" Value="Undo optimize" />
-                                                                            </DataTrigger>
-                                                                            <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="False">
-                                                                                <Setter Property="Header" Value="Optimize texture" />
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </MenuItem.Style>
-                                                            </MenuItem>
-                                                            <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
-                                                            <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
-                                                            <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
-                                                            <MenuItem Header="Export as YTD" Click="ExportTexture_Click" Tag="YTD" />
-                                                            <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
-                                                            <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
-                                                        </ContextMenu>
-                                                    </Grid.ContextMenu>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-                                    <StackPanel IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Row="2" Margin="0" VerticalAlignment="Stretch" Orientation="Horizontal">
-                                        <c:CustomButton Width="150" Label="ADD TEXTURES" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
-                                        <c:CustomButton Image="TrashCanOutline" Width="25" Tooltip="Delete selected drawable" ToolTipService.InitialShowDelay="0" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
-                                    </StackPanel>
+                                                                    <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="{x:Type TextBlock}">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                        <TextBlock.Text>
+                                                                            <MultiBinding StringFormat="{}{0}        {1}">
+                                                                                <Binding Path="TxtLetter" />
+                                                                                <Binding Path="DisplayName" />
+                                                                            </MultiBinding>
+                                                                        </TextBlock.Text>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                    <TextBlock.Text>
+                                                                        <MultiBinding StringFormat="{}{0}x{1}">
+                                                                            <Binding Path="TxtDetails.Width" />
+                                                                            <Binding Path="TxtDetails.Height" />
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Text>
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
+                                                                                    <Setter Property="Text" Value="N/A" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                <Image Grid.Column="3" Width="60" Source="{Binding ImageThumbnail}" />
+                                                                <Button Grid.Column="4" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
+                                                                <Grid.ContextMenu>
+                                                                    <ContextMenu>
+                                                                        <MenuItem Click="HandleTextureOptimization_Click">
+                                                                            <MenuItem.Style>
+                                                                                <Style TargetType="MenuItem">
+                                                                                    <Setter Property="Header" Value="Optimize texture" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                            <Setter Property="Header" Value="Undo optimize" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="False">
+                                                                                            <Setter Property="Header" Value="Optimize texture" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </MenuItem.Style>
+                                                                        </MenuItem>
+                                                                        <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
+                                                                        <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
+                                                                        <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+                                                                        <MenuItem Header="Export as YTD" Click="ExportTexture_Click" Tag="YTD" />
+                                                                        <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
+                                                                        <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
+                                                                    </ContextMenu>
+                                                                </Grid.ContextMenu>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                                
+                                                <StackPanel Style="{StaticResource DisableWhenReserved}" Grid.Row="2" Margin="0" VerticalAlignment="Stretch" Orientation="Horizontal">
+                                                    <c:CustomButton Width="150" Label="ADD TEXTURES" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
+                                                    <c:CustomButton Image="TrashCanOutline" Width="25" Tooltip="Delete selected drawable" ToolTipService.InitialShowDelay="0" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </TabItem>
+                                        
+                                        <TabItem Header="Embedded Textures">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="20" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                
+                                                <TextBox 
+                                                     Text="Embedded Textures"
+                                                     Grid.Row="0"
+                                                     TextWrapping="Wrap" 
+                                                     Foreground="{StaticResource Brush950}"
+                                                     Background="Transparent" BorderThickness="0"
+                                                     IsReadOnly="True"
+                                                     Cursor="Arrow"
+                                                     IsReadOnlyCaretVisible="False">
+                                                </TextBox>
+                                                
+                                                <ListBox 
+                                                    Grid.Row="1"
+                                                    Style="{StaticResource FixedListBox}"
+                                                    BorderBrush="{DynamicResource Brush200}"
+                                                    Background="Transparent"
+                                                    Foreground="{DynamicResource Brush950}"
+                                                    ItemsSource="{Binding SelectedAddon.SelectedDrawable.Details.EmbeddedTextures}"
+                                                    HorizontalContentAlignment="Stretch"
+                                                    IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}">
+                                                    <ListBox.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Height="30" IsEnabled="{Binding Value.IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="25" />
+                                                                    <ColumnDefinition Width="75" />
+                                                                    <ColumnDefinition Width="70" />
+                                                                    <ColumnDefinition Width="60" />
+                                                                </Grid.ColumnDefinitions>
+                                                                
+                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="False">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                    
+                                                                    <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="{x:Type TextBlock}">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                        <TextBlock.Text>
+                                                                            <MultiBinding StringFormat="{}({0}) {1}">
+                                                                                <Binding Path="Key" />
+                                                                                <Binding Path="Value.Details.Name" />
+                                                                            </MultiBinding>
+                                                                        </TextBlock.Text>
+                                                                    </TextBlock>
+                                                                </StackPanel>
+                                                                
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                    <TextBlock.Text>
+                                                                        <MultiBinding StringFormat="{}{0}x{1}">
+                                                                            <Binding Path="Value.Details.Width" />
+                                                                            <Binding Path="Value.Details.Height" />
+                                                                        </MultiBinding>
+                                                                    </TextBlock.Text>
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
+                                                                                    <Setter Property="Text" Value="N/A" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                
+                                                                <Image Grid.Column="3" Width="60" Source="{Binding Value.ImageThumbnail}" />
+                                                                <Button Grid.Column="4" Width="60" Click="EmbeddedTexturePreview_Click" DataContext="{Binding Value}" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
+                                                                <Grid.ContextMenu>
+                                                                    <ContextMenu>
+                                                                        <MenuItem Click="HandleEmbeddedTextureOptimization_Click">
+                                                                            <MenuItem.Style>
+                                                                                <Style TargetType="MenuItem">
+                                                                                    <Setter Property="Header" Value="Optimize texture" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Value.IsOptimizedDuringBuild}" Value="True">
+                                                                                            <Setter Property="Header" Value="Undo optimize" />
+                                                                                        </DataTrigger>
+                                                                                        <DataTrigger Binding="{Binding Value.IsOptimizedDuringBuild}" Value="False">
+                                                                                            <Setter Property="Header" Value="Optimize texture" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </MenuItem.Style>
+                                                                        </MenuItem>
+                                                                        <MenuItem Header="Rename" Click="RenameEmbeddedTexture_Click"/>
+                                                                        <MenuItem Header="Replace" Click="ReplaceEmbeddedTexture_Click"/>
+                                                                    </ContextMenu>
+                                                                </Grid.ContextMenu>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListBox.ItemTemplate>
+                                                </ListBox>
+                                            </Grid>
+                                        </TabItem>
+                                    </TabControl>
                                 </Grid>
-                                <Grid IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}" Grid.Column="1">
+                                <Grid Style="{StaticResource DisableWhenReserved}" Grid.Column="1">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="2*" />
                                         <RowDefinition Height="*" />

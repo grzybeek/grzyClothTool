@@ -12,7 +12,7 @@
         Closing="Window_Closing"
         Title="grzyClothTool - Build resource"
         Background="{DynamicResource Brush50}"
-        Height="500"
+        Height="550"
         Width="500">
     <Grid>
         <Grid.RowDefinitions>
@@ -68,6 +68,15 @@
                 VerticalAlignment="Top" 
                 Margin="10,10,10,0"
                 IsChecked="{Binding SplitAddons, Mode=TwoWay}"/>
+
+            <Separator Margin="0, 15" />
+
+            <TextBlock
+                Text="{Binding WarningMessage}"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource Brush900}"
+                Margin="15,5,15,0"
+                Visibility="{Binding IsWarningVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="15,5,15,5" >
@@ -93,6 +102,7 @@
                     x:Name="build"
                     CornerRadius="5"
                     Width="150"
+                    IsEnabled="{Binding CanBuild}"
                     Label="Build resource"
                     MyBtnClickEvent="build_MyBtnClickEvent" />
             </Border>

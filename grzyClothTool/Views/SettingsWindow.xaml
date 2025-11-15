@@ -8,7 +8,7 @@
              xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
+             d:DesignHeight="550" d:DesignWidth="800"
              d:Background="{DynamicResource Brush50}">
     <Grid>
         <Grid.RowDefinitions>
@@ -94,15 +94,14 @@
 
 
         <Grid Grid.Row="1">
-            <GroupBox Grid.ColumnSpan="2" Style="{DynamicResource FixedGroupBox}" Header="Settings" Padding="5" Margin="2">
+            <GroupBox Grid.ColumnSpan="2" Style="{DynamicResource FixedGroupBox}" Header="Settings">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <c:SettingsLabelTextBox Margin="5" Label="Current GTAV Path" Text="{Binding GTAVPath, Mode=OneWay}" Description="GTAV path is required for 3D preview to work" Title="Select your GTA V Path" ButtonClick="GTAVPath_Click" />
+                        <StackPanel Margin="5" Grid.Column="0">
 
                             <GroupBox Margin="0,5" Height="120" Style="{DynamicResource FixedGroupBox}">
                                 <GroupBox.Header>
@@ -126,12 +125,51 @@
                                 </Grid>
                             </GroupBox>
                         </StackPanel>
-                        <StackPanel Grid.Column="1">
-                            <c:SettingsLabelCheckBox IsEnabled="false" Margin="5" Label="Load GTA5 file cache on tool startup" Text="Enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)" CheckBoxClick="CacheSettings_Click" IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
-                            <c:SettingsLabelCheckBox Margin="5" Label="Display drawable path" Text="Enabled will display used path for selected drawable" IsChecked="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
-                            <c:SettingsLabelCheckBox Margin="5" Label="Delete drawable files automatically" Text="When enabled, it will automatically remove the associated files from your system when you delete a drawable from the addon" DisplayWarning="WARNING: This function will modify and remove files from your PC. Any removed files cannot be recovered.&#x0a;&#x0a;Are you sure you want to enable it?" IsChecked="{Binding Path=Instance.AutoDeleteFiles, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
-                            <c:SettingsLabelCheckBox Margin="5" Label="Mark new drawables" Text="When enabled, new drawables will be marked with a yellow dot" IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                        <StackPanel Margin="5" Grid.Column="1">
+                            <GroupBox Margin="0,5" Height="330" Style="{DynamicResource FixedGroupBox}">
+                                <GroupBox.Header>
+                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="General settings" />
+                                </GroupBox.Header>
+
+                                <StackPanel Margin="0">
+                                    <c:SettingsLabelTextBox
+                                        Margin="5"
+                                        Label="Current GTAV Path"
+                                        Text="{Binding GTAVPath, Mode=OneWay}"
+                                        Description="GTAV path is required for 3D preview to work"
+                                        Title="Select your GTA V Path"
+                                        ButtonClick="GTAVPath_Click" />
+
+                                    <c:SettingsLabelCheckBox
+                                        IsEnabled="False"
+                                        Margin="5"
+                                        Label="Load GTA5 file cache on tool startup"
+                                        Text="Enabled will make 3D preview load faster, but tool will load longer on startup. (Not implemented yet)"
+                                        CheckBoxClick="CacheSettings_Click"
+                                        IsChecked="{Binding CacheStartupIsChecked, Mode=OneWay}" />
+
+                                    <c:SettingsLabelCheckBox
+                                        Margin="5"
+                                        Label="Display drawable path"
+                                        Text="Enabled will display used path for selected drawable"
+                                        IsChecked="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+
+                                    <c:SettingsLabelCheckBox
+                                        Margin="5"
+                                        Label="Delete drawable files automatically"
+                                        Text="When enabled, it will automatically remove the associated files from your system when you delete a drawable from the addon"
+                                        DisplayWarning="WARNING: This function will modify and remove files from your PC. Any removed files cannot be recovered.&#x0a;&#x0a;Are you sure you want to enable it?"
+                                        IsChecked="{Binding Path=Instance.AutoDeleteFiles, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+
+                                    <c:SettingsLabelCheckBox
+                                        Margin="5"
+                                        Label="Mark new drawables"
+                                        Text="When enabled, new drawables will be marked with a yellow dot"
+                                        IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                </StackPanel>
+                            </GroupBox>
                         </StackPanel>
+
                     </Grid>
                 </ScrollViewer>
             </GroupBox>

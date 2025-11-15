@@ -58,11 +58,6 @@ namespace grzyClothTool.Controls
             DrawableListKeyDown?.Invoke(sender, e);
         }
 
-        private void OptimizeTexture_Click(object sender, RoutedEventArgs e)
-        {
-            //todo: Implement texture optimization logic here
-        }
-
         private void MoveMenuItem_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = sender as MenuItem;

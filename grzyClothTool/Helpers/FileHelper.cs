@@ -58,9 +58,9 @@ public static class FileHelper
         var drawableHasSkin = drawableRaceSuffix == "r";
 
         // Should we inform user, that they tried to add too many textures?
-        var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
+        var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(Guid.Empty, path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
 
-        return Task.FromResult(new GDrawable(filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures));
+        return Task.FromResult(new GDrawable(Guid.Empty, filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures));
     }
 
     public static async Task CopyAsync(string sourcePath, string destinationPath)
@@ -105,7 +105,8 @@ public static class FileHelper
         else
         {
             searchedNumber = isProp ? nameParts[2] : nameParts[1];
-            regexToSearch = $"^{name}_diff_{searchedNumber}";
+            var searchedName = isProp ? nameParts[0] + "_" + nameParts[1] : nameParts[0];
+            regexToSearch = $"^{searchedName}_diff_{searchedNumber}";
         }
 
         if (addonName != string.Empty)
@@ -190,7 +191,7 @@ public static class FileHelper
         // Process each texture asynchronously and save it to the specified folder
         var tasks = textures.Select(async texture =>
         {
-            string filePath = Path.Combine(folderPath, $"{texture.DisplayName}{fileExtension}");
+            string filePath = Path.Combine(folderPath, $"{texture.GetBuildName()}{fileExtension}");
 
             // check if file exists
             if (File.Exists(filePath))

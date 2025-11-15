@@ -275,6 +275,7 @@ namespace grzyClothTool.Views
 
             if (!MainWindow.AddonManager.IsPreviewEnabled || (Addon.SelectedDrawable == null && Addon.SelectedDrawables.Count == 0)) return;
             CWHelper.SendDrawableUpdateToPreview(e);
+            CWHelper.CWForm.Refresh();
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)

@@ -77,7 +77,7 @@ public static class ImgHelper
         if (!shouldSkipOptimization)
         {
             var details = gtxt.OptimizeDetails;
-            img.Resize(details.Width, details.Height);
+            img.Resize((uint)details.Width, (uint)details.Height);
             img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
             img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
             img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", details.MipMapCount);
@@ -93,6 +93,21 @@ public static class ImgHelper
 
         var bytes = ytd.Save();
         return bytes;
+    }
+
+    public static async Task<byte[]> Optimize(byte[] imgBytes, GTextureDetails optimizeDetails)
+    {
+        using var img = new MagickImage(imgBytes);
+        img.Format = MagickFormat.Dds;
+
+        img.Resize((uint)optimizeDetails.Width, (uint)optimizeDetails.Height);
+        img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(optimizeDetails.Compression));
+        img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
+        img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", optimizeDetails.MipMapCount);
+
+        var stream = new MemoryStream();
+        img.Write(stream);
+        return stream.ToArray();
     }
 
     public static byte[] GetDDSBytes(GTexture gtxt)

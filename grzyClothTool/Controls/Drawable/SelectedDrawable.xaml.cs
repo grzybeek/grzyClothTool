@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Extensions;
+﻿using CodeWalker.Utils;
+using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
@@ -111,82 +112,174 @@ namespace grzyClothTool.Controls
 
         private void TexturePreview_Click(object sender, RoutedEventArgs e)
         {
-            Button btn = sender as Button;
-            GTexture gtxt = (GTexture)btn.DataContext;
-
-            var textureListBox = FindTextureListBox(this);
-            textureListBox.SelectedIndex = gtxt.TxtNumber;
-
-            MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
-            if (img == null)
+            try
             {
-                return;
+                Button btn = sender as Button;
+                GTexture gtxt = (GTexture)btn.DataContext;
+
+                var textureListBox = FindTextureListBox(this);
+                textureListBox.SelectedIndex = gtxt.TxtNumber;
+
+                MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
+                if (img == null)
+                {
+                    return;
+                }
+
+                int w = (int)img.Width;
+                int h = (int)img.Height;
+                byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
+
+                Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+                bitmap.UnlockBits(bitmapData);
+
+                System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
+                BitmapSource bitmapSource = BitmapSource.Create(
+                    bitmap.Width,
+                    bitmap.Height,
+                    bitmap.HorizontalResolution,
+                    bitmap.VerticalResolution,
+                    PixelFormats.Bgra32,
+                    null,
+                    pixels,
+                    bitmap.Width * 4
+                );
+
+                imageControl.Source = bitmapSource;
+
+                TextBlock textBlock = new()
+                {
+                    Text = $"{gtxt.DisplayName} ({w}x{h})",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(5)
+                };
+
+                StackPanel stackPanel = new();
+                stackPanel.Children.Add(textBlock);
+                stackPanel.Children.Add(imageControl);
+
+                Border border = new()
+                {
+                    CornerRadius = new CornerRadius(15),
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = System.Windows.Media.Brushes.Black,
+
+                    Background = System.Windows.Media.Brushes.White,
+                    Child = stackPanel
+                };
+
+                Popup popup = new()
+                {
+                    Width = 400,
+                    Height = 350,
+                    Placement = PlacementMode.Mouse,
+                    StaysOpen = false,
+                    Child = border,
+                    AllowsTransparency = true,
+
+                    IsOpen = true
+                };
+                popup.MouseMove += (s, args) =>
+                {
+                    popup.IsOpen = false;
+                };
+
+                popup.Closed += (s, args) =>
+                {
+                    bitmap.Dispose();
+                };
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error displaying texture preview: {ex.Message}", LogType.Error);
             }
 
-            int w = img.Width;
-            int h = img.Height;
-            byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
+        }
 
-            Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
-            Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
-            bitmap.UnlockBits(bitmapData);
-
-            System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
-            BitmapSource bitmapSource = BitmapSource.Create(
-                bitmap.Width,
-                bitmap.Height,
-                bitmap.HorizontalResolution,
-                bitmap.VerticalResolution,
-                PixelFormats.Bgra32,
-                null,
-                pixels,
-                bitmap.Width * 4
-            );
-
-            imageControl.Source = bitmapSource;
-
-            TextBlock textBlock = new()
+        private void EmbeddedTexturePreview_Click(object sender, RoutedEventArgs e)
+        {
+            try
             {
-                Text = $"{gtxt.DisplayName} ({w}x{h})",
-                HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(5)
-            };
+                Button btn = sender as Button;
+                GTextureEmbedded embeddedTexture = (GTextureEmbedded)btn.DataContext;
 
-            StackPanel stackPanel = new();
-            stackPanel.Children.Add(textBlock);
-            stackPanel.Children.Add(imageControl);
+                var textureData = embeddedTexture.DisplayTextureData;
+                if (textureData?.Data?.FullData == null || textureData.Data.FullData.Length == 0)
+                    return;
 
-            Border border = new()
+                var dds = DDSIO.GetDDSFile(textureData);
+                using MagickImage img = new(dds);
+                
+                int w = (int)img.Width;
+                int h = (int)img.Height;
+                byte[] pixels = img.ToByteArray(MagickFormat.Bgra);
+
+                Bitmap bitmap = new(w, h, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, w, h), ImageLockMode.WriteOnly, bitmap.PixelFormat);
+                Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+                bitmap.UnlockBits(bitmapData);
+
+                System.Windows.Controls.Image imageControl = new() { Stretch = Stretch.Uniform, Width = 400, Height = 300 };
+                BitmapSource bitmapSource = BitmapSource.Create(
+                    bitmap.Width,
+                    bitmap.Height,
+                    96, 96,
+                    PixelFormats.Bgra32,
+                    null,
+                    pixels,
+                    bitmap.Width * 4
+                );
+
+                imageControl.Source = bitmapSource;
+
+                var statusText = embeddedTexture.HasReplacement ? " - REPLACEMENT" : " - Embedded";
+                TextBlock textBlock = new()
+                {
+                    Text = $"({embeddedTexture.Details.Type}) {embeddedTexture.Details.Name} ({w}x{h}){statusText}",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(5)
+                };
+
+                StackPanel stackPanel = new();
+                stackPanel.Children.Add(textBlock);
+                stackPanel.Children.Add(imageControl);
+
+                Border border = new()
+                {
+                    CornerRadius = new CornerRadius(15),
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = System.Windows.Media.Brushes.Black,
+                    Background = System.Windows.Media.Brushes.White,
+                    Child = stackPanel
+                };
+
+                Popup popup = new()
+                {
+                    Width = 400,
+                    Height = 350,
+                    Placement = PlacementMode.Mouse,
+                    StaysOpen = false,
+                    Child = border,
+                    AllowsTransparency = true,
+                    IsOpen = true
+                };
+                
+                popup.MouseMove += (s, args) =>
+                {
+                    popup.IsOpen = false;
+                };
+
+                popup.Closed += (s, args) =>
+                {
+                    bitmap.Dispose();
+                };
+            }
+            catch (Exception ex)
             {
-                CornerRadius = new CornerRadius(15),
-                BorderThickness = new Thickness(2),
-                BorderBrush = System.Windows.Media.Brushes.Black,
-
-                Background = System.Windows.Media.Brushes.White,
-                Child = stackPanel
-            };
-
-            Popup popup = new()
-            {
-                Width = 400,
-                Height = 350,
-                Placement = PlacementMode.Mouse,
-                StaysOpen = false,
-                Child = border,
-                AllowsTransparency = true,
-
-                IsOpen = true
-            };
-            popup.MouseMove += (s, args) =>
-            {
-                popup.IsOpen = false;
-            };
-
-            popup.Closed += (s, args) =>
-            {
-                bitmap.Dispose();
-            };
+                LogHelper.Log($"Error displaying embedded texture preview: {ex.Message}", LogType.Error);
+            }
         }
 
         // Used to notify CW ped viewer of changes to selected drawable
@@ -204,6 +297,12 @@ namespace grzyClothTool.Controls
                 UpdatedName = control.Tag.ToString(),
                 Value = control.GetValue(e.DependencyPropertyChangedEventArgs.Property)
             };
+
+            if (args.Value == null)
+            {
+                return;
+            }
+
             SelectedDrawableUpdated?.Invoke(control, args);
             SaveHelper.SetUnsavedChanges(true);
 
@@ -250,40 +349,51 @@ namespace grzyClothTool.Controls
             return null;
         }
 
-        private void DeleteTexture_Click(object sender, RoutedEventArgs e)
+        private async void DeleteTexture_Click(object sender, RoutedEventArgs e)
         {
-            if (SelectedTextures != null)
+            if (SelectedTextures == null || SelectedTextures.Count == 0)
+                return;
+
+            var textureListBox = FindTextureListBox(this);
+            if (textureListBox == null)
+                return;
+
+            int removedIndex = textureListBox.SelectedIndex;
+            var sel = SelectedDraw;
+            foreach (var texture in SelectedTextures)
             {
-                var textureListBox = FindTextureListBox(this);
-                int removedIndex = textureListBox.SelectedIndex;
+                sel.Textures.Remove(texture);
 
-                foreach (var texture in SelectedTextures)
+                if (SettingsHelper.Instance.AutoDeleteFiles && File.Exists(texture.FilePath))
                 {
-                    SelectedDraw.Textures.Remove(texture);
-
-                    if (SettingsHelper.Instance.AutoDeleteFiles)
+                    try
                     {
                         File.Delete(texture.FilePath);
                     }
-                }
-                SelectedDraw.Textures.ReassignNumbers();
-
-                SaveHelper.SetUnsavedChanges(true);
-
-                if (SelectedDraw.Textures.Count > 0)
-                {
-                    int newIndex = Math.Min(removedIndex, SelectedDraw.Textures.Count - 1);
-                    textureListBox.SelectedIndex = newIndex;
-                    SelectedTxt = textureListBox.SelectedItem as GTexture;
-                    SelectedTextures = textureListBox.SelectedItems.Cast<GTexture>().ToList();
-                }
-                else
-                {
-                    SelectedTxt = null;
-                    SelectedTextures = null;
+                    catch (Exception ex)
+                    {
+                        LogHelper.Log($"Failed to delete file {texture.FilePath}: {ex.Message}", LogType.Warning);
+                    }
                 }
             }
+
+            sel.Textures.ReassignNumbers();
+            SaveHelper.SetUnsavedChanges(true);
+
+            if (sel.Textures.Count > 0)
+            {
+                int newIndex = Math.Min(removedIndex, sel.Textures.Count - 1);
+                textureListBox.SelectedIndex = newIndex;
+                SelectedTxt = textureListBox.SelectedItem as GTexture;
+                SelectedTextures = textureListBox.SelectedItems.Cast<GTexture>().ToList();
+            }
+            else
+            {
+                SelectedTxt = null;
+                SelectedTextures = null;
+            }
         }
+
 
         private void AddTexture_Click(object sender, RoutedEventArgs e)
         {
@@ -304,7 +414,8 @@ namespace grzyClothTool.Controls
 
             if (files.ShowDialog() == true)
             {
-                foreach(var file in files.FileNames)
+                var sel = SelectedDraw;
+                foreach (var file in files.FileNames)
                 {
                     // check if we are within the limit
                     if (remainingTextures <= 0)
@@ -315,8 +426,9 @@ namespace grzyClothTool.Controls
                         break;
 
                     }
-                    var gtxt = new GTexture(file, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedDraw.Textures.Count, SelectedDraw.HasSkin, SelectedDraw.IsProp);
-                    SelectedDraw.Textures.Add(gtxt);
+                    var gtxt = new GTexture(Guid.Empty, file, sel.TypeNumeric, sel.Number, sel.Textures.Count, sel.HasSkin, sel.IsProp);
+                    gtxt.LoadThumbnailAsync();
+                    sel.Textures.Add(gtxt);
 
                     remainingTextures--;
                 }
@@ -362,7 +474,7 @@ namespace grzyClothTool.Controls
             }
 
             var multipleSelected = SelectedTextures.Count > 1;
-            var optimizeWindow = new OptimizeWindow(SelectedTextures, multipleSelected);
+            var optimizeWindow = new OptimizeWindow([.. SelectedTextures.Cast<dynamic>()], multipleSelected);
             optimizeWindow.ShowDialog();
         }
 
@@ -516,7 +628,7 @@ namespace grzyClothTool.Controls
             }
 
             // create new  texture
-            var newTexture = new GTexture(file.FileName, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedTextures[0].TxtNumber, SelectedDraw.HasSkin, SelectedDraw.IsProp);
+            var newTexture = new GTexture(Guid.Empty, file.FileName, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedTextures[0].TxtNumber, SelectedDraw.HasSkin, SelectedDraw.IsProp);
             int index = SelectedDraw.Textures.IndexOf(selectedTexture);
 
             MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Textures[index] = newTexture;
@@ -535,6 +647,123 @@ namespace grzyClothTool.Controls
         private void AllowOverride_Click(object sender, RoutedEventArgs e)
         {
             MainWindow.AddonManager.SelectedAddon.AllowOverrideDrawables = true;
+        }
+
+        private void HandleEmbeddedTextureOptimization_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
+            
+            if (!embeddedTextureEntry.HasValue || embeddedTextureEntry.Value.Value?.TextureData == null)
+                return;
+
+            var embeddedTexture = embeddedTextureEntry.Value.Value;
+
+            if (embeddedTexture.IsOptimizedDuringBuild)
+            {
+                UndoEmbeddedTextureOptimization(embeddedTexture);
+            }
+            else
+            {
+                OptimizeEmbeddedTexture(embeddedTexture);
+            }
+
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
+        private void OptimizeEmbeddedTexture(GTextureEmbedded embeddedTexture)
+        {
+            var optimizeWindow = new OptimizeWindow([embeddedTexture]);
+            optimizeWindow.ShowDialog();
+        }
+
+        private void UndoEmbeddedTextureOptimization(GTextureEmbedded embeddedTexture)
+        {
+            embeddedTexture.IsOptimizedDuringBuild = false;
+            
+            var currentTexture = embeddedTexture.DisplayTextureData;
+            if (currentTexture != null)
+            {
+                embeddedTexture.OptimizeDetails = new GTextureDetails
+                {
+                    Width = currentTexture.Width,
+                    Height = currentTexture.Height,
+                    MipMapCount = currentTexture.Levels,
+                    Compression = currentTexture.Format.ToString(),
+                    Name = embeddedTexture.Details.Name,
+                    IsOptimizeNeeded = embeddedTexture.Details.IsOptimizeNeeded,
+                    IsOptimizeNeededTooltip = embeddedTexture.Details.IsOptimizeNeededTooltip
+                };
+            }
+
+            LogHelper.Log($"Embedded texture optimization for {embeddedTexture.Details.Name} has been undone", LogType.Info);
+        }
+
+        private void RenameEmbeddedTexture_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
+            
+            if (!embeddedTextureEntry.HasValue || embeddedTextureEntry.Value.Value?.TextureData == null)
+                return;
+
+            var embeddedTexture = embeddedTextureEntry.Value.Value;
+            var (result, textBoxValue) = Show("Rename Embedded Texture", "Enter new name:", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.None, true);
+            if (result == CustomMessageBoxResult.OK)
+            {
+                embeddedTexture.RenameTexture(textBoxValue);
+            }
+        }
+
+        private void ReplaceEmbeddedTexture_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+            var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
+            
+            if (!embeddedTextureEntry.HasValue)
+                return;
+
+            var textureType = embeddedTextureEntry.Value.Key;
+            var embeddedTexture = embeddedTextureEntry.Value.Value;
+            
+            OpenFileDialog file = new()
+            {
+                Title = $"Select texture file to replace embedded {textureType}",
+                Filter = "Image files (*.jpg;*.png;*.dds)|*.jpg;*.png;*.dds"
+            };
+
+            if (file.ShowDialog() == true)
+            {
+                try
+                {
+                    var newTextureData = LoadTextureAsEmbedded(file.FileName, textureType.ToString());
+                    
+                    embeddedTexture.SetReplacementTexture(newTextureData);
+
+                    SaveHelper.SetUnsavedChanges(true);
+                    LogHelper.Log($"Embedded {textureType} texture replaced (optimization cleared)", LogType.Info);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Failed to replace embedded texture: {ex.Message}", LogType.Error);
+                    CustomMessageBox.Show($"Failed to replace embedded texture: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private CodeWalker.GameFiles.Texture LoadTextureAsEmbedded(string filePath, string textureType)
+        {
+            var img = ImgHelper.GetImage(filePath);
+            if (img == null)
+            {
+                throw new Exception("Failed to load image from the specified file.");
+            }
+
+            img.Format = MagickFormat.Dds;
+
+            var txt = DDSIO.GetTexture(img.ToByteArray());
+            txt.Name = Path.GetFileNameWithoutExtension(filePath);
+            return txt;
         }
     }
 }

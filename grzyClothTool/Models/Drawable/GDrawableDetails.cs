@@ -2,6 +2,7 @@
 using grzyClothTool.Models.Texture;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace grzyClothTool.Models.Drawable;
@@ -33,7 +34,7 @@ public class GDrawableDetails : INotifyPropertyChanged
         { DetailLevel.Low, null }
     };
 
-    public Dictionary<EmbeddedTextureType, GTextureDetails?> EmbeddedTextures { get; set; } = new()
+    public Dictionary<EmbeddedTextureType, GTextureEmbedded?> EmbeddedTextures { get; set; } = new()
     {
         { EmbeddedTextureType.Specular, null },
         { EmbeddedTextureType.Normal, null }
@@ -96,23 +97,11 @@ public class GDrawableDetails : INotifyPropertyChanged
         foreach (var key in EmbeddedTextures.Keys)
         {
             var txt = EmbeddedTextures[key];
-            if (txt == null)
+            if (txt == null || txt.TextureData == null)
             {
                 IsWarning = true;
                 Tooltip += $"Missing {key} texture.\n";
                 continue;
-            }
-
-            txt.Validate();
-            if (txt.IsOptimizeNeeded)
-            {
-                IsWarning = true;
-
-                var messages = txt.IsOptimizeNeededTooltip.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var message in messages)
-                {
-                    Tooltip += $"[Embedded {key}] {message}\n";
-                }
             }
         }
 
@@ -126,7 +115,7 @@ public class GDrawableDetails : INotifyPropertyChanged
         Tooltip = Tooltip.TrimEnd('\n');
     }
 
-    protected void OnPropertyChanged(string propertyName)
+    public void OnPropertyChanged(string propertyName)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

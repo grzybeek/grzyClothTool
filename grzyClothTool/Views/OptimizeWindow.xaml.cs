@@ -16,7 +16,7 @@ namespace grzyClothTool.Views
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public List<GTexture> GTextures { get; set; }
+        public List<dynamic> GTextures { get; set; }
         public GTextureDetails TextureDetails { get; set; }
 
         private GTextureDetails _outputTextureDetails;
@@ -132,7 +132,7 @@ namespace grzyClothTool.Views
             }
         }
 
-        public OptimizeWindow(List<GTexture> txts, bool multipleTexturesSelected = false)
+        public OptimizeWindow(List<dynamic> txts, bool multipleTexturesSelected = false)
         {
             InitializeComponent();
             DataContext = this;
@@ -163,13 +163,30 @@ namespace grzyClothTool.Views
 
             if (!multipleTexturesSelected)
             {
-                TextureName = txts[0].DisplayName;
+                dynamic first = txts[0];
+
+                TextureName = first switch
+                {
+                    GTexture gt => gt.DisplayName,
+                    GTextureEmbedded ge => ge.Details.Name,
+                    _ => string.Empty
+                };
             }
         }
 
-        public static GTextureDetails GetTextureDetails(GTexture gtxt)
+        public static GTextureDetails GetTextureDetails(dynamic gtxt)
         {
-            var curDetails = gtxt.TxtDetails;
+            GTextureDetails curDetails = null;
+
+            if (gtxt is GTexture gTexture)
+            {
+                curDetails = gTexture.TxtDetails;
+            }
+            else if (gtxt is GTextureEmbedded gTextureEmbedded)
+            {
+                curDetails = gTextureEmbedded.Details;
+            }
+
             var (correctWidth, correctHeight) = ImgHelper.CheckPowerOfTwo(curDetails.Width, curDetails.Height);
 
             return new GTextureDetails
@@ -225,7 +242,7 @@ namespace grzyClothTool.Views
                     MipMapCount = OutputTextureDetails.MipMapCount,
                     IsOptimizeNeeded = false
                 };
-            }
+            } 
 
             LogHelper.Log("Textures will be optimized during resource build");
             Close();

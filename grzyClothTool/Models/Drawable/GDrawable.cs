@@ -1,20 +1,19 @@
-﻿using grzyClothTool.Helpers;
+﻿using CodeWalker.GameFiles;
+using grzyClothTool.Controls;
+using grzyClothTool.Extensions;
+using grzyClothTool.Helpers;
+using grzyClothTool.Models.Texture;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Threading;
-using CodeWalker.GameFiles;
 using System.Linq;
-using System;
-using grzyClothTool.Controls;
-using System.Runtime.Serialization;
-using grzyClothTool.Models.Texture;
-using grzyClothTool.Extensions;
-using System.Collections.Specialized;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -24,6 +23,8 @@ public class GDrawable : INotifyPropertyChanged
     private readonly static SemaphoreSlim _semaphore = new(3);
 
     public event PropertyChangedEventHandler PropertyChanged;
+
+    public Guid Id { get; set; }
 
     private string _filePath;
     public string FilePath
@@ -238,8 +239,10 @@ public class GDrawable : INotifyPropertyChanged
     [JsonIgnore]
     public int Flags => SelectedFlags.Where(f => f.IsSelected).Sum(f => f.Value);
 
+    private List<SelectableItem> _availableFlags;
+
     [JsonIgnore]
-    public List<SelectableItem> AvailableFlags => EnumHelper.GetFlags(Flags);
+    public List<SelectableItem> AvailableFlags => _availableFlags;
 
     public string RenderFlag { get; set; } = ""; // "" is the default value
 
@@ -248,9 +251,15 @@ public class GDrawable : INotifyPropertyChanged
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
-    public GDrawable(string filePath, Enums.SexType sex, bool isProp, int typeNumeric, int number, bool hasSkin, ObservableCollection<GTexture> textures)
+    public GDrawable(Guid id, string filePath, Enums.SexType sex, bool isProp, int typeNumeric, int number, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
+
+        Id = id;
+        if (Id == Guid.Empty)
+        {
+            Id = Guid.NewGuid();
+        }
 
         FilePath = filePath;
         Textures = textures;
@@ -262,6 +271,7 @@ public class GDrawable : INotifyPropertyChanged
         IsProp = isProp;
         IsNew = true;
 
+        _availableFlags = EnumHelper.GetFlags(Flags);
         Audio = "none";
         SetDrawableName();
 
@@ -291,6 +301,29 @@ public class GDrawable : INotifyPropertyChanged
 
                 return t.Result;
             });
+        }
+    }
+
+    public async Task LoadDetails()
+    {
+        if (File.Exists(FilePath))
+        {
+            var result = await LoadDrawableDetailsWithConcurrencyControl();
+            if (result != null)
+            {
+                Details = result;
+                OnPropertyChanged(nameof(Details));
+            }
+        }
+
+        IsLoading = false;
+    }
+
+    public void LoadTexturesThumbnail()
+    {
+        foreach (var texture in Textures)
+        {
+            texture.LoadThumbnailAsync();
         }
     }
 
@@ -390,10 +423,64 @@ public class GDrawable : INotifyPropertyChanged
 
         GDrawableDetails details = new();
 
+        var shaderGroup = yddFile.Drawables.First().ShaderGroup;
+        var txtDict = shaderGroup.TextureDictionary;
 
-        //is it always 2 and 3?
-        var spec = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[3].Data as CodeWalker.GameFiles.Texture);
-        var normal = (yddFile.Drawables.First().ShaderGroup.Shaders.data_items.First().ParametersList.Parameters[2].Data as CodeWalker.GameFiles.Texture);
+        var uniqueSpecTextures = new HashSet<string>();
+        var uniqueNormalTextures = new HashSet<string>();
+
+        CodeWalker.GameFiles.Texture? spec = null;
+        CodeWalker.GameFiles.Texture? normal = null;
+
+        foreach (var shader in shaderGroup.Shaders.data_items)
+        {
+            var parameters = shader.ParametersList.Parameters;
+            var hashes = shader.ParametersList.Hashes;
+
+            for (int i = 0; i < hashes.Length && i < parameters.Length; i++)
+            {
+                var samplerName = hashes[i].ToString();
+
+                if (samplerName.Equals("specsampler", StringComparison.OrdinalIgnoreCase))
+                {
+                    CodeWalker.GameFiles.Texture? foundSpec = null;
+
+                    if (parameters[i].Data is CodeWalker.GameFiles.Texture embeddedTex)
+                    {
+                        foundSpec = embeddedTex;
+                    }
+                    else if (parameters[i].Data is TextureBase tb && txtDict != null)
+                    {
+                        foundSpec = txtDict.Lookup(tb.NameHash);
+                    }
+
+                    if (foundSpec != null && !uniqueSpecTextures.Contains(foundSpec.Name))
+                    {
+                        uniqueSpecTextures.Add(foundSpec.Name);
+                        spec ??= foundSpec;
+                    }
+                }
+                else if (samplerName.Equals("bumpsampler", StringComparison.OrdinalIgnoreCase))
+                {
+                    CodeWalker.GameFiles.Texture? foundNormal = null;
+
+                    if (parameters[i].Data is CodeWalker.GameFiles.Texture embeddedTex)
+                    {
+                        foundNormal = embeddedTex;
+                    }
+                    else if (parameters[i].Data is TextureBase tb && txtDict != null)
+                    {
+                        foundNormal = txtDict.Lookup(tb.NameHash);
+                    }
+
+                    if (foundNormal != null && !uniqueNormalTextures.Contains(foundNormal.Name))
+                    {
+                        uniqueNormalTextures.Add(foundNormal.Name);
+                        normal ??= foundNormal;
+                    }
+                }
+            }
+        }
 
         foreach (GDrawableDetails.EmbeddedTextureType txtType in Enum.GetValues(typeof(GDrawableDetails.EmbeddedTextureType)))
         {
@@ -404,20 +491,7 @@ public class GDrawable : INotifyPropertyChanged
                 _ => null
             };
 
-            if (texture == null)
-            {
-                continue;
-            }
-
-            details.EmbeddedTextures[txtType] = new GTextureDetails
-            {
-                Width = texture.Width,
-                Height = texture.Height,
-                Name = texture.Name,
-                Type = txtType.ToString(),
-                MipMapCount = texture.Levels,
-                Compression = texture.Format.ToString()
-            };
+            details.EmbeddedTextures[txtType] = new GTextureEmbedded(texture, txtType.ToString());
         }
 
         var drawableModels = yddFile.Drawables.First().DrawableModels;

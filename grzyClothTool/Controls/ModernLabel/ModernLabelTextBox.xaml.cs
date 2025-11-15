@@ -90,9 +90,9 @@ namespace grzyClothTool.Controls
 
         private void MyText_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            IsUserInitiated = true;
             if (IsFolderSelection)
             {
-
                 var dialog = new System.Windows.Forms.FolderBrowserDialog();
                 dialog.ShowDialog();
 
@@ -109,6 +109,7 @@ namespace grzyClothTool.Controls
 
                 Text = dialog.FileName;
             }
+            IsUserInitiated = false;
         }
     }
 }

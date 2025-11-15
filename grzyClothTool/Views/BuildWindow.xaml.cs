@@ -4,6 +4,7 @@ using grzyClothTool.Models;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
@@ -67,6 +68,49 @@ namespace grzyClothTool.Views
                 }
             }
         }
+
+        private bool _isWarningVisible;
+        public bool IsWarningVisible
+        {
+            get => _isWarningVisible;
+            set
+            {
+                if (_isWarningVisible != value)
+                {
+                    _isWarningVisible = value;
+                    OnPropertyChanged(nameof(IsWarningVisible));
+                }
+            }
+        }
+
+        private string _warningMessage;
+        public string WarningMessage
+        {
+            get => _warningMessage;
+            set
+            {
+                if (_warningMessage != value)
+                {
+                    _warningMessage = value;
+                    OnPropertyChanged(nameof(WarningMessage));
+                }
+            }
+        }
+
+        private bool _canBuild = true;
+        public bool CanBuild
+        {
+            get => _canBuild;
+            set
+            {
+                if (_canBuild != value)
+                {
+                    _canBuild = value;
+                    OnPropertyChanged(nameof(CanBuild));
+                }
+            }
+        }
+
         public string BuildPath { get; set; }
 
         private BuildResourceType _resourceType;
@@ -76,9 +120,25 @@ namespace grzyClothTool.Views
             InitializeComponent();
             DataContext = this;
 
-            // check if there are more than one addon, if not disable split addons
-            // maybe this this could be handled by a separate variable or in XAML (?) - not sure
+            this.Loaded += Window_Loaded;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
+
+            CheckAddons();
+        }
+
+        private void CheckAddons()
+        {
+            var allDrawablesCount = MainWindow.AddonManager.Addons.Sum(a => a.Drawables.Count);
+            if (allDrawablesCount == 0)
+            {
+                IsWarningVisible = true;
+                WarningMessage = "No drawables found. Add drawables to be able to build resource.";
+                CanBuild = false;
+            }
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -154,8 +214,8 @@ namespace grzyClothTool.Views
             }
             catch (Exception ex)
             {
-                LogHelper.Log($"Build failed: {ex.Message}");
-                CustomMessageBox.Show($"Build failed: {ex.Message}", "Error");
+                LogHelper.Log($"Build failed: {ex}", LogType.Error);
+                CustomMessageBox.Show($"Build failed:\n\n{ex}", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
             }
             finally
             {

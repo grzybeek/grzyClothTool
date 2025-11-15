@@ -332,7 +332,7 @@ namespace CodeWalker
             var isProp = d.Name.StartsWith("p_");
             d.Owner = SelectedPed;
 
-            if(d.Skeleton == null || d.Skeleton.Bones.Items.Length == 0)
+            if(d.Skeleton == null || d.Skeleton.Bones == null || d.Skeleton.Bones.Items.Length == 0)
             {
                 d.Skeleton = SelectedPed.Skeleton.Clone();
             }

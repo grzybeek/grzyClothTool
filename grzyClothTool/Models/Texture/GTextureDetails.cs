@@ -1,4 +1,6 @@
-﻿namespace grzyClothTool.Models.Texture;
+﻿using grzyClothTool.Helpers;
+
+namespace grzyClothTool.Models.Texture;
 #nullable enable
 
 public class GTextureDetails
@@ -27,10 +29,11 @@ public class GTextureDetails
             IsOptimizeNeededTooltip += "Texture height or width is not power of 2. Optimize it to fix the issue.\n";
         }
 
-        if (MipMapCount == 1)
+        var expectedMipMapCount = ImgHelper.GetCorrectMipMapAmount(Width, Height);
+        if (MipMapCount == 1 && MipMapCount != expectedMipMapCount)
         {
             IsOptimizeNeeded = true;
-            IsOptimizeNeededTooltip += "Texture has only 1 mip map. Optimize it to automatically generate correct amount.";
+            IsOptimizeNeededTooltip += $"Texture has {MipMapCount} mip maps but should have {expectedMipMapCount}. Optimize it to generate the correct amount.\n";
         }
     }
 }

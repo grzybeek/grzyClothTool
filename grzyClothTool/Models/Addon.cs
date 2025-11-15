@@ -42,6 +42,8 @@ public class Addon : INotifyPropertyChanged
             _selectedDrawable = value;
             OnPropertyChanged();
             TriggerSelectedDrawableUpdatedEvent = true;
+
+            _selectedDrawable?.LoadTexturesThumbnail();
         }
     }
 
@@ -205,10 +207,10 @@ public class Addon : INotifyPropertyChanged
             {
                 var sexEnum = i % 2 == 0 ? Enums.SexType.female : Enums.SexType.male;
                 Drawables.Add(
-                    new GDrawable("grzyClothTool/Assets/jbib_000_u.ydd", sexEnum, false, 11, i, false,
+                    new GDrawable(Guid.Empty, "grzyClothTool/Assets/jbib_000_u.ydd", sexEnum, false, 11, i, false,
                     [
-                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false),
-                        new("grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 1, false, false)
+                        new(Guid.Empty, "grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 0, false, false),
+                        new(Guid.Empty, "grzyClothTool/Assets/jbib_diff_000_a_uni.ytd", 11, 0, 1, false, false)
                     ]
                 ));
             }

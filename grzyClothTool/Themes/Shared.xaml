@@ -32,6 +32,15 @@
         </Setter>
     </Style>
 
+    <Style x:Key="DisableWhenReserved" TargetType="FrameworkElement">
+        <Setter Property="IsEnabled" Value="True" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.IsReserved}" Value="True">
+                <Setter Property="IsEnabled" Value="False" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <BorderGapMaskConverter x:Key="BorderGapMaskConverter"/>
 
     <!-- Custom style for GroupBox with the key "FixedGroupBox" -->

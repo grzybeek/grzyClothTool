@@ -10,7 +10,7 @@
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
         Background="{DynamicResource Brush50}"
-        Title="grzyClothTool" Height="800" Width="1200" MinWidth="800" MinHeight="400"
+        Title="grzyClothTool" Height="900" Width="1400" MinWidth="1200" MinHeight="800"
         MouseDown="Window_MouseDown"
         Closed="Window_Closed"
         Closing="Window_Closing"
@@ -59,7 +59,16 @@
             <MenuItem Header="_View" Tag="View">
                 <MenuItem Header="_Logs" Tag="Logs" Click="LogsOpen_Click" />
             </MenuItem>
-            <MenuItem x:Name="version" Header="Version" HorizontalAlignment="Right" IsEnabled="False" />
+
+            <MenuItem Header="" IsEnabled="False">
+                <MenuItem.Template>
+                    <ControlTemplate TargetType="MenuItem">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Padding="5,0" Text="{Binding AppVersion, RelativeSource={RelativeSource AncestorType=Window}}" />
+                        </StackPanel>
+                    </ControlTemplate>
+                </MenuItem.Template>
+            </MenuItem>
         </Menu>
 
         <StatusBar Background="{DynamicResource Brush100}" DockPanel.Dock="Bottom">
