@@ -94,7 +94,7 @@ public class BuildResourceHelper
 
             foreach (var d in group)
             {
-                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+                var tempYddPath = await ResaveYdd(d);
 
                 var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
                 var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
@@ -360,7 +360,7 @@ public class BuildResourceHelper
             foreach(var d in group) {
                 var folderPath = d.IsProp ? thirdLevelPropFolder : thirdLevelFolder;
 
-                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+                var tempYddPath = await ResaveYdd(d);
                 fileOperations.Add(FileHelper.CopyAsync(tempYddPath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FilePath)}")));
 
                 foreach(var t in d.Textures)
@@ -574,9 +574,8 @@ public class BuildResourceHelper
                     sb.AppendLine($"      <fileType>RPF_FILE</fileType>");
                     sb.AppendLine($"      <overlay value=\"false\" />");
                     sb.AppendLine($"      <disabled value=\"true\" />");
-                    sb.AppendLine($"      <persistent value=\"true\" />");
+                sb.AppendLine($"      <persistent value=\"true\" />");
                     sb.AppendLine($"    </Item>");
-
 
                     filesToEnable.Add($"dlc_{_projectName}:/%PLATFORM%/models/cdimages/{_projectName}_female_p.rpf");
                 }
@@ -700,7 +699,7 @@ public class BuildResourceHelper
         {
             foreach (var d in group)
             {
-                var tempYddPath = await ResaveYdd(d.FilePath, d.Details, d);
+                var tempYddPath = await ResaveYdd(d);
                 var drawableBytes = File.ReadAllBytes(tempYddPath);
 
                 RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;
@@ -1040,13 +1039,21 @@ public class BuildResourceHelper
         return rbf;
     }
 
-    public static async Task<string> ResaveYdd(string inputPath, GDrawableDetails details, GDrawable? dtest)
+    public static async Task<string> ResaveYdd(GDrawable dr)
     {
         try
         {
             string tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_buildtemp");
             Directory.CreateDirectory(tempDir);
+            string inputPath = dr.FilePath;
             string outputPath = Path.Combine(tempDir, Path.GetFileName(inputPath));
+
+            // If drawable is encrypted or has no embedded textures, just copy the original file without processing
+            if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0)
+            {
+                await FileHelper.CopyAsync(inputPath, outputPath);
+                return outputPath;
+            }
 
             var fileBytes = await File.ReadAllBytesAsync(inputPath);
             var yddFile = new YddFile();
@@ -1055,15 +1062,7 @@ public class BuildResourceHelper
             var drawable = yddFile.Drawables.FirstOrDefault()
                           ?? throw new InvalidOperationException($"No drawables found in YDD: {inputPath}");
 
-            // If details is null or has no embedded textures, just save the file as-is
-            if (details?.EmbeddedTextures == null || details.EmbeddedTextures.Count == 0)
-            {
-                byte[] outputBytesNull = yddFile.Save();
-                await File.WriteAllBytesAsync(outputPath, outputBytesNull);
-                return outputPath;
-            }
-
-            foreach (var kvp in details.EmbeddedTextures)
+            foreach (var kvp in dr.Details.EmbeddedTextures)
             {
                 var embeddedDto = kvp.Value;
 
@@ -1155,7 +1154,7 @@ public class BuildResourceHelper
         }
         catch (Exception ex)
         {
-            LogHelper.Log($"Exception occurred while processing file: {dtest.Name}\nException: {ex}", Views.LogType.Error);
+            LogHelper.Log($"Exception occurred while processing file: {dr.Name}\nException: {ex}", Views.LogType.Error);
             throw;
         }
     }
