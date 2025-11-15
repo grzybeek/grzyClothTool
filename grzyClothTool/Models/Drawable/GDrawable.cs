@@ -67,6 +67,20 @@ public class GDrawable : INotifyPropertyChanged
 
     public virtual bool IsReserved => false;
 
+    private bool _isEncrypted;
+    public bool IsEncrypted
+    {
+        get => _isEncrypted;
+        set
+        {
+            if (_isEncrypted != value)
+            {
+                _isEncrypted = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public int TypeNumeric { get; set; }
     private string _typeName;
     public string TypeName
@@ -277,6 +291,12 @@ public class GDrawable : INotifyPropertyChanged
 
         if (FilePath != null)
         {
+            if (IsEncrypted)
+            {
+                IsLoading = false;
+                return;
+            }
+
             Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl().ContinueWith(t =>
             {
                 if (t.IsFaulted)
@@ -291,6 +311,7 @@ public class GDrawable : INotifyPropertyChanged
                 {
                     if (t.Result == null)
                     {
+                        IsLoading = false;
                         return null;
                     }
 
@@ -411,6 +432,11 @@ public class GDrawable : INotifyPropertyChanged
 
     private async Task<GDrawableDetails?> GetDrawableDetailsAsync()
     {
+        if (IsEncrypted)
+        {
+            return null;
+        }
+
         var bytes = await File.ReadAllBytesAsync(FilePath);
 
         var yddFile = new YddFile();

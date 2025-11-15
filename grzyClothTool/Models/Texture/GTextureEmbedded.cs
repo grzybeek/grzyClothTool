@@ -96,6 +96,9 @@ public class GTextureEmbedded : INotifyPropertyChanged
 
     public bool IsPreviewDisabled => DisplayTextureData?.Data?.FullData == null || DisplayTextureData.Data.FullData.Length == 0;
 
+    [JsonIgnore]
+    public string PreviewDisabledTooltip => IsPreviewDisabled ? "Encrypted drawable" : string.Empty;
+
     public GTextureEmbedded(CodeWalker.GameFiles.Texture? textureData, string type)
     {
         TextureData = textureData;

@@ -220,6 +220,11 @@ namespace grzyClothTool.Views
                 return;
             }
 
+            if (Addon.SelectedDrawable.IsEncrypted)
+            {
+                return;
+            }
+
             var ydd = CWHelper.CreateYddFile(Addon.SelectedDrawable);
             CWHelper.CWForm.LoadedDrawables.Add(Addon.SelectedDrawable.Name, ydd.Drawables.First());
 

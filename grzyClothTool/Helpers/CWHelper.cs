@@ -156,6 +156,11 @@ public static class CWHelper
         // Add or update selected drawables and their textures
         foreach (var drawable in selectedDrawables)
         {
+            if (drawable.IsEncrypted)
+            {
+                continue;
+            }
+
             var ydd = CreateYddFile(drawable);
             if (ydd == null || ydd.Drawables.Length == 0) continue;
 

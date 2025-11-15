@@ -343,6 +343,7 @@ namespace grzyClothTool.Models
             drawable.Number = nextNumber;
             drawable.SetDrawableName();
 
+            drawable.IsEncrypted = IsDrawableEncrypted(drawable.FilePath);
             currentAddon.Drawables.Add(drawable);
 
             SaveHelper.SetUnsavedChanges(true);
@@ -423,6 +424,28 @@ namespace grzyClothTool.Models
             }
 
             OnPropertyChanged("Addons");
+        }
+
+        private static bool IsDrawableEncrypted(string filePath)
+        {
+            // RSC7 magic = 0x37435352 ("RSC7")
+            const uint MagicRsc7 = 0x37435352;
+            byte[] buffer = new byte[4];
+
+            using (var fs = new FileStream(
+                filePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.ReadWrite
+            ))
+            {
+                int read = fs.Read(buffer, 0, 4);
+                if (read < 4)
+                    return true;
+            }
+
+            uint magic = BitConverter.ToUInt32(buffer, 0);
+            return magic != MagicRsc7;
         }
 
         protected void OnPropertyChanged([CallerMemberName] string name = null)
