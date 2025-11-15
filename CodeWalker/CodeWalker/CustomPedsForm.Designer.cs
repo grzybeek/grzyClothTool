@@ -115,6 +115,11 @@ namespace CodeWalker
             this.head_updown = new System.Windows.Forms.NumericUpDown();
             this.StatusBarCheckBox = new System.Windows.Forms.CheckBox();
             this.ErrorConsoleCheckBox = new System.Windows.Forms.CheckBox();
+            this.label8 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.VertexCountText = new System.Windows.Forms.Label();
+            this.PolygonCountText = new System.Windows.Forms.Label();
             this.ConsolePanel.SuspendLayout();
             this.StatusStrip.SuspendLayout();
             this.ToolsPanel.SuspendLayout();
@@ -265,6 +270,11 @@ namespace CodeWalker
             // 
             // ToolsPedTabPage
             // 
+            this.ToolsPedTabPage.Controls.Add(this.PolygonCountText);
+            this.ToolsPedTabPage.Controls.Add(this.VertexCountText);
+            this.ToolsPedTabPage.Controls.Add(this.label12);
+            this.ToolsPedTabPage.Controls.Add(this.label9);
+            this.ToolsPedTabPage.Controls.Add(this.label8);
             this.ToolsPedTabPage.Controls.Add(this.PlaybackSpeedTrackBar);
             this.ToolsPedTabPage.Controls.Add(this.PlaybackSpeedLabel);
             this.ToolsPedTabPage.Controls.Add(this.label2);
@@ -422,7 +432,7 @@ namespace CodeWalker
             this.ToolsModelsTabPage.Location = new System.Drawing.Point(4, 22);
             this.ToolsModelsTabPage.Name = "ToolsModelsTabPage";
             this.ToolsModelsTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.ToolsModelsTabPage.Size = new System.Drawing.Size(268, 607);
+            this.ToolsModelsTabPage.Size = new System.Drawing.Size(239, 607);
             this.ToolsModelsTabPage.TabIndex = 0;
             this.ToolsModelsTabPage.Text = "Models";
             this.ToolsModelsTabPage.UseVisualStyleBackColor = true;
@@ -449,7 +459,7 @@ namespace CodeWalker
             this.ToolsTexturesTabPage.Location = new System.Drawing.Point(4, 22);
             this.ToolsTexturesTabPage.Name = "ToolsTexturesTabPage";
             this.ToolsTexturesTabPage.Padding = new System.Windows.Forms.Padding(3);
-            this.ToolsTexturesTabPage.Size = new System.Drawing.Size(268, 607);
+            this.ToolsTexturesTabPage.Size = new System.Drawing.Size(239, 607);
             this.ToolsTexturesTabPage.TabIndex = 1;
             this.ToolsTexturesTabPage.Text = "Textures";
             this.ToolsTexturesTabPage.UseVisualStyleBackColor = true;
@@ -1002,6 +1012,53 @@ namespace CodeWalker
             this.ErrorConsoleCheckBox.UseVisualStyleBackColor = true;
             this.ErrorConsoleCheckBox.CheckedChanged += new System.EventHandler(this.ErrorConsoleCheckBox_CheckedChanged);
             // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label8.Location = new System.Drawing.Point(2, 529);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(162, 20);
+            this.label8.TabIndex = 52;
+            this.label8.Text = "Selected drawable:";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 557);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(70, 13);
+            this.label9.TabIndex = 53;
+            this.label9.Text = "Vertex count:";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(12, 580);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(81, 13);
+            this.label12.TabIndex = 54;
+            this.label12.Text = "Polygon count: ";
+            // 
+            // VertexCountText
+            // 
+            this.VertexCountText.AutoSize = true;
+            this.VertexCountText.Location = new System.Drawing.Point(89, 557);
+            this.VertexCountText.Name = "VertexCountText";
+            this.VertexCountText.Size = new System.Drawing.Size(13, 13);
+            this.VertexCountText.TabIndex = 55;
+            this.VertexCountText.Text = "0";
+            // 
+            // PolygonCountText
+            // 
+            this.PolygonCountText.AutoSize = true;
+            this.PolygonCountText.Location = new System.Drawing.Point(89, 580);
+            this.PolygonCountText.Name = "PolygonCountText";
+            this.PolygonCountText.Size = new System.Drawing.Size(13, 13);
+            this.PolygonCountText.TabIndex = 56;
+            this.PolygonCountText.Text = "0";
+            // 
             // CustomPedsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1127,5 +1184,10 @@ namespace CodeWalker
         private System.Windows.Forms.Button btn_restartCamera;
         private System.Windows.Forms.CheckBox floorCheckbox;
         private System.Windows.Forms.NumericUpDown floorUpDown;
+        private System.Windows.Forms.Label PolygonCountText;
+        private System.Windows.Forms.Label VertexCountText;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label8;
     }
 }

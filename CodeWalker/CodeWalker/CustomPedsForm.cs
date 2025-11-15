@@ -928,6 +928,8 @@ namespace CodeWalker
             Renderer.SelDrawable = d;
             Renderer.SelectedDrawableChanged = true;
 
+            UpdatePolygonVertexCountLabels();
+
             foreach (var update in updates)
             {
                 var value = update.Value.ToString().ToLower();
@@ -968,6 +970,33 @@ namespace CodeWalker
                     default:
                         break;
                 }
+            }
+        }
+
+        private void UpdatePolygonVertexCountLabels()
+        {
+            if (Renderer.SelDrawable != null)
+            {
+                int polycount = 0;
+                int vertcount = 0;
+                foreach (var model in Renderer.SelDrawable.DrawableModels.High)
+                {
+                    if (model.Geometries != null)
+                    {
+                        foreach (var geom in model.Geometries)
+                        {
+                            polycount += (int)(geom.IndicesCount / 3);
+                            vertcount += geom.VerticesCount;
+                        }
+                    }
+                }
+                PolygonCountText.Text = polycount.ToString();
+                VertexCountText.Text = vertcount.ToString();
+            }
+            else
+            {
+                PolygonCountText.Text = "0";
+                VertexCountText.Text = "0";
             }
         }
 
