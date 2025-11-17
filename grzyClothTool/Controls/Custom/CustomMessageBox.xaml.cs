@@ -96,6 +96,28 @@ namespace grzyClothTool.Controls
                 return b;
             }
         }
+
+        private Button Male
+        {
+            get
+            {
+                var b = GetDefaultButton();
+                b.Content = "Male";
+                b.Click += delegate { result = CustomMessageBoxResult.Male; Close(); };
+                return b;
+            }
+        }
+
+        private Button Female
+        {
+            get
+            {
+                var b = GetDefaultButton();
+                b.Content = "Female";
+                b.Click += delegate { result = CustomMessageBoxResult.Female; Close(); };
+                return b;
+            }
+        }
         // Add another if you wish
 
 
@@ -153,6 +175,11 @@ namespace grzyClothTool.Controls
                     _ = CMBButtons.Children.Add(Cancel);
                     _ = CMBButtons.Children.Add(Replace);
                     _ = CMBButtons.Children.Add(Delete);
+                    break;
+                case CustomMessageBoxButtons.MaleFemaleCancel:
+                    _ = CMBButtons.Children.Add(Cancel);
+                    _ = CMBButtons.Children.Add(Female);
+                    _ = CMBButtons.Children.Add(Male);
                     break;
                 // Add another if you wish                 
                 default:
@@ -248,7 +275,8 @@ namespace grzyClothTool.Controls
             YesNo,
             YesNoCancel,
             OpenFolder,
-            DeleteReplaceCancel
+            DeleteReplaceCancel,
+            MaleFemaleCancel
 
             // Add another if you wish
         }
@@ -273,7 +301,9 @@ namespace grzyClothTool.Controls
             OpenFolder,
             Delete,
             Replace,
-            TextBoxValue
+            TextBoxValue,
+            Male,
+            Female
 
 
             // Add another if you wish

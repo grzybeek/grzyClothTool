@@ -64,7 +64,12 @@
             </TabControl.ItemTemplate>
             <TabControl.ContentTemplate>
                 <DataTemplate>
-                    <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="0" Grid.Row="0" x:Name="DrawablesGroupBox" Header="Drawables">
+                    <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="0" Grid.Row="0" x:Name="DrawablesGroupBox" Header="Drawables" 
+                              AllowDrop="True" 
+                              Drop="DrawablesGroupBox_Drop"
+                              DragEnter="DrawablesGroupBox_DragEnter"
+                              DragOver="DrawablesGroupBox_DragOver"
+                              DragLeave="DrawablesGroupBox_DragLeave">
                         <c:DrawableList ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DrawableListKeyDown="SelectedDrawable_KeyDown" DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
                     </GroupBox>
                 </DataTemplate>

@@ -35,7 +35,8 @@ namespace grzyClothTool
         private readonly static Dictionary<string, string> TempFoldersNames = new()
         {
             { "import", "grzyClothTool_import" },
-            { "export", "grzyClothTool_export" }
+            { "export", "grzyClothTool_export" },
+            { "dragdrop", "grzyClothTool_dragdrop" }
         };
 
         public MainWindow()

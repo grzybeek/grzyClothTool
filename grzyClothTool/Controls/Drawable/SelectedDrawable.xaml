@@ -248,6 +248,10 @@
                                                     ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
                                                     HorizontalContentAlignment="Stretch"
                                                     IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
+                                                    AllowDrop="True"
+                                                    Drop="TextureListBox_Drop"
+                                                    DragEnter="TextureListBox_DragEnter"
+                                                    DragOver="TextureListBox_DragOver"
                                                     d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
@@ -320,7 +324,7 @@
                                                                             </icons:MaterialIcon.Style>
                                                                         </icons:MaterialIcon>
                                                                     </ContentControl>
-                                                                    
+                                                                
 
                                                                     <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
                                                                         <TextBlock.Style>

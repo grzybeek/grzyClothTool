@@ -463,6 +463,382 @@ namespace grzyClothTool.Controls
             SaveHelper.SetUnsavedChanges(true);
         }
 
+        #region Drag and Drop for Textures
+
+        private void TextureListBox_DragEnter(object sender, DragEventArgs e)
+        {
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    e.Effects = files.Any(f => IsValidTextureFile(f)) ? DragDropEffects.Copy : DragDropEffects.None;
+                }
+                else if (e.Data.GetDataPresent("FileGroupDescriptor") || e.Data.GetDataPresent("FileGroupDescriptorW"))
+                {
+                    var hasTextureFiles = CheckForTextureFilesInDescriptor(e.Data);
+                    e.Effects = hasTextureFiles ? DragDropEffects.Copy : DragDropEffects.None;
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error: {ex.Message}", LogType.Error);
+                e.Effects = DragDropEffects.None;
+            }
+            
+            e.Handled = true;
+        }
+
+        private void TextureListBox_DragOver(object sender, DragEventArgs e)
+        {
+            try
+            {
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    e.Effects = files.Any(f => IsValidTextureFile(f)) ? DragDropEffects.Copy : DragDropEffects.None;
+                }
+                else if (e.Data.GetDataPresent("FileGroupDescriptor") || e.Data.GetDataPresent("FileGroupDescriptorW"))
+                {
+                    e.Effects = DragDropEffects.Copy;
+                }
+                else
+                {
+                    e.Effects = DragDropEffects.None;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error: {ex.Message}", LogType.Error);
+                e.Effects = DragDropEffects.None;
+            }
+            
+            e.Handled = true;
+        }
+
+        private async void TextureListBox_Drop(object sender, DragEventArgs e)
+        {
+            try
+            {
+                if (SelectedDraw == null)
+                {
+                    return;
+                }
+
+                List<string> filesToProcess = [];
+                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                {
+                    var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                    filesToProcess.AddRange(files);
+                }
+                else if (e.Data.GetDataPresent("FileGroupDescriptor") || e.Data.GetDataPresent("FileGroupDescriptorW"))
+                {
+                    var extractedFiles = await ExtractVirtualTextureFilesAsync(e.Data);
+                    if (extractedFiles.Count > 0)
+                    {
+                        filesToProcess.AddRange(extractedFiles);
+                    }
+                    else
+                    {
+                        LogHelper.Log($"Could not add textures", LogType.Error);
+                        e.Handled = true;
+                        return;
+                    }
+                }
+                else
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                var textureFiles = filesToProcess.Where(f => IsValidTextureFile(f)).ToArray();
+                if (textureFiles.Length == 0)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                var accessibleFiles = new List<string>();
+                var inaccessibleFiles = new List<string>();
+                foreach (var file in textureFiles)
+                {
+                    if (File.Exists(file))
+                    {
+                        accessibleFiles.Add(file);
+                    }
+                    else
+                    {
+                        inaccessibleFiles.Add(file);
+                    }
+                }
+
+                if (inaccessibleFiles.Count > 0)
+                {
+                    var message = $"The following texture file(s) could not be accessed:\n\n" +
+                                  string.Join("\n", inaccessibleFiles.Select(Path.GetFileName)) +
+                                  "\n\nThey may be virtual paths. Please extract them to a folder first and drag from there.";
+                    
+                    Show(message, "Files Not Accessible", 
+                        CustomMessageBoxButtons.OKOnly, 
+                        CustomMessageBoxIcon.Warning);
+                }
+
+                if (accessibleFiles.Count == 0)
+                {
+                    e.Handled = true;
+                    return;
+                }
+
+                int remainingTextures = GlobalConstants.MAX_DRAWABLE_TEXTURES - SelectedDraw.Textures.Count;
+                if (remainingTextures <= 0)
+                {
+                    Show($"You can't have more than {GlobalConstants.MAX_DRAWABLE_TEXTURES} textures per drawable!", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+                    return;
+                }
+
+                var sel = SelectedDraw;
+                int addedCount = 0;
+                foreach (var file in accessibleFiles)
+                {
+                    if (remainingTextures <= 0)
+                    {
+                        Show($"Reached the limit of {GlobalConstants.MAX_DRAWABLE_TEXTURES} textures. Last added texture: {Path.GetFileName(file)}.", "Info", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Warning);
+                        break;
+                    }
+
+                    var gtxt = new GTexture(Guid.Empty, file, sel.TypeNumeric, sel.Number, sel.Textures.Count, sel.HasSkin, sel.IsProp);
+                    gtxt.LoadThumbnailAsync();
+                    sel.Textures.Add(gtxt);
+
+                    remainingTextures--;
+                    addedCount++;
+                }
+
+                if (addedCount > 0)
+                {
+                    SaveHelper.SetUnsavedChanges(true);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error: {ex.Message}", LogType.Error);
+                
+                Show(
+                    $"An error occurred while processing dropped texture files:\n\n{ex.Message}",
+                    "Drag & Drop Error",
+                    CustomMessageBoxButtons.OKOnly,
+                    CustomMessageBoxIcon.Error);
+            }
+            
+            e.Handled = true;
+        }
+
+        private static async Task<List<string>> ExtractVirtualTextureFilesAsync(IDataObject data)
+        {
+            var extractedFiles = new List<string>();
+            
+            try
+            {
+                var format = "FileGroupDescriptorW";
+                if (!data.GetDataPresent(format))
+                {
+                    format = "FileGroupDescriptor";
+                    if (!data.GetDataPresent(format))
+                        return extractedFiles;
+                }
+
+                if (data.GetData(format) is not MemoryStream descriptorStream)
+                    return extractedFiles;
+
+                if (!data.GetDataPresent("FileContents"))
+                {
+                    return extractedFiles;
+                }
+
+                var tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_dragdrop", Guid.NewGuid().ToString());
+                Directory.CreateDirectory(tempDir);
+
+                using var reader = new BinaryReader(descriptorStream);
+                int fileCount = reader.ReadInt32();
+
+                for (int i = 0; i < fileCount; i++)
+                {
+                    try
+                    {
+                        // Parse file descriptor structure
+                        descriptorStream.Seek(4 + (i * 592), System.IO.SeekOrigin.Begin);
+
+                        uint flags = reader.ReadUInt32();
+                        reader.ReadBytes(16); // CLSID
+                        reader.ReadBytes(16); // SIZEL + POINTL
+                        uint fileAttributes = reader.ReadUInt32();
+                        reader.ReadBytes(32); // File times
+                        uint fileSizeHigh = reader.ReadUInt32();
+                        uint fileSizeLow = reader.ReadUInt32();
+
+                        // Read filename (520 bytes for Unicode)
+                        byte[] filenameBytes = reader.ReadBytes(520);
+                        string filename = System.Text.Encoding.Unicode.GetString(filenameBytes).TrimEnd('\0');
+
+                        // Check if it's a valid texture file
+                        if (!IsValidTextureFile(filename))
+                        {
+                            continue;
+                        }
+
+                        // Try to get file content using COM IDataObject with lindex
+                        MemoryStream contentStream = null;
+
+                        try
+                        {
+                            if (data is System.Runtime.InteropServices.ComTypes.IDataObject comData)
+                            {
+                                System.Runtime.InteropServices.ComTypes.FORMATETC formatEtc = new System.Runtime.InteropServices.ComTypes.FORMATETC
+                                {
+                                    cfFormat = (short)System.Windows.DataFormats.GetDataFormat("FileContents").Id,
+                                    dwAspect = System.Runtime.InteropServices.ComTypes.DVASPECT.DVASPECT_CONTENT,
+                                    lindex = i,
+                                    ptd = IntPtr.Zero,
+                                    tymed = System.Runtime.InteropServices.ComTypes.TYMED.TYMED_ISTREAM | System.Runtime.InteropServices.ComTypes.TYMED.TYMED_HGLOBAL
+                                };
+
+                                System.Runtime.InteropServices.ComTypes.STGMEDIUM medium = new System.Runtime.InteropServices.ComTypes.STGMEDIUM();
+                                comData.GetData(ref formatEtc, out medium);
+
+                                if (medium.unionmember != IntPtr.Zero)
+                                {
+                                    if (medium.tymed == System.Runtime.InteropServices.ComTypes.TYMED.TYMED_ISTREAM)
+                                    {
+                                        if (Marshal.GetObjectForIUnknown(medium.unionmember) is System.Runtime.InteropServices.ComTypes.IStream iStream)
+                                        {
+                                            contentStream = new MemoryStream();
+                                            byte[] buffer = new byte[4096];
+                                            IntPtr pcbRead = Marshal.AllocHGlobal(sizeof(int));
+                                            try
+                                            {
+                                                int bytesRead;
+                                                do
+                                                {
+                                                    iStream.Read(buffer, buffer.Length, pcbRead);
+                                                    bytesRead = Marshal.ReadInt32(pcbRead);
+                                                    if (bytesRead > 0)
+                                                    {
+                                                        contentStream.Write(buffer, 0, bytesRead);
+                                                    }
+                                                } while (bytesRead > 0);
+                                            }
+                                            finally
+                                            {
+                                                Marshal.FreeHGlobal(pcbRead);
+                                            }
+
+                                            contentStream.Seek(0, System.IO.SeekOrigin.Begin);
+                                        }
+                                    }
+                                    else if (medium.tymed == System.Runtime.InteropServices.ComTypes.TYMED.TYMED_HGLOBAL)
+                                    {
+                                        var ptr = Marshal.ReadIntPtr(medium.unionmember);
+                                        var size = (int)fileSizeLow;
+                                        byte[] buffer = new byte[size];
+                                        Marshal.Copy(ptr, buffer, 0, size);
+                                        contentStream = new MemoryStream(buffer);
+                                    }
+
+                                    // Release the medium
+                                    if (medium.pUnkForRelease != null)
+                                    {
+                                        Marshal.ReleaseComObject(medium.pUnkForRelease);
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception comEx)
+                        {
+                            LogHelper.Log($"Failed to extract file {i + 1} ({filename}): {comEx.Message}", LogType.Error);
+                        }
+
+                        if (contentStream != null && contentStream.Length > 0)
+                        {
+                            var outputPath = Path.Combine(tempDir, filename);
+
+                            using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                            {
+                                contentStream.Seek(0, System.IO.SeekOrigin.Begin);
+                                await contentStream.CopyToAsync(fileStream);
+                            }
+
+                            extractedFiles.Add(outputPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.Log($"Error extracting file {i + 1}: {ex.Message}", LogType.Error);
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error in ExtractVirtualTextureFilesAsync: {ex.Message}", LogType.Error);
+            }
+
+            return extractedFiles;
+        }
+
+        private bool CheckForTextureFilesInDescriptor(IDataObject data)
+        {
+            try
+            {
+                var format = "FileGroupDescriptorW";
+                if (!data.GetDataPresent(format))
+                {
+                    format = "FileGroupDescriptor";
+                    if (!data.GetDataPresent(format))
+                        return false;
+                }
+
+                if (data.GetData(format) is not MemoryStream stream)
+                    return false;
+
+                using var reader = new BinaryReader(stream);
+                int fileCount = reader.ReadInt32();
+
+                for (int i = 0; i < fileCount; i++)
+                {
+                    // Skip to filename
+                    stream.Seek(4 + (i * 592) + 72, System.IO.SeekOrigin.Begin);
+
+                    // Read filename (520 bytes, Unicode)
+                    byte[] filenameBytes = reader.ReadBytes(520);
+                    string filename = System.Text.Encoding.Unicode.GetString(filenameBytes).TrimEnd('\0');
+
+                    if (IsValidTextureFile(filename))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error checking FileGroupDescriptor: {ex.Message}", LogType.Error);
+                return false;
+            }
+        }
+
+        private static bool IsValidTextureFile(string filePath)
+        {
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return extension == ".ytd" || extension == ".jpg" || extension == ".png" || extension == ".dds";
+        }
+
+        #endregion
+
         private void OptimizeTextures()
         {
             var wrongTextureName = OptimizeWindow.CheckTexturesHaveSameSize(SelectedTextures);
