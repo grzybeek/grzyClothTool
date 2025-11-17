@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:grzyClothTool.Controls"
+             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              ClipToBounds="False"
              x:Name="MyModernLabelComboBox">
 
@@ -31,225 +32,273 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <ComboBox Name="MyComboBox"
-              Width="auto"
-              Height="40"
-              Margin="5"
-              Foreground="{DynamicResource Brush950}"
-              VerticalContentAlignment="Center"
-              SelectedItem="{Binding SelectedItem, ElementName=MyModernLabelComboBox}"
-              HorizontalContentAlignment="Center"
-              IsEditable="False"
-              StaysOpenOnEdit="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}">
-        <ComboBox.Style>
-            <Style TargetType="ComboBox">
-                <Setter Property="ItemsSource" Value="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"/>
-                <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
-                        <Setter Property="ItemsSource" Value="{Binding ItemsSourceSelectable, ElementName=MyModernLabelComboBox}"/>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </ComboBox.Style>
-        <ComboBox.Template>
-            <ControlTemplate TargetType="ComboBox">
-                <Border BorderThickness="1"
-                        CornerRadius="5"
-                        BorderBrush="{DynamicResource Brush400}"
-                        Name="border">
-                    <Grid>
-                        <ToggleButton Name="toggleButton" 
-                                      Width="auto"
-                                      Height="auto"
-                                      Foreground="{DynamicResource Brush950}"
-                                      Template="{StaticResource ToggleButtonTemplate}"
-                                      VerticalContentAlignment="Center"
-                                      HorizontalContentAlignment="Center"
-                                      IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                            <StackPanel Orientation="Horizontal">
-                                <!-- IsMultiSelect mode -->
-                                <TextBlock Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding Text, ElementName=MyModernLabelComboBox}" VerticalAlignment="Center"/>
-                                <!-- single-select mode -->
-                                <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
-                            </StackPanel>
-                        </ToggleButton>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-                        <TextBlock x:Name="placeholder"
-                                   Text="{Binding Label, ElementName=MyModernLabelComboBox}"
-                                   Foreground="{DynamicResource Brush950}"
-                                   VerticalAlignment="Center"
-                                   IsHitTestVisible="False"
-                                   FontSize="14" 
-                                   Padding="5,0,0,0" />
-                        <Popup Name="PART_Popup"
-                               IsOpen="{Binding IsChecked, ElementName=toggleButton}"
-                               Placement="Bottom"
-                               StaysOpen="true"
-                               AllowsTransparency="True"
-                               MaxHeight="200"
-                               HorizontalOffset="-1"
-                               PopupAnimation="Slide">
-                            <Border x:Name="dropDownBorder"
-                                    Width="{Binding ElementName=MyComboBox, Path=ActualWidth}"
-                                    BorderBrush="{DynamicResource Brush400}"
-                                    BorderThickness="1"
-                                    CornerRadius="5"
-                                    Background="{DynamicResource Brush50}">
-                                <ScrollViewer>
-                                    <ScrollViewer.Resources>
-                                        <Style x:Key="ScrollBarThumb" TargetType="Thumb">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="Thumb">
-                                                        <Border x:Name="borderThumb" Background="{DynamicResource Brush950}" CornerRadius="5"/>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
+        <ComboBox Name="MyComboBox"
+                  Grid.Column="0"
+                  Width="auto"
+                  Height="40"
+                  Margin="5"
+                  Foreground="{DynamicResource Brush950}"
+                  VerticalContentAlignment="Center"
+                  SelectedItem="{Binding SelectedItem, ElementName=MyModernLabelComboBox}"
+                  HorizontalContentAlignment="Center"
+                  IsEditable="False"
+                  StaysOpenOnEdit="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}">
+            <ComboBox.Style>
+                <Style TargetType="ComboBox">
+                    <Setter Property="ItemsSource" Value="{Binding ItemsSource, ElementName=MyModernLabelComboBox}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
+                            <Setter Property="ItemsSource" Value="{Binding ItemsSourceSelectable, ElementName=MyModernLabelComboBox}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ComboBox.Style>
+            <ComboBox.Template>
+                <ControlTemplate TargetType="ComboBox">
+                    <Border BorderThickness="1"
+                            CornerRadius="5"
+                            BorderBrush="{DynamicResource Brush400}"
+                            Name="border">
+                        <Grid>
+                            <ToggleButton Name="toggleButton" 
+                                          Width="auto"
+                                          Height="auto"
+                                          Foreground="{DynamicResource Brush950}"
+                                          Template="{StaticResource ToggleButtonTemplate}"
+                                          VerticalContentAlignment="Center"
+                                          HorizontalContentAlignment="Center"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- IsMultiSelect mode -->
+                                    <TextBlock Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource BooleanToVisibilityConverter}}" Text="{Binding Text, ElementName=MyModernLabelComboBox}" VerticalAlignment="Center"/>
+                                    <!-- single-select mode -->
+                                    <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" Content="{TemplateBinding SelectionBoxItem}" Visibility="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                                </StackPanel>
+                            </ToggleButton>
 
-                                        <Style x:Key="ScrollBarRepeatButton" TargetType="RepeatButton">
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="RepeatButton">
-                                                        <Border Background="Transparent" />
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
+                            <TextBlock x:Name="placeholder"
+                                       Text="{Binding Label, ElementName=MyModernLabelComboBox}"
+                                       Foreground="{DynamicResource Brush950}"
+                                       VerticalAlignment="Center"
+                                       IsHitTestVisible="False"
+                                       FontSize="14" 
+                                       Padding="5,0,0,0" />
+                            <Popup Name="PART_Popup"
+                                   IsOpen="{Binding IsChecked, ElementName=toggleButton}"
+                                   Placement="Bottom"
+                                   StaysOpen="true"
+                                   AllowsTransparency="True"
+                                   MaxHeight="200"
+                                   HorizontalOffset="-1"
+                                   PopupAnimation="Slide">
+                                <Border x:Name="dropDownBorder"
+                                        Width="{Binding ElementName=MyComboBox, Path=ActualWidth}"
+                                        BorderBrush="{DynamicResource Brush400}"
+                                        BorderThickness="1"
+                                        CornerRadius="5"
+                                        Background="{DynamicResource Brush50}">
+                                    <ScrollViewer>
+                                        <ScrollViewer.Resources>
+                                            <Style x:Key="ScrollBarThumb" TargetType="Thumb">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border x:Name="borderThumb" Background="{DynamicResource Brush950}" CornerRadius="5"/>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
 
-                                        <Style TargetType="ScrollBar">
-                                            <Setter Property="Width" Value="10"/>
+                                            <Style x:Key="ScrollBarRepeatButton" TargetType="RepeatButton">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="RepeatButton">
+                                                            <Border Background="Transparent" />
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
 
-                                            <Setter Property="Template">
-                                                <Setter.Value>
-                                                    <ControlTemplate TargetType="ScrollBar">
-                                                        <Grid>
-                                                            <Track IsDirectionReversed="True" Name="PART_Track" Orientation="Vertical" Width="10">
-                                                                <Track.Thumb>
-                                                                    <Thumb Style="{StaticResource ScrollBarThumb}" />
-                                                                </Track.Thumb>
-                                                            </Track>
-                                                        </Grid>
-                                                    </ControlTemplate>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </ScrollViewer.Resources>
-                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
-                                </ScrollViewer>
-                            </Border>
-                        </Popup>
-                    </Grid>
-                </Border>
-                <ControlTemplate.Triggers>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="IsDropDownOpen" Value="False" />
-                            <Condition Property="Text" Value="" />
-                        </MultiTrigger.Conditions>
-                        <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
-                            <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
-                        </MultiTrigger.Setters>
-                        <MultiTrigger.EnterActions>
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
-                                        <SplineDoubleKeyFrame KeyTime="00:00:00" Value="11" />
-                                        <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="14" />
-                                    </DoubleAnimationUsingKeyFrames>
-                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
-                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,25" />
-                                        <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,0" />
-                                    </ThicknessAnimationUsingKeyFrames>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </MultiTrigger.EnterActions>
-                        <MultiTrigger.ExitActions>
-                            <BeginStoryboard>
-                                <Storyboard>
-                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
-                                        <SplineDoubleKeyFrame KeyTime="00:00:00" Value="14" />
-                                        <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="11" />
-                                    </DoubleAnimationUsingKeyFrames>
-                                    <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
-                                        <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,5" />
-                                        <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,25" />
-                                    </ThicknessAnimationUsingKeyFrames>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </MultiTrigger.ExitActions>
-                    </MultiTrigger>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="IsEnabled" Value="False" />
-                            <Condition Property="IsDropDownOpen" Value="False" />
-                        </MultiTrigger.Conditions>
-                        <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                            <Setter TargetName="placeholder" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
-                        </MultiTrigger.Setters>
-                    </MultiTrigger>
-                    <MultiTrigger>
-                        <MultiTrigger.Conditions>
-                            <Condition Property="IsEnabled" Value="true" />
-                            <Condition Property="IsDropDownOpen" Value="False" />
-                        </MultiTrigger.Conditions>
-                        <MultiTrigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
-                            <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
-                        </MultiTrigger.Setters>
-                    </MultiTrigger>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Trigger.Setters>
-                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush800}" />
-                        </Trigger.Setters>
-                    </Trigger>
-                </ControlTemplate.Triggers>
-            </ControlTemplate>
-        </ComboBox.Template>
-        <ComboBox.ItemTemplate>
-            <DataTemplate>
-                <ContentControl Content="{Binding}">
-                    <ContentControl.Style>
-                        <Style TargetType="ContentControl">
-                            <Setter Property="ContentTemplate" Value="{StaticResource SingleSelectTemplate}" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
-                                    <Setter Property="ContentTemplate" Value="{StaticResource MultiSelectTemplate}" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ContentControl.Style>
-                </ContentControl>
-            </DataTemplate>
-        </ComboBox.ItemTemplate>
-        <ComboBox.ItemContainerStyle>
-            <Style TargetType="ComboBoxItem">
-                <Setter Property="Background" Value="Transparent" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ComboBoxItem">
-                            <Border x:Name="Bd" 
-                                    Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    CornerRadius="5"
-                                    Padding="4"
-                                    BorderThickness="{TemplateBinding BorderThickness}">
-                                <ContentPresenter VerticalAlignment="Center" />
-                            </Border>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush100}" />
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush300}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </ComboBox.ItemContainerStyle>
-    </ComboBox>
+                                            <Style TargetType="ScrollBar">
+                                                <Setter Property="Width" Value="10"/>
+
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ScrollBar">
+                                                            <Grid>
+                                                                <Track IsDirectionReversed="True" Name="PART_Track" Orientation="Vertical" Width="10">
+                                                                    <Track.Thumb>
+                                                                        <Thumb Style="{StaticResource ScrollBarThumb}" />
+                                                                    </Track.Thumb>
+                                                                </Track>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ScrollViewer.Resources>
+                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsDropDownOpen" Value="False" />
+                                <Condition Property="Text" Value="" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
+                                <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
+                            </MultiTrigger.Setters>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                            <SplineDoubleKeyFrame KeyTime="00:00:00" Value="11" />
+                                            <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="14" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                            <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,25" />
+                                            <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,0" />
+                                        </ThicknessAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="FontSize">
+                                            <SplineDoubleKeyFrame KeyTime="00:00:00" Value="14" />
+                                            <SplineDoubleKeyFrame KeyTime="00:00:00.1" Value="11" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                        <ThicknessAnimationUsingKeyFrames Storyboard.TargetName="placeholder" Storyboard.TargetProperty="Margin" BeginTime="00:00:00">
+                                            <SplineThicknessKeyFrame KeyTime="00:00:00" Value="5,0,0,5" />
+                                            <SplineThicknessKeyFrame KeyTime="00:00:00.1" Value="5,0,0,25" />
+                                        </ThicknessAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="False" />
+                                <Condition Property="IsDropDownOpen" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="border" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                                <Setter TargetName="placeholder" Property="Opacity" Value="{DynamicResource DisabledOpacity}" />
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEnabled" Value="true" />
+                                <Condition Property="IsDropDownOpen" Value="False" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.Setters>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush400}" />
+                                <Setter TargetName="placeholder" Property="Foreground" Value="{DynamicResource Brush700}" />
+                            </MultiTrigger.Setters>
+                        </MultiTrigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Trigger.Setters>
+                                <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush800}" />
+                            </Trigger.Setters>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </ComboBox.Template>
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <ContentControl Content="{Binding}">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Setter Property="ContentTemplate" Value="{StaticResource SingleSelectTemplate}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMultiSelect, ElementName=MyModernLabelComboBox}" Value="True">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource MultiSelectTemplate}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+            <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ComboBoxItem">
+                                <Border x:Name="Bd" 
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        CornerRadius="5"
+                                        Padding="4"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ContentPresenter VerticalAlignment="Center" />
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush100}" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Brush300}" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ComboBox.ItemContainerStyle>
+        </ComboBox>
+
+        <Button x:Name="ClearButton"
+                Grid.Column="1"
+                Width="24"
+                Height="24"
+                Margin="0,0,8,0"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderThickness="0"
+                Cursor="Hand"
+                ToolTip="Clear Group"
+                Visibility="Collapsed"
+                Click="ClearButton_Click">
+            <Button.Style>
+                <Style TargetType="Button">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="12"
+                                        Padding="2">
+                                    <icons:MaterialIcon Kind="CloseCircle"
+                                                       Width="20"
+                                                       Height="20"
+                                                       Foreground="{DynamicResource Brush600}"
+                                                       x:Name="Icon"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Icon" Property="Foreground" Value="#F44336"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Button.Style>
+        </Button>
+    </Grid>
 </local:ModernLabelBaseControl>

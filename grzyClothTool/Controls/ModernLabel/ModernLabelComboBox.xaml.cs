@@ -152,11 +152,53 @@ namespace grzyClothTool.Controls
             MyComboBox.DropDownOpened += (s, e) => IsUserInitiated = true;
             MyComboBox.DropDownClosed += (s, e) => IsUserInitiated = false;
             MyComboBox.SelectionChanged += MyComboBox_SelectionChanged;
+            
+            Loaded += (s, e) => UpdateClearButtonVisibility();
         }
 
+        private void UpdateClearButtonVisibility()
+        {
+            if (Tag?.ToString() == "Group" && !IsMultiSelect)
+            {
+                ClearButton.Visibility = SelectedItem != null ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                ClearButton.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            MyComboBox.SelectedItem = null;
+            
+            if (MainWindow.AddonManager?.SelectedAddon != null)
+            {
+                if (MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+                {
+                    var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                    foreach (var drawable in selectedDrawables)
+                    {
+                        drawable.Group = null;
+                    }
+                    Helpers.LogHelper.Log($"Cleared group from {selectedDrawables.Count} drawable(s)", Views.LogType.Info);
+                }
+                else if (MainWindow.AddonManager.SelectedAddon.SelectedDrawable != null)
+                {
+                    MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Group = null;
+                    Helpers.LogHelper.Log($"Cleared group from drawable '{MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Name}'", Views.LogType.Info);
+                }
+                
+                Helpers.SaveHelper.SetUnsavedChanges(true);
+            }
+            
+            UpdateClearButtonVisibility();
+        }
 
         private void MyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            UpdateClearButtonVisibility();
+
             if (IsMultiSelect)
             {
                 // Directly access the "NONE" item assuming it always exists

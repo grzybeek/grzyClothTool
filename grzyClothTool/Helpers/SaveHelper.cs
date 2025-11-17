@@ -80,6 +80,12 @@ public static class SaveHelper
             timer.Start();
             LogHelper.Log("Started saving...");
 
+            MainWindow.AddonManager.Groups.Clear();
+            foreach (var group in GroupManager.Instance.Groups)
+            {
+                MainWindow.AddonManager.Groups.Add(group);
+            }
+
             var json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             var filename = $"save_{_saveCounter}.json";
             var path = Path.Combine(SavesPath, filename);
@@ -146,6 +152,14 @@ public static class SaveHelper
         {
             MainWindow.AddonManager.Addons.Add(addon);
         }
+
+        GroupManager.Instance.Groups.Clear();
+        foreach (var group in addonManager.Groups)
+        {
+            GroupManager.Instance.Groups.Add(group);
+        }
+
+        MainWindow.AddonManager.ProjectName = addonManager.ProjectName;
 
         LogHelper.Log($"Loaded save: {save.SaveDate}");
     }

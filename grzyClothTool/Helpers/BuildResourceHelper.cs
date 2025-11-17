@@ -77,27 +77,25 @@ public class BuildResourceHelper
                                        .Select(x => x.Select(v => v.Value).OrderBy(d => d.Number).ToList())
                                        .ToList();
 
-        // Prepare all directory paths first to minimize file system access
-        var genderFolderName = sex == SexType.male ? "[male]" : "[female]";
-        var directoriesToEnsure = drawableGroups.SelectMany(g => g.Select(d => Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName))).Distinct();
-        foreach (var dir in directoriesToEnsure)
-        {
-            Directory.CreateDirectory(dir);
-        }
-
+        var streamDirectory = Path.Combine(_buildPath, "stream");
+        Directory.CreateDirectory(streamDirectory);
+        
         var fileOperations = new List<Task>();
+        
+        var ymtPath = Path.Combine(streamDirectory, $"{pedName}_{projectName}.ymt");
+        fileOperations.Add(File.WriteAllBytesAsync(ymtPath, ymtBytes));
 
         foreach (var group in drawableGroups)
         {
-            var ymtPath = Path.Combine(_buildPath, "stream", $"{pedName}_{projectName}.ymt");
-            fileOperations.Add(File.WriteAllBytesAsync(ymtPath, ymtBytes));
-
             foreach (var d in group)
             {
                 var tempYddPath = await ResaveYdd(d);
 
                 var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
-                var folderPath = Path.Combine(_buildPath, "stream", genderFolderName, d.TypeName);
+                
+                var folderPath = SimplePathBuilder.BuildPath(d, _buildPath, _buildResourceType);
+                Directory.CreateDirectory(folderPath);
+                
                 var prefix = RemoveInvalidChars($"{drawablePedName}_{projectName}^");
                 var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
                 fileOperations.Add(FileHelper.CopyAsync(tempYddPath, finalPath));
@@ -165,7 +163,7 @@ public class BuildResourceHelper
         await Task.Run(() =>
             {
                 var generated = GenerateCreatureMetadata(drawables);
-                generated?.Save(_buildPath + "/stream/mp_creaturemetadata_" + GetGenderLetter(sex) + "_" + projectName + ".ymt");
+                generated?.Save(streamDirectory + "/mp_creaturemetadata_" + GetGenderLetter(sex) + "_" + projectName + ".ymt");
             }
         );
     }
@@ -700,7 +698,7 @@ public class BuildResourceHelper
                 var tempYddPath = await ResaveYdd(d);
                 var drawableBytes = File.ReadAllBytes(tempYddPath);
 
-                RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;
+                RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;            
                 RpfFile.CreateFile(folder, $"{d.Name}{Path.GetExtension(d.FilePath)}", drawableBytes);
 
                 foreach (var t in d.Textures)

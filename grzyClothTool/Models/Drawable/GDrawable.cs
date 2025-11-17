@@ -155,6 +155,19 @@ public class GDrawable : INotifyPropertyChanged
     public string? FirstPersonPath { get; set; } = null;
     public string? ClothPhysicsPath { get; set; } = null;
 
+    private string? _group;
+    public string? Group
+    {
+        get => _group;
+        set
+        {
+            if (_group != value)
+            {
+                _group = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     private bool _hasSkin;
     public bool HasSkin
@@ -297,30 +310,36 @@ public class GDrawable : INotifyPropertyChanged
                 return;
             }
 
-            Task<GDrawableDetails?> _drawableDetailsTask = LoadDrawableDetailsWithConcurrencyControl().ContinueWith(t =>
+            _ = Task.Run(async () =>
             {
-                if (t.IsFaulted)
+                try
                 {
-                    Console.WriteLine(t.Exception);
-                    //todo: add some warning that it couldn't load
-                    IsLoading = true;
-                    return null;
+                    var result = await LoadDrawableDetailsWithConcurrencyControl();
+                    if (result != null)
+                    {
+                        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            Details = result;
+                            OnPropertyChanged(nameof(Details));
+                            IsLoading = false;
+                        }), System.Windows.Threading.DispatcherPriority.Background);
+                    }
+                    else
+                    {
+                        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                        {
+                            IsLoading = false;
+                        }), System.Windows.Threading.DispatcherPriority.Background);
+                    }
                 }
-
-                if (t.Status == TaskStatus.RanToCompletion)
+                catch (Exception ex)
                 {
-                    if (t.Result == null)
+                    Console.WriteLine(ex);
+                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         IsLoading = false;
-                        return null;
-                    }
-
-                    Details = t.Result;
-                    OnPropertyChanged(nameof(Details));
-                    IsLoading = false;
+                    }), System.Windows.Threading.DispatcherPriority.Background);
                 }
-
-                return t.Result;
             });
         }
     }

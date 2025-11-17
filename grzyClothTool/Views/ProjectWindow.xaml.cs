@@ -103,7 +103,14 @@ namespace grzyClothTool.Views
 
                 foreach (var fldr in folder.FolderNames)
                 {
-                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories).OrderBy(f => Path.GetFileName(f)).ToArray();
+                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories)
+                        .OrderBy(f =>
+                        {
+                            var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(f));
+                            return number ?? int.MaxValue;
+                        })
+                        .ThenBy(Path.GetFileName)
+                        .ToArray();
                     await MainWindow.AddonManager.AddDrawables(files, sexBtn);
                 }
 

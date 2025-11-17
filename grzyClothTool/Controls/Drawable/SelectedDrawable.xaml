@@ -96,6 +96,9 @@
                             <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.FirstDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.FirstDrawable.HasSkin}" IsUpdated="SelectedDrawable_Updated" />
                             <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.FirstDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
 
+                            <c:ModernLabelComboBox Label="Group" Tag="Group" SelectedItem="{Binding SelectedAddon.FirstDrawable.Group, Mode=TwoWay}" ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" IsUpdated="SelectedDrawable_Updated">
+                            </c:ModernLabelComboBox>
+
                             <StackPanel Orientation="Vertical" Margin="0">
                                 <StackPanel.Style>
                                     <Style TargetType="StackPanel">
@@ -184,6 +187,7 @@
                                             <TextBox.Style>
                                                 <Style TargetType="TextBox">
                                                     <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Setter Property="Height" Value="20" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" Value="True">
                                                             <Setter Property="Visibility" Value="Visible" />
@@ -529,6 +533,8 @@
                                             <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" IsUpdated="SelectedDrawable_Updated" />
                                             <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.SelectedDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.SelectedDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
+
+                                            <c:ModernLabelComboBox x:Name="GroupComboBox" Label="Group" Tag="Group" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Group, Mode=TwoWay}" ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" IsUpdated="SelectedDrawable_Updated" />
 
                                             <StackPanel Orientation="Vertical" Margin="0">
                                                 <StackPanel.Style>

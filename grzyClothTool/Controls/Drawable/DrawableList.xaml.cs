@@ -6,10 +6,13 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -27,7 +30,7 @@ namespace grzyClothTool.Controls
         public event KeyEventHandler DrawableListKeyDown;
 
         public static readonly DependencyProperty ItemsSourceProperty =
-            DependencyProperty.RegisterAttached("ItemsSource", typeof(ObservableCollection<GDrawable>), typeof(DrawableList), new PropertyMetadata(default(ObservableCollection<GDrawable>)));
+            DependencyProperty.RegisterAttached("ItemsSource", typeof(ObservableCollection<GDrawable>), typeof(DrawableList), new PropertyMetadata(default(ObservableCollection<GDrawable>), OnItemsSourceChanged));
 
         public ObservableCollection<GDrawable> ItemsSource
         {
@@ -37,25 +40,227 @@ namespace grzyClothTool.Controls
 
         public object DrawableListSelectedValue => MyListBox.SelectedValue;
 
+        private ICollectionView _drawablesView;
+        public ICollectionView DrawablesView
+        {
+            get => _drawablesView;
+            set
+            {
+                _drawablesView = value;
+            }
+        }
+
+        private bool _isDragging;
+        private List<GDrawable> _pendingSelection;
+        private static readonly Dictionary<string, bool> value = [];
+
+        private readonly Dictionary<string, bool> _groupExpandedStates = value;
+
         public DrawableList()
         {
             InitializeComponent();
+            
+            MyListBox.MouseLeave += MyListBox_MouseLeave;
+            MyListBox.Loaded += MyListBox_Loaded;
+        }
+
+        private void MyListBox_Loaded(object sender, RoutedEventArgs e)
+        {
+            MyListBox.AddHandler(Expander.ExpandedEvent, new RoutedEventHandler(Expander_StateChanged));
+            MyListBox.AddHandler(Expander.CollapsedEvent, new RoutedEventHandler(Expander_StateChanged));
+        }
+
+        private void Expander_StateChanged(object sender, RoutedEventArgs e)
+        {
+            if (e.OriginalSource is Expander expander && expander.DataContext is CollectionViewGroup group)
+            {
+                var groupName = group.Name as string;
+                if (!string.IsNullOrEmpty(groupName))
+                {
+                    _groupExpandedStates[groupName] = expander.IsExpanded;
+                }
+            }
+        }
+
+        public bool GetGroupExpandedState(string groupName)
+        {
+            if (string.IsNullOrEmpty(groupName))
+                return true;
+                
+            return !_groupExpandedStates.TryGetValue(groupName, out bool isExpanded) || isExpanded;
+        }
+
+        private void MyListBox_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (!_isDragging)
+            {
+                CleanupGhostLine();
+            }
+        }
+
+        private static void OnItemsSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is DrawableList drawableList)
+            {
+                drawableList.UnsubscribeFromPropertyChanges(e.OldValue as ObservableCollection<GDrawable>);
+                drawableList.SubscribeToPropertyChanges(e.NewValue as ObservableCollection<GDrawable>);
+                drawableList.SetupGrouping();
+            }
+        }
+
+        private void SubscribeToPropertyChanges(ObservableCollection<GDrawable> collection)
+        {
+            if (collection == null) return;
+
+            foreach (var drawable in collection)
+            {
+                drawable.PropertyChanged += Drawable_PropertyChanged;
+            }
+
+            collection.CollectionChanged += ItemsSource_CollectionChanged;
+        }
+
+        private void UnsubscribeFromPropertyChanges(ObservableCollection<GDrawable> collection)
+        {
+            if (collection == null) return;
+
+            foreach (var drawable in collection)
+            {
+                drawable.PropertyChanged -= Drawable_PropertyChanged;
+            }
+
+            collection.CollectionChanged -= ItemsSource_CollectionChanged;
+        }
+
+        private void ItemsSource_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.NewItems != null)
+            {
+                foreach (GDrawable drawable in e.NewItems)
+                {
+                    drawable.PropertyChanged += Drawable_PropertyChanged;
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (GDrawable drawable in e.OldItems)
+                {
+                    drawable.PropertyChanged -= Drawable_PropertyChanged;
+                }
+            }
+        }
+
+        private void Drawable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(GDrawable.Group))
+            {
+                if (_pendingSelection == null)
+                {
+                    _pendingSelection = [.. MyListBox.SelectedItems.Cast<GDrawable>()];
+
+                    DrawablesView?.Refresh();
+
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        RestoreSelection();
+                    }), System.Windows.Threading.DispatcherPriority.Loaded);
+                }
+            }
+        }
+
+        private void RestoreSelection()
+        {
+            if (_pendingSelection != null && _pendingSelection.Any())
+            {
+                MyListBox.SelectedItems.Clear();
+
+                foreach (var drawable in _pendingSelection)
+                {
+                    if (ItemsSource?.Contains(drawable) == true)
+                    {
+                        MyListBox.SelectedItems.Add(drawable);
+                    }
+                }
+
+                if (MyListBox.SelectedItems.Count > 0)
+                {
+                    MyListBox.ScrollIntoView(MyListBox.SelectedItems[0]);
+                }
+
+                _pendingSelection = null;
+            }
+        }
+
+        private void SetupGrouping()
+        {
+            if (ItemsSource == null) return;
+
+            DrawablesView = CollectionViewSource.GetDefaultView(ItemsSource);
+            
+            if (DrawablesView.GroupDescriptions.Count == 0 || 
+                !(DrawablesView.GroupDescriptions[0] is PropertyGroupDescription pgd) ||
+                pgd.PropertyName != "Group")
+            {
+                DrawablesView.GroupDescriptions.Clear();
+                DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription("Group"));
+            }
+
+            DrawablesView.SortDescriptions.Clear();
+            if (DrawablesView is ListCollectionView listView)
+            {
+                listView.CustomSort = new DrawableGroupComparer();
+            }
+
+            if (DrawablesView is ICollectionViewLiveShaping liveView && liveView.CanChangeLiveGrouping)
+            {
+                if (liveView.IsLiveGrouping != true)
+                {
+                    liveView.LiveGroupingProperties.Clear();
+                    liveView.LiveGroupingProperties.Add(nameof(GDrawable.Group));
+                    liveView.IsLiveGrouping = true;
+                }
+                
+                if (liveView.CanChangeLiveSorting)
+                {
+                    liveView.LiveSortingProperties.Clear();
+                    liveView.LiveSortingProperties.Add(nameof(GDrawable.Group));
+                    liveView.LiveSortingProperties.Add(nameof(GDrawable.Number));
+                    liveView.IsLiveSorting = true;
+                }
+            }
+            
+            DrawablesView.Refresh();
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             DrawableListSelectedValueChanged?.Invoke(sender, e);
 
-            if (_ghostLineAdorner != null)
+            if (!_isDragging)
             {
-                _adornerLayer?.Remove(_ghostLineAdorner);
-                _ghostLineAdorner = null;
+                CleanupGhostLine();
             }
         }
 
         private void DrawableList_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             DrawableListKeyDown?.Invoke(sender, e);
+        }
+
+        private void CleanupGhostLine()
+        {
+            if (_ghostLineAdorner != null)
+            {
+                _adornerLayer?.Remove(_ghostLineAdorner);
+                _ghostLineAdorner = null;
+            }
+            
+            if (_currentGroupHeaderBorder != null)
+            {
+                SetIsDragOver(_currentGroupHeaderBorder, false);
+                _currentGroupHeaderBorder = null;
+            }
         }
 
         private void MoveMenuItem_Click(object sender, RoutedEventArgs e)
@@ -254,6 +459,24 @@ namespace grzyClothTool.Controls
         private Point _dragStartPoint;
         private AdornerLayer _adornerLayer;
         private GhostLineAdorner _ghostLineAdorner;
+        private Border _currentGroupHeaderBorder;
+
+        public static readonly DependencyProperty IsDragOverProperty =
+            DependencyProperty.RegisterAttached(
+                "IsDragOver",
+                typeof(bool),
+                typeof(DrawableList),
+                new PropertyMetadata(false));
+
+        public static bool GetIsDragOver(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsDragOverProperty);
+        }
+
+        public static void SetIsDragOver(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsDragOverProperty, value);
+        }
 
 
         private void MyListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -273,25 +496,39 @@ namespace grzyClothTool.Controls
                 ListBox listBox = sender as ListBox;
                 ListBoxItem listBoxItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
 
-                if (listBoxItem != null)
+                if (listBoxItem != null && !_isDragging)
                 {
-                    if (_ghostLineAdorner != null)
-                    {
-                        _adornerLayer?.Remove(_ghostLineAdorner);
-                        _ghostLineAdorner = null;
-                    }
-
-                    _ghostLineAdorner = new GhostLineAdorner(MyListBox);
+                    _isDragging = true;
+                    CleanupGhostLine();
 
                     _adornerLayer = AdornerLayer.GetAdornerLayer(MyListBox);
-                    _adornerLayer?.Add(_ghostLineAdorner);
+                    if (_adornerLayer != null)
+                    {
+                        _ghostLineAdorner = new GhostLineAdorner(MyListBox);
+                        _adornerLayer.Add(_ghostLineAdorner);
+                        
+                        _ghostLineAdorner.UpdatePosition(listBoxItem, false, MyListBox);
+                    }
 
                     var selectedItem = listBox?.SelectedItem;
 
                     if (selectedItem is GDrawable)
                     {
-                        DataObject data = new DataObject(typeof(GDrawable), selectedItem);
-                        DragDrop.DoDragDrop(listBox, data, DragDropEffects.Move);
+                        DataObject data = new(typeof(GDrawable), selectedItem);
+                        
+                        try
+                        {
+                            DragDrop.DoDragDrop(listBox, data, DragDropEffects.Move);
+                        }
+                        finally
+                        {
+                            _isDragging = false;
+                            CleanupGhostLine();
+                        }
+                    }
+                    else
+                    {
+                        _isDragging = false;
                     }
                 }
             }
@@ -300,14 +537,48 @@ namespace grzyClothTool.Controls
         private void MyListBox_DragOver(object sender, DragEventArgs e)
         {
             e.Effects = DragDropEffects.Move;
-            Point position = e.GetPosition(MyListBox);
-            int index = GetCurrentIndex(position);
-
-            if (_ghostLineAdorner != null)
+            
+            bool isOverGroupHeader = IsOverGroupHeader(e.OriginalSource);
+            
+            DependencyObject hitElement = e.OriginalSource as DependencyObject;
+            
+            if (isOverGroupHeader && hitElement != null)
             {
-                if (index >= 0 && index < ItemsSource.Count)
+                Border groupBorder = FindAncestor<Border>(hitElement);
+                if (groupBorder != null && groupBorder.Name == "GroupHeaderBorder")
                 {
-                    _ghostLineAdorner.UpdatePosition(index);
+                    if (_currentGroupHeaderBorder != null && _currentGroupHeaderBorder != groupBorder)
+                    {
+                        SetIsDragOver(_currentGroupHeaderBorder, false);
+                    }
+                    
+                    SetIsDragOver(groupBorder, true);
+                    _currentGroupHeaderBorder = groupBorder;
+                    
+                    _ghostLineAdorner?.Hide();
+                }
+            }
+            else
+            {
+                if (_currentGroupHeaderBorder != null)
+                {
+                    SetIsDragOver(_currentGroupHeaderBorder, false);
+                    _currentGroupHeaderBorder = null;
+                }
+                
+                if (_ghostLineAdorner != null && hitElement != null)
+                {
+                    ListBoxItem targetItem = FindAncestor<ListBoxItem>(hitElement);
+                    
+                    if (targetItem != null)
+                    {
+                        int index = MyListBox.ItemContainerGenerator.IndexFromContainer(targetItem);
+                        if (index >= 0)
+                        {
+                            _ghostLineAdorner.Show();
+                            _ghostLineAdorner.UpdatePosition(targetItem, false, MyListBox);
+                        }
+                    }
                 }
             }
 
@@ -328,75 +599,148 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private static bool IsOverGroupHeader(object source)
+        {
+            DependencyObject current = source as DependencyObject;
+            
+            while (current != null)
+            {
+                if (current is Border border && border.Name == "GroupHeaderBorder")
+                {
+                    return true;
+                }
+                
+                if (current is Expander)
+                {
+                    return true;
+                }
+                
+                if (current is ListBoxItem)
+                {
+                    return false;
+                }
+                
+                current = VisualTreeHelper.GetParent(current);
+            }
+            
+            return false;
+        }
+
         private void MyListBox_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(typeof(GDrawable)))
             {
-                GDrawable droppedData = e.Data.GetData(typeof(GDrawable)) as GDrawable;
-                ListBox listBox = sender as ListBox;
-                GDrawable target = ((FrameworkElement)e.OriginalSource).DataContext as GDrawable;
-
-                if (droppedData != null && target != null && ItemsSource != null)
+                bool droppedOnGroupHeader = IsOverGroupHeader(e.OriginalSource);
+                string targetGroupName = null;
+                
+                if (droppedOnGroupHeader)
                 {
-                    if (droppedData.Sex != target.Sex || droppedData.TypeNumeric != target.TypeNumeric || droppedData.IsProp != target.IsProp)
+                    targetGroupName = GetGroupNameFromElement(e.OriginalSource as DependencyObject);
+                }
+                
+                GDrawable target = null;
+                if (e.OriginalSource is FrameworkElement element)
+                {
+                    target = element.DataContext as GDrawable;
+                }
+
+                if (e.Data.GetData(typeof(GDrawable)) is GDrawable droppedData && ItemsSource != null)
+                {
+                    if (droppedOnGroupHeader && targetGroupName != null)
                     {
+                        if (droppedData.Group != targetGroupName)
+                        {
+                            var oldGroup = droppedData.Group;
+                            droppedData.Group = targetGroupName;
+                            LogHelper.Log($"Drawable '{droppedData.Name}' moved from group '{oldGroup ?? "Ungrouped"}' to '{targetGroupName}'");
+                            SaveHelper.SetUnsavedChanges(true);
+                        }
+                        CleanupGhostLine();
+                        return;
+                    }
+                    
+                    if (target == null && !droppedOnGroupHeader)
+                    {
+                        CleanupGhostLine();
                         return;
                     }
 
-                    int oldIndex = ItemsSource.IndexOf(droppedData);
-                    int newIndex = ItemsSource.IndexOf(target);
-
-                    if (oldIndex == newIndex)
-                        return; // No movement needed
-
-                    if (oldIndex < newIndex)
+                    if (target != null && (droppedData.Sex != target.Sex || droppedData.TypeNumeric != target.TypeNumeric || droppedData.IsProp != target.IsProp))
                     {
-                        for (int i = oldIndex; i < newIndex; i++)
-                        {
-                            (ItemsSource[i + 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i + 1]);
-                        }
-                    }
-                    else
-                    {
-                        for (int i = oldIndex; i > newIndex; i--)
-                        {
-                            (ItemsSource[i - 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i - 1]);
-                        }
+                        CleanupGhostLine();
+                        return;
                     }
 
-                    LogHelper.Log($"Drawable '{droppedData.Name}' moved from position {oldIndex} to {newIndex}");
-                    MainWindow.AddonManager.SelectedAddon.Drawables.ReassignNumbers(droppedData);
+                    if (target != null && droppedData.Group != target.Group)
+                    {
+                        var oldGroup = droppedData.Group;
+                        droppedData.Group = target.Group;
+                        LogHelper.Log($"Drawable '{droppedData.Name}' moved from group '{oldGroup ?? "Ungrouped"}' to '{target.Group ?? "Ungrouped"}'");
+                        SaveHelper.SetUnsavedChanges(true);
+                    }
 
-                    MyListBox.SelectedItem = droppedData;
-                    MyListBox.ScrollIntoView(droppedData);
+                    if (target != null)
+                    {
+                        int oldIndex = ItemsSource.IndexOf(droppedData);
+                        int newIndex = ItemsSource.IndexOf(target);
 
+                        if (oldIndex == newIndex)
+                        {
+                            CleanupGhostLine();
+                            return;
+                        }
 
-                    _adornerLayer?.Remove(_ghostLineAdorner);
-                    _ghostLineAdorner = null;
+                        if (oldIndex < newIndex)
+                        {
+                            for (int i = oldIndex; i < newIndex; i++)
+                            {
+                                (ItemsSource[i + 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i + 1]);
+                            }
+                        }
+                        else
+                        {
+                            for (int i = oldIndex; i > newIndex; i--)
+                            {
+                                (ItemsSource[i - 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i - 1]);
+                            }
+                        }
+
+                        LogHelper.Log($"Drawable '{droppedData.Name}' moved from position {oldIndex} to {newIndex}");
+                        MainWindow.AddonManager.SelectedAddon.Drawables.ReassignNumbers(droppedData);
+
+                        MyListBox.SelectedItem = droppedData;
+                        MyListBox.ScrollIntoView(droppedData);
+                    }
+
+                    CleanupGhostLine();
                 }
+            }
+            else
+            {
+                CleanupGhostLine();
             }
         }
 
-        private int GetCurrentIndex(Point position)
+        private static string GetGroupNameFromElement(DependencyObject element)
         {
-            int index = -1;
-            for (int i = 0; i < MyListBox.Items.Count; i++)
+            DependencyObject current = element;
+            
+            while (current != null)
             {
-                ListBoxItem item = (ListBoxItem)MyListBox.ItemContainerGenerator.ContainerFromIndex(i);
-                if (item != null)
+                if (current is Expander expander && expander.DataContext is CollectionViewGroup group)
                 {
-                    Rect bounds = VisualTreeHelper.GetDescendantBounds(item);
-                    Point topLeft = item.TranslatePoint(new Point(), MyListBox);
-                    Rect itemBounds = new(topLeft, bounds.Size);
-
-                    if (itemBounds.Contains(position))
-                    {
-                        index = i;
-                        break;
-                    }
+                    return group.Name as string;
                 }
+                
+                if (current is FrameworkElement fe && fe.DataContext is CollectionViewGroup cvg)
+                {
+                    return cvg.Name as string;
+                }
+                
+                current = VisualTreeHelper.GetParent(current);
             }
-            return index;
+            
+            return null;
         }
 
         private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
@@ -429,63 +773,140 @@ namespace grzyClothTool.Controls
         #endregion
     }
 
+
+    public class DrawableGroupComparer : System.Collections.IComparer
+    {
+        public int Compare(object x, object y)
+        {
+            if (x is not GDrawable drawableX || y is not GDrawable drawableY)
+                return 0;
+
+            string groupX = drawableX.Group;
+            string groupY = drawableY.Group;
+            
+            bool hasGroupX = !string.IsNullOrEmpty(groupX);
+            bool hasGroupY = !string.IsNullOrEmpty(groupY);
+
+            // Both have groups - sort alphabetically by group name
+            if (hasGroupX && hasGroupY)
+            {
+                int groupComparison = string.Compare(groupX, groupY, StringComparison.OrdinalIgnoreCase);
+                if (groupComparison != 0)
+                    return groupComparison;
+
+                // Within the same group, sort by Number
+                return drawableX.Number.CompareTo(drawableY.Number);
+            }
+
+            // X has a group, Y doesn't - X comes first (groups before ungrouped)
+            if (hasGroupX && !hasGroupY)
+                return -1;
+
+            // Y has a group, X doesn't - Y comes first (groups before ungrouped)
+            if (!hasGroupX && hasGroupY)
+                return 1;
+
+            // Neither has a group - sort by Number to maintain order
+            return drawableX.Number.CompareTo(drawableY.Number);
+        }
+    }
+
+    public class GroupExpandedStateConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length >= 2 &&
+                values[0] is string groupName &&
+                values[1] is DrawableList drawableList)
+            {
+                return drawableList.GetGroupExpandedState(groupName);
+            }
+
+            return true; // Default to expanded
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            // We don't need to convert back - the state is captured by the event handler
+            return new object[] { Binding.DoNothing, Binding.DoNothing };
+        }
+    }
+
     public class GhostLineAdorner : Adorner
     {
         private readonly Rectangle _ghostLine;
-        private int _index;
+        private bool _isVisible = true;
+        private Point _position;
 
         public GhostLineAdorner(UIElement adornedElement) : base(adornedElement)
         {
+            IsClipEnabled = false;
+            IsHitTestVisible = false;
+            
             _ghostLine = new Rectangle
             {
-                Height = 4,
-                Width = adornedElement.RenderSize.Width,
-                Fill = Brushes.Black,
-                Opacity = 1,
-                StrokeThickness = 2,
-                Stroke = Brushes.Black,
+                Height = 3,
+                Fill = new SolidColorBrush(Color.FromRgb(0, 0, 0)),
+                Opacity = 1.0,
+                StrokeThickness = 0,
                 IsHitTestVisible = false
             };
+            
             AddVisualChild(_ghostLine);
-        }
-
-        public void UpdatePosition(int index)
-        {
-            _index = index;
-            InvalidateArrange();
-            InvalidateVisual();
-            AdornedElement.InvalidateVisual();
+            AddLogicalChild(_ghostLine);
         }
 
         protected override int VisualChildrenCount => 1;
 
-        protected override Visual GetVisualChild(int index) => _ghostLine;
+        protected override Visual GetVisualChild(int index)
+        {
+            if (index != 0)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            return _ghostLine;
+        }
 
         protected override Size MeasureOverride(Size constraint)
         {
             _ghostLine.Measure(constraint);
-            return new Size(constraint.Width, _ghostLine.DesiredSize.Height);
+            return new Size(AdornedElement.RenderSize.Width, 3);
         }
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            if (_index < 0) return finalSize;
-
-            ListBox listBox = AdornedElement as ListBox;
-            if (listBox == null) return finalSize;
-
-            ListBoxItem item = listBox.ItemContainerGenerator.ContainerFromIndex(_index) as ListBoxItem;
-            if (item != null)
+            if (_isVisible)
             {
-                Point relativePosition = item.TransformToAncestor(listBox).Transform(new Point(0, 0));
-                double itemHeight = item.ActualHeight;
-
-                double yOffset = relativePosition.Y + itemHeight;
-
-                _ghostLine.Arrange(new Rect(new Point(0, yOffset), new Size(finalSize.Width, _ghostLine.Height)));
+                _ghostLine.Arrange(new Rect(new Point(_position.X, _position.Y), new Size(AdornedElement.RenderSize.Width, 3)));
             }
-
+            else
+            {
+                _ghostLine.Arrange(new Rect(0, 0, 0, 0));
+            }
             return finalSize;
+        }
+
+        public void Hide()
+        {
+            _isVisible = false;
+            InvalidateArrange();
+            InvalidateVisual();
+        }
+
+        public void Show()
+        {
+            _isVisible = true;
+            InvalidateArrange();
+            InvalidateVisual();
+        }
+
+        public void UpdatePosition(UIElement targetElement, bool isOverGroupHeader, UIElement listBox)
+        {
+            if (targetElement == null) return;
+
+            var targetPos = targetElement.TransformToAncestor(AdornedElement).Transform(new Point(0, 0));
+            _position = new Point(0, targetPos.Y);
+            
+            InvalidateArrange();
+            InvalidateVisual();
         }
     }
 }

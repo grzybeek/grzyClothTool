@@ -39,6 +39,8 @@ namespace grzyClothTool.Models
         [JsonInclude]
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
 
+        public ObservableCollection<string> Groups { get; set; } = [];
+        
         [JsonIgnore]
         public ObservableCollection<MoveMenuItem> MoveMenuItems { get; set; } = [];
 
@@ -116,6 +118,12 @@ namespace grzyClothTool.Models
 
             var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
                 .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
+                .OrderBy(x =>
+                {
+                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
+                    return number ?? int.MaxValue;
+                })
+                .ThenBy(Path.GetFileName)
                 .ToArray();
 
             var ymtFile = Directory.GetFiles(dirPath, "*.ymt", SearchOption.AllDirectories)
@@ -124,6 +132,12 @@ namespace grzyClothTool.Models
 
             var yldFiles = Directory.GetFiles(dirPath, "*.yld", SearchOption.AllDirectories)
                 .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
+                .OrderBy(x =>
+                {
+                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
+                    return number ?? int.MaxValue;
+                })
+                .ThenBy(Path.GetFileName)
                 .ToArray();
 
             if (yddFiles.Length == 0)
@@ -144,10 +158,10 @@ namespace grzyClothTool.Models
             //merge ydd with yld files
             var mergedFiles = yddFiles.Concat(yldFiles).ToArray();
 
-            await AddDrawables(mergedFiles, sex, ymt);
+            await AddDrawables(mergedFiles, sex, ymt, dirPath);
         }
 
-        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null)
+        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null)
         {
             // We need to count how many drawables of each type we have added so far
             // this is because if we are loading from ymt file, numbers are relative to this ymt file, once adding it to existing project
@@ -246,6 +260,20 @@ namespace grzyClothTool.Models
 
                 var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType));
 
+                if (!string.IsNullOrEmpty(basePath) && filePath.StartsWith(basePath))
+                {
+                    var extractedGroup = ExtractGroupFromPath(filePath, basePath, sex, isProp);
+                    if (!string.IsNullOrWhiteSpace(extractedGroup))
+                    {
+                        drawable.Group = extractedGroup;
+                        if (!Groups.Contains(extractedGroup))
+                        {
+                            Groups.Add(extractedGroup);
+                            GroupManager.Instance.AddGroup(extractedGroup);
+                        }
+                    }
+                }
+
                 // Set properties from ymt file if available
                 if (ymt is not null)
                 {
@@ -300,6 +328,54 @@ namespace grzyClothTool.Models
             }
 
             Addons.Sort(true);
+        }
+
+        /// <summary>
+        /// Extracts group path from file path relative to base path
+        /// Expected structure for FiveM: basePath/stream/[gender]/[group]/[type]/file.ydd
+        /// </summary>
+        private static string ExtractGroupFromPath(string filePath, string basePath, Enums.SexType sex, bool isProp)
+        {
+            try
+            {
+                filePath = Path.GetFullPath(filePath);
+                basePath = Path.GetFullPath(basePath);
+
+                var relativePath = Path.GetRelativePath(basePath, Path.GetDirectoryName(filePath));
+                
+                var parts = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                
+                // Expected structure: stream/[gender]/[group(s)]/[type]
+                if (parts.Length > 3)
+                {
+                    int genderIndex = -1;
+                    string expectedGenderFolder = sex == Enums.SexType.male ? "[male]" : "[female]";
+                    
+                    for (int i = 0; i < parts.Length; i++)
+                    {
+                        if (parts[i].Equals(expectedGenderFolder, StringComparison.OrdinalIgnoreCase))
+                        {
+                            genderIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (genderIndex >= 0 && genderIndex < parts.Length - 2)
+                    {
+                        var groupParts = parts.Skip(genderIndex + 1).Take(parts.Length - genderIndex - 2).ToArray();
+                        if (groupParts.Length > 0)
+                        {
+                            return string.Join("/", groupParts);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error extracting group from path: {ex.Message}", Views.LogType.Warning);
+            }
+            
+            return null;
         }
 
         public void AddDrawable(GDrawable drawable)

@@ -6,11 +6,14 @@
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              xmlns:models="clr-namespace:grzyClothTool.Models"
              xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
              d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
              x:Name="MyDrawableList"
              mc:Ignorable="d">
 
     <UserControl.Resources>
+        <local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
+        
         <ContextMenu x:Key="SingleSelectionContextMenu">
             <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
             <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
@@ -60,114 +63,115 @@
 
         <Style TargetType="ListBoxItem" x:Key="ListBoxItemTemplate">
             <Setter Property="AllowDrop" Value="True" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListBoxItem">
-                        <Border Background="Transparent" x:Name="Border" BorderBrush="{DynamicResource Brush600}" BorderThickness="1" Padding="0, 5, 0, 5" Margin="0,2,2,2" CornerRadius="5">
-                            <Grid >
+                        <Border Background="Transparent" 
+                                x:Name="Border" 
+                                BorderBrush="{DynamicResource Brush600}" 
+                                BorderThickness="1" 
+                                Padding="0,5,0,5" 
+                                Margin="0,2,2,2" 
+                                CornerRadius="5"
+                                SnapsToDevicePixels="True"
+                                UseLayoutRounding="True">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="4"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Rectangle Width="4" Margin="-5" Grid.Column="0">
+                                
+                                <Rectangle Width="4" Margin="-5" Grid.Column="0" x:Name="SexIndicator" Fill="#94c1ff">
                                     <Rectangle.Clip>
-                                        <RectangleGeometry Rect="0,0,100,26"  RadiusX="4.5" RadiusY="4.5"/>
+                                        <RectangleGeometry Rect="0,0,100,26" RadiusX="4.5" RadiusY="4.5"/>
                                     </Rectangle.Clip>
-                                    <Rectangle.Style>
-                                        <Style TargetType="Rectangle">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SexName}" Value="male">
-                                                    <Setter Property="Fill" Value="#94c1ff"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding SexName}" Value="female">
-                                                    <Setter Property="Fill" Value="#ffa3c3"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Rectangle.Style>
                                 </Rectangle>
+                                
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <ContentControl ToolTip="Encrypted - Cannot preview or view details" ToolTipService.InitialShowDelay="0">
-                                        <icons:MaterialIcon Kind="Lock" Height="14" Margin="5,1,0,0">
-                                            <icons:MaterialIcon.Style>
-                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                    <Setter Property="Foreground" Value="Black" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding IsEncrypted}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </icons:MaterialIcon.Style>
-                                        </icons:MaterialIcon>
-                                    </ContentControl>
-                                    <icons:MaterialIcon Kind="ProgressHelper" Height="12" Margin="5,1,0,0">
-                                        <icons:MaterialIcon.Style>
-                                            <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                        <Setter Property="Visibility" Value="Visible" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsLoading}" Value="False">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </icons:MaterialIcon.Style>
-                                    </icons:MaterialIcon>
-                                    <ContentControl ToolTip="{Binding Details.Tooltip}" ToolTipService.InitialShowDelay="0">
-                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="12" Margin="5,1,0,0">
-                                            <icons:MaterialIcon.Style>
-                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Details.IsWarning}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </icons:MaterialIcon.Style>
-                                        </icons:MaterialIcon>
-                                    </ContentControl>
-                                    <TextBlock Padding="5, 0, 0, 0" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+                                    <icons:MaterialIcon x:Name="LockIcon" 
+                                                       Kind="Lock" 
+                                                       Height="14" 
+                                                       Margin="5,1,0,0"
+                                                       Foreground="Black"
+                                                       Visibility="Collapsed" />
+                                    
+                                    <icons:MaterialIcon x:Name="LoadingIcon" 
+                                                       Kind="ProgressHelper" 
+                                                       Height="12" 
+                                                       Margin="5,1,0,0"
+                                                       Visibility="Collapsed" />
+                                    
+                                    <icons:MaterialIcon x:Name="WarningIcon" 
+                                                       Kind="AlertCircleOutline" 
+                                                       Width="12" 
+                                                       Margin="5,1,0,0"
+                                                       Visibility="Collapsed" />
+                                    
+                                    <TextBlock Padding="5,0,0,0" Text="{Binding Name}" />
                                 </StackPanel>
+                                
                                 <StackPanel Orientation="Horizontal" Grid.Column="2" HorizontalAlignment="Right">
-                                    <Rectangle x:Name="ReservedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Reserved drawable" ToolTipService.InitialShowDelay="0">
+                                    <Rectangle x:Name="ReservedDot" Width="13" Margin="0,2,4,0" Visibility="Collapsed">
                                         <Rectangle.Clip>
-                                            <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
+                                            <RectangleGeometry Rect="1,0,12,12" RadiusX="12" RadiusY="12"/>
                                         </Rectangle.Clip>
                                     </Rectangle>
-                                    <Rectangle x:Name="SelectedDot" Width="13" Margin="0, 2, 4, 0" HorizontalAlignment="Right" ToolTip="Currently selected drawable" ToolTipService.InitialShowDelay="0">
+                                    <Rectangle x:Name="SelectedDot" Width="13" Margin="0,2,4,0" Visibility="Collapsed">
                                         <Rectangle.Clip>
-                                            <RectangleGeometry Rect="1,0,12,12"  RadiusX="12" RadiusY="12"/>
+                                            <RectangleGeometry Rect="1,0,12,12" RadiusX="12" RadiusY="12"/>
                                         </Rectangle.Clip>
                                     </Rectangle>
                                 </StackPanel>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource Brush200}" TargetName="Border"/>
-                            </Trigger>
+                            <DataTrigger Binding="{Binding SexName}" Value="female">
+                                <Setter Property="Fill" Value="#ffa3c3" TargetName="SexIndicator"/>
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsEncrypted}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="LockIcon" />
+                                <Setter Property="ToolTip" Value="Encrypted - Cannot preview or view details" TargetName="LockIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="LoadingIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding Details.IsWarning}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="WarningIcon" />
+                                <Setter Property="ToolTip" Value="{Binding Details.Tooltip}" TargetName="WarningIcon" />
+                            </DataTrigger>
+                            
+                            <DataTrigger Binding="{Binding IsReserved}" Value="True">
+                                <Setter Property="FontStyle" Value="Italic" />
+                                <Setter Property="Fill" Value="#FFF58F38" TargetName="ReservedDot" />
+                                <Setter Property="Visibility" Value="Visible" TargetName="ReservedDot" />
+                                <Setter Property="ToolTip" Value="Reserved drawable" TargetName="ReservedDot" />
+                            </DataTrigger>
+                            
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}}" Value="True"/>
                                     <Condition Binding="{Binding IsNew}" Value="True"/>
                                 </MultiDataTrigger.Conditions>
-
                                 <Setter Property="Fill" Value="#F5E025" TargetName="SelectedDot" />
+                                <Setter Property="Visibility" Value="Visible" TargetName="SelectedDot" />
                                 <Setter Property="ToolTip" Value="Newly added drawable" TargetName="SelectedDot" />
                             </MultiDataTrigger>
+                            
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="FontWeight" Value="Bold" />
                                 <Setter Property="Fill" Value="LimeGreen" TargetName="SelectedDot" />
+                                <Setter Property="Visibility" Value="Visible" TargetName="SelectedDot" />
+                                <Setter Property="ToolTip" Value="Currently selected drawable" TargetName="SelectedDot" />
                             </Trigger>
-                            <DataTrigger Binding="{Binding IsReserved}" Value="True">
-                                <Setter Property="FontStyle" Value="Italic" />
-                                <Setter Property="Fill" Value="#FFF58F38" TargetName="ReservedDot" />
-                            </DataTrigger>
+                            
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource Brush200}" TargetName="Border"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -196,6 +200,205 @@
             PreviewMouseMove="MyListBox_PreviewMouseMove"
             Drop="MyListBox_Drop"
             DragOver="MyListBox_DragOver"
-            />
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.ScrollUnit="Pixel"
+            VirtualizingPanel.CacheLength="20,20"
+            VirtualizingPanel.CacheLengthUnit="Item"
+            ScrollViewer.CanContentScroll="True"
+            SnapsToDevicePixels="True"
+            UseLayoutRounding="True">
+            
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="GroupItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="GroupItem">
+                                        <StackPanel>
+                                            <Expander Margin="0,5,0,0" x:Name="GroupExpander">
+                                                <Expander.IsExpanded>
+                                                    <MultiBinding Converter="{StaticResource GroupExpandedStateConverter}" Mode="OneWay">
+                                                        <Binding Path="Name" />
+                                                        <Binding ElementName="MyDrawableList" />
+                                                    </MultiBinding>
+                                                </Expander.IsExpanded>
+                                                <Expander.Style>
+                                                    <Style TargetType="Expander">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Expander">
+                                                                    <DockPanel>
+                                                                        <ToggleButton x:Name="ExpanderToggle" 
+                                                                                    DockPanel.Dock="Top"
+                                                                                    IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                                    Background="Transparent"
+                                                                                    BorderThickness="0"
+                                                                                    Cursor="Hand">
+                                                                            <ToggleButton.Template>
+                                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                                    <ContentPresenter Content="{Binding Header, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                                                    RecognizesAccessKey="True"/>
+                                                                                </ControlTemplate>
+                                                                            </ToggleButton.Template>
+                                                                        </ToggleButton>
+                                                                        
+                                                                        <ContentPresenter x:Name="ExpanderContent"
+                                                                                        DockPanel.Dock="Top"
+                                                                                        Visibility="Collapsed"/>
+                                                                    </DockPanel>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsExpanded" Value="True">
+                                                                            <Setter TargetName="ExpanderContent" Property="Visibility" Value="Visible"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Expander.Style>
+                                                <Expander.Header>
+                                                    <Grid x:Name="HeaderWrapper" Background="Transparent" HorizontalAlignment="Stretch">
+                                                        <Border x:Name="GroupHeaderBorder"
+                                                                Background="{DynamicResource Brush100}" 
+                                                                BorderBrush="{DynamicResource Brush400}" 
+                                                                BorderThickness="1" 
+                                                                CornerRadius="3" 
+                                                                Padding="4,6"
+                                                                Margin="0,0,0,2"
+                                                                SnapsToDevicePixels="True"
+                                                                AllowDrop="True"
+                                                                HorizontalAlignment="Stretch">
+
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                
+                                                                <Path Grid.Column="0"
+                                                                      x:Name="ExpandArrow"
+                                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                                      Fill="{DynamicResource Brush700}"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="4,0,8,0"
+                                                                      RenderTransformOrigin="0.5, 0.5">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform x:Name="ArrowRotation" Angle="0"/>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                                
+                                                                <icons:MaterialIcon Grid.Column="1"
+                                                                                  Kind="FolderOutline" 
+                                                                                  Height="14" 
+                                                                                  Width="14" 
+                                                                                  Margin="0,0,6,0"
+                                                                                  Foreground="{DynamicResource Brush700}"
+                                                                                  x:Name="GroupIcon" />
+                                                                
+                                                                <TextBlock Grid.Column="2"
+                                                                         FontWeight="SemiBold" 
+                                                                         FontSize="12"
+                                                                         Foreground="{DynamicResource Brush900}"
+                                                                         Text="{Binding Name}"
+                                                                         VerticalAlignment="Center"
+                                                                         x:Name="GroupNameText" />
+                                                                
+                                                                <TextBlock Grid.Column="3"
+                                                                         Text="{Binding ItemCount, StringFormat=' ({0})'}" 
+                                                                         FontSize="11"
+                                                                         Foreground="{DynamicResource Brush600}" 
+                                                                         Margin="6,0,4,0"
+                                                                         VerticalAlignment="Center"
+                                                                         x:Name="GroupCountText" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter Margin="10,5,0,0" />
+                                                </Expander.Content>
+                                            </Expander>
+                                            
+                                            <ItemsPresenter>
+                                                <ItemsPresenter.Style>
+                                                    <Style TargetType="ItemsPresenter">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ItemsPresenter.Style>
+                                            </ItemsPresenter>
+                                        </StackPanel>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger SourceName="HeaderWrapper" Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush200}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderBrush" Value="#2196F3" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderThickness" Value="1" />
+                                                <Setter TargetName="GroupIcon" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="GroupNameText" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="GroupCountText" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="ExpandArrow" Property="Fill" Value="#2196F3" />
+                                            </Trigger>
+                                            
+                                            <Trigger SourceName="GroupExpander" Property="IsExpanded" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="180"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="ArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="0"
+                                                                           Duration="0:0:0.2"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+
+                                            <Trigger SourceName="GroupHeaderBorder" Property="local:DrawableList.IsDragOver" Value="True">
+                                                <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush200}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderBrush" Value="#2196F3" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderThickness" Value="1" />
+                                                <Setter TargetName="GroupIcon" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="GroupNameText" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="GroupCountText" Property="Foreground" Value="#2196F3" />
+                                                <Setter TargetName="ExpandArrow" Property="Fill" Value="#2196F3" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" />
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+        </ListBox>
     </AdornerDecorator>
 </UserControl>
