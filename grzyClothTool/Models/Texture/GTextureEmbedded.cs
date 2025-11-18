@@ -105,7 +105,8 @@ public class GTextureEmbedded : INotifyPropertyChanged
 
         if (textureData == null)
         {
-            Details.Name = $"Missing texture";
+            OriginalName = "Missing texture";
+            Details.Name = "Missing texture";
             Details.Type = type;
             Details.Width = 0;
             Details.Height = 0;
