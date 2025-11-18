@@ -339,7 +339,8 @@ namespace grzyClothTool.Views
                 }
                 else if (e.Data.GetDataPresent("FileGroupDescriptor") || e.Data.GetDataPresent("FileGroupDescriptorW"))
                 {
-                    var hasYddFiles = CheckForYddFilesInDescriptor(e.Data);
+                    var filter = DragDropHelper.CreateExtensionFilter(".ydd");
+                    var hasYddFiles = DragDropHelper.CheckForFilesInDescriptor(e.Data, filter);
                     e.Effects = hasYddFiles ? WpfDragDropEffects.Copy : WpfDragDropEffects.None;
                 }
                 else
@@ -403,7 +404,8 @@ namespace grzyClothTool.Views
                 }
                 else if (e.Data.GetDataPresent("FileGroupDescriptor") || e.Data.GetDataPresent("FileGroupDescriptorW"))
                 {
-                    var extractedFiles = await ExtractVirtualFilesAsync(e.Data);
+                    var filter = DragDropHelper.CreateExtensionFilter(".ydd");
+                    var extractedFiles = await DragDropHelper.ExtractVirtualFilesAsync(e.Data, filter);
                     if (extractedFiles.Count > 0)
                     {
                         filesToProcess.AddRange(extractedFiles);
@@ -428,19 +430,7 @@ namespace grzyClothTool.Views
                     return;
                 }
 
-                var accessibleFiles = new List<string>();
-                var inaccessibleFiles = new List<string>();
-                foreach (var file in yddFiles)
-                {
-                    if (File.Exists(file))
-                    {
-                        accessibleFiles.Add(file);
-                    }
-                    else
-                    {
-                        inaccessibleFiles.Add(file);
-                    }
-                }
+                var (accessibleFiles, inaccessibleFiles) = DragDropHelper.ValidateFileAccess(yddFiles);
 
                 if (inaccessibleFiles.Count > 0)
                 {
@@ -525,201 +515,6 @@ namespace grzyClothTool.Views
             }
             
             e.Handled = true;
-        }
-
-        private async Task<List<string>> ExtractVirtualFilesAsync(System.Windows.IDataObject data)
-        {
-            var extractedFiles = new List<string>();
-            
-            try
-            {
-                var format = "FileGroupDescriptorW";
-                if (!data.GetDataPresent(format))
-                {
-                    format = "FileGroupDescriptor";
-                    if (!data.GetDataPresent(format))
-                        return extractedFiles;
-                }
-
-                var descriptorStream = data.GetData(format) as System.IO.MemoryStream;
-                if (descriptorStream == null)
-                    return extractedFiles;
-
-                if (!data.GetDataPresent("FileContents"))
-                {
-                    return extractedFiles;
-                }
-
-                var tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_dragdrop", Guid.NewGuid().ToString());
-                Directory.CreateDirectory(tempDir);
-
-                using var reader = new System.IO.BinaryReader(descriptorStream);
-                int fileCount = reader.ReadInt32();
-
-                for (int i = 0; i < fileCount; i++)
-                {
-                    try
-                    {
-                        // Parse file descriptor structure
-                        descriptorStream.Seek(4 + (i * 592), System.IO.SeekOrigin.Begin);
-
-                        uint flags = reader.ReadUInt32();
-                        reader.ReadBytes(16); // CLSID (16 bytes)
-                        reader.ReadBytes(16); // SIZEL (8 bytes) + POINTL (8 bytes)
-                        uint fileAttributes = reader.ReadUInt32();
-                        reader.ReadBytes(32); // File times (3x8 bytes + 8 padding)
-                        uint fileSizeHigh = reader.ReadUInt32();
-                        uint fileSizeLow = reader.ReadUInt32();
-
-                        // Read filename (520 bytes for Unicode, null-terminated)
-                        byte[] filenameBytes = reader.ReadBytes(520);
-                        string filename = System.Text.Encoding.Unicode.GetString(filenameBytes).TrimEnd('\0');
-
-                        if (!Path.GetExtension(filename).Equals(".ydd", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        // Try to get file content using COM IDataObject with lindex
-                        System.IO.MemoryStream contentStream = null;
-
-                        try
-                        {
-                            if (data is System.Runtime.InteropServices.ComTypes.IDataObject comData)
-                            {
-                                System.Runtime.InteropServices.ComTypes.FORMATETC formatEtc = new System.Runtime.InteropServices.ComTypes.FORMATETC
-                                {
-                                    cfFormat = (short)System.Windows.DataFormats.GetDataFormat("FileContents").Id,
-                                    dwAspect = System.Runtime.InteropServices.ComTypes.DVASPECT.DVASPECT_CONTENT,
-                                    lindex = i,
-                                    ptd = IntPtr.Zero,
-                                    tymed = System.Runtime.InteropServices.ComTypes.TYMED.TYMED_ISTREAM | System.Runtime.InteropServices.ComTypes.TYMED.TYMED_HGLOBAL
-                                };
-
-                                System.Runtime.InteropServices.ComTypes.STGMEDIUM medium = new System.Runtime.InteropServices.ComTypes.STGMEDIUM();
-                                comData.GetData(ref formatEtc, out medium);
-
-                                if (medium.unionmember != IntPtr.Zero)
-                                {
-                                    if (medium.tymed == System.Runtime.InteropServices.ComTypes.TYMED.TYMED_ISTREAM)
-                                    {
-                                        if (System.Runtime.InteropServices.Marshal.GetObjectForIUnknown(medium.unionmember) is System.Runtime.InteropServices.ComTypes.IStream iStream)
-                                        {
-                                            contentStream = new System.IO.MemoryStream();
-                                            byte[] buffer = new byte[4096];
-                                            IntPtr pcbRead = System.Runtime.InteropServices.Marshal.AllocHGlobal(sizeof(int));
-                                            try
-                                            {
-                                                int bytesRead;
-                                                do
-                                                {
-                                                    iStream.Read(buffer, buffer.Length, pcbRead);
-                                                    bytesRead = System.Runtime.InteropServices.Marshal.ReadInt32(pcbRead);
-                                                    if (bytesRead > 0)
-                                                    {
-                                                        contentStream.Write(buffer, 0, bytesRead);
-                                                    }
-                                                } while (bytesRead > 0);
-                                            }
-                                            finally
-                                            {
-                                                System.Runtime.InteropServices.Marshal.FreeHGlobal(pcbRead);
-                                            }
-
-                                            contentStream.Seek(0, System.IO.SeekOrigin.Begin);
-                                        }
-                                    }
-                                    else if (medium.tymed == System.Runtime.InteropServices.ComTypes.TYMED.TYMED_HGLOBAL)
-                                    {
-                                        var ptr = System.Runtime.InteropServices.Marshal.ReadIntPtr(medium.unionmember);
-                                        var size = (int)fileSizeLow;
-                                        byte[] buffer = new byte[size];
-                                        System.Runtime.InteropServices.Marshal.Copy(ptr, buffer, 0, size);
-                                        contentStream = new System.IO.MemoryStream(buffer);
-                                    }
-
-                                    // Release the medium
-                                    if (medium.pUnkForRelease != null)
-                                    {
-                                        System.Runtime.InteropServices.Marshal.ReleaseComObject(medium.pUnkForRelease);
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception comEx)
-                        {
-                            LogHelper.Log($"Failed to extract file {i + 1} ({filename}): {comEx.Message}", LogType.Error);
-                        }
-
-                        if (contentStream != null && contentStream.Length > 0)
-                        {
-                            var outputPath = Path.Combine(tempDir, filename);
-
-                            using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
-                            {
-                                contentStream.Seek(0, System.IO.SeekOrigin.Begin);
-                                await contentStream.CopyToAsync(fileStream);
-                            }
-
-                            extractedFiles.Add(outputPath);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogHelper.Log($"Error extracting file {i + 1}: {ex.Message}", LogType.Error);
-                        continue;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Log($"Error in ExtractVirtualFilesAsync: {ex.Message}", LogType.Error);
-            }
-
-            return extractedFiles;
-        }
-
-        private bool CheckForYddFilesInDescriptor(System.Windows.IDataObject data)
-        {
-            try
-            {
-                var format = "FileGroupDescriptorW";
-                if (!data.GetDataPresent(format))
-                {
-                    format = "FileGroupDescriptor";
-                    if (!data.GetDataPresent(format))
-                        return false;
-                }
-
-                if (data.GetData(format) is not System.IO.MemoryStream stream)
-                    return false;
-
-                using var reader = new System.IO.BinaryReader(stream);
-                int fileCount = reader.ReadInt32();
-
-                // Read file descriptors
-                for (int i = 0; i < fileCount; i++)
-                {
-                    // Skip to filename (offset 76 for descriptor header)
-                    stream.Seek(4 + (i * 592) + 72, System.IO.SeekOrigin.Begin);
-
-                    // Read filename (520 bytes, Unicode)
-                    byte[] filenameBytes = reader.ReadBytes(520);
-                    string filename = System.Text.Encoding.Unicode.GetString(filenameBytes).TrimEnd('\0');
-
-                    if (Path.GetExtension(filename).Equals(".ydd", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                LogHelper.Log($"Error checking FileGroupDescriptor: {ex.Message}", LogType.Error);
-                return false;
-            }
         }
 
         private static Enums.SexType? DetermineGenderFromFilename(string filePath)
