@@ -107,7 +107,8 @@
                                                        Kind="AlertCircleOutline" 
                                                        Width="12" 
                                                        Margin="5,1,0,0"
-                                                       Visibility="Collapsed" />
+                                                       Visibility="Collapsed"
+                                                       ToolTipService.InitialShowDelay="0" />
                                     
                                     <TextBlock Padding="5,0,0,0" Text="{Binding Name}" />
                                 </StackPanel>

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 namespace grzyClothTool.Models.Drawable;
 #nullable enable
@@ -63,11 +64,35 @@ public class GDrawableDetails : INotifyPropertyChanged
         }
     }
 
-    public void Validate()
+    private bool _hasTextureWarnings;
+    public bool HasTextureWarnings
+    {
+        get => _hasTextureWarnings;
+        set
+        {
+            _hasTextureWarnings = value;
+            OnPropertyChanged(nameof(HasTextureWarnings));
+        }
+    }
+
+    private bool _hasEmbeddedTextureWarnings;
+    public bool HasEmbeddedTextureWarnings
+    {
+        get => _hasEmbeddedTextureWarnings;
+        set
+        {
+            _hasEmbeddedTextureWarnings = value;
+            OnPropertyChanged(nameof(HasEmbeddedTextureWarnings));
+        }
+    }
+
+    public void Validate(ObservableCollection<GTexture>? textures = null)
     {
         // reset values
         Tooltip = string.Empty;
         IsWarning = false;
+        HasTextureWarnings = false;
+        HasEmbeddedTextureWarnings = false;
 
         foreach (var detailLevel in AllModels.Keys)
         {
@@ -103,12 +128,45 @@ public class GDrawableDetails : INotifyPropertyChanged
                 Tooltip += $"Missing {key} texture.\n";
                 continue;
             }
+            
+            if (txt.Details.IsOptimizeNeeded)
+            {
+                HasEmbeddedTextureWarnings = true;
+            }
         }
 
         if (TexturesCount == 0)
         {
             IsWarning = true;
             Tooltip += "Drawable has no textures.\n";
+        }
+        
+        if (textures != null && textures.Count > 0)
+        {
+            var texturesWithWarnings = textures
+                .Where(t => t.TxtDetails != null && t.TxtDetails.IsOptimizeNeeded)
+                .ToList();
+            
+            if (texturesWithWarnings.Count > 0)
+            {
+                HasTextureWarnings = true;
+                IsWarning = true;
+            }
+        }
+        
+        var embeddedTexturesWithWarnings = EmbeddedTextures.Values
+            .Where(et => et != null && et.TextureData != null && et.Details.IsOptimizeNeeded)
+            .Any();
+            
+        if (embeddedTexturesWithWarnings)
+        {
+            HasEmbeddedTextureWarnings = true;
+        }
+        
+        if (HasTextureWarnings || HasEmbeddedTextureWarnings)
+        {
+            Tooltip += "Some textures have warnings. Check texture details.\n";
+            IsWarning = true;
         }
 
         // Remove trailing newline character

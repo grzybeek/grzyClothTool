@@ -314,7 +314,8 @@ public class GTexture : INotifyPropertyChanged
                 Compression = txt.Format.ToString(),
                 Width = txt.Width,
                 Height = txt.Height,
-                Name = txt.Name
+                Name = txt.Name,
+                Type = "diffuse"
             };
         }
         else if (extension == ".jpg" || extension == ".png" || extension == ".dds")
@@ -327,7 +328,8 @@ public class GTexture : INotifyPropertyChanged
                 Height = (int)img.Height,
                 MipMapCount = ImgHelper.GetCorrectMipMapAmount((int)img.Width, (int)img.Height),
                 Compression = "UNKNOWN",
-                Name = img.FileName
+                Name = img.FileName,
+                Type = "diffuse"
             };
         }
 

@@ -124,6 +124,28 @@
                                     <c:SettingsLabelTextBox Grid.Row="1" Grid.Column="2" Label="Low LOD" LabelFontSize="12" Text="{Binding Path=Instance.PolygonLimitLow, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" ButtonVisible="False" />
                                 </Grid>
                             </GroupBox>
+
+                            <GroupBox Margin="0,5" Height="140" Style="{DynamicResource FixedGroupBox}">
+                                <GroupBox.Header>
+                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="Texture resolution limits" />
+                                </GroupBox.Header>
+                                <Grid Margin="2">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="auto" />
+                                        <RowDefinition Height="auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Padding="5,2,5,5" FontStyle="Italic" FontWeight="Normal" Foreground="{DynamicResource Brush500}" Grid.Row="0" Grid.ColumnSpan="3" TextWrapping="Wrap">Sets maximum resolution for each texture type. If width or height exceeds the limit, a warning will be displayed</TextBlock>
+                                    <c:SettingsLabelComboBox Grid.Row="1" Grid.Column="0" Label="Diffuse" LabelFontSize="12" ItemsSource="{Binding TextureResolutionOptions}" SelectedItem="{Binding Path=Instance.TextureResolutionLimitDiffuse, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                    <c:SettingsLabelComboBox Grid.Row="1" Grid.Column="1" Label="Normal" LabelFontSize="12" ItemsSource="{Binding TextureResolutionOptions}" SelectedItem="{Binding Path=Instance.TextureResolutionLimitNormal, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                    <c:SettingsLabelComboBox Grid.Row="1" Grid.Column="2" Label="Specular" LabelFontSize="12" ItemsSource="{Binding TextureResolutionOptions}" SelectedItem="{Binding Path=Instance.TextureResolutionLimitSpecular, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                </Grid>
+                            </GroupBox>
                         </StackPanel>
                         <StackPanel Margin="5" Grid.Column="1">
                             <GroupBox Margin="0,5" Height="330" Style="{DynamicResource FixedGroupBox}">

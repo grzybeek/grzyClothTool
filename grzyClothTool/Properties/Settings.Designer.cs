@@ -118,5 +118,41 @@ namespace grzyClothTool.Properties {
                 this["MarkNewDrawables"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int TextureResolutionLimitDiffuse {
+            get {
+                return ((int)(this["TextureResolutionLimitDiffuse"]));
+            }
+            set {
+                this["TextureResolutionLimitDiffuse"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int TextureResolutionLimitNormal {
+            get {
+                return ((int)(this["TextureResolutionLimitNormal"]));
+            }
+            set {
+                this["TextureResolutionLimitNormal"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1024")]
+        public int TextureResolutionLimitSpecular {
+            get {
+                return ((int)(this["TextureResolutionLimitSpecular"]));
+            }
+            set {
+                this["TextureResolutionLimitSpecular"] = value;
+            }
+        }
     }
 }

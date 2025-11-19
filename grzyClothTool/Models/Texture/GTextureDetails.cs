@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Helpers;
+﻿using System;
+using grzyClothTool.Helpers;
 
 namespace grzyClothTool.Models.Texture;
 #nullable enable
@@ -17,10 +18,31 @@ public class GTextureDetails
 
     public void Validate()
     {
-        if (Width > 2048 || Height > 2048)
+        IsOptimizeNeeded = false;
+        IsOptimizeNeededTooltip = string.Empty;
+        
+        int resolutionLimit = 2048;
+        
+        if (Type != null)
+        {
+            if (Type.Contains("diffuse", StringComparison.OrdinalIgnoreCase))
+            {
+                resolutionLimit = SettingsHelper.Instance.TextureResolutionLimitDiffuse;
+            }
+            else if (Type.Contains("normal", StringComparison.OrdinalIgnoreCase))
+            {
+                resolutionLimit = SettingsHelper.Instance.TextureResolutionLimitNormal;
+            }
+            else if (Type.Contains("specular", StringComparison.OrdinalIgnoreCase))
+            {
+                resolutionLimit = SettingsHelper.Instance.TextureResolutionLimitSpecular;
+            }
+        }
+        
+        if (Width > resolutionLimit || Height > resolutionLimit)
         {
             IsOptimizeNeeded = true;
-            IsOptimizeNeededTooltip += "Texture is larger than 2048x2048. Optimize it to reduce the size.\n";
+            IsOptimizeNeededTooltip += $"Texture resolution: {Width}x{Height}. This exceeds your set limit ({resolutionLimit}). Optimize it to reduce size.\n";
         }
 
         if ((Height & Height - 1) != 0 || (Width & Width - 1) != 0)

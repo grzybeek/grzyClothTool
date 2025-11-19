@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:models="clr-namespace:grzyClothTool.Models"
              xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+             xmlns:converters="clr-namespace:grzyClothTool.Converters"
              xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              xmlns:views="clr-namespace:grzyClothTool.Views"
              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
@@ -17,6 +18,8 @@
              mc:Ignorable="d">
 
     <UserControl.Resources>
+        <converters:CompressionFormatConverter x:Key="CompressionFormatConverter" />
+        
         <Style TargetType="StackPanel">
             <Setter Property="Margin" Value="10" />
         </Style>
@@ -214,7 +217,27 @@
                                     </StackPanel>
 
                                     <TabControl Grid.Row="1" Background="Transparent" BorderBrush="{DynamicResource Brush200}">
-                                        <TabItem Header="Textures">
+                                        <TabItem>
+                                            <TabItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Textures" VerticalAlignment="Center" />
+                                                    <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0" 
+                                                                       Foreground="{DynamicResource Brush950}"
+                                                                       ToolTip="Some textures have warnings"
+                                                                       ToolTipService.InitialShowDelay="0">
+                                                        <icons:MaterialIcon.Style>
+                                                            <Style TargetType="icons:MaterialIcon">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.Details.HasTextureWarnings}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </icons:MaterialIcon.Style>
+                                                    </icons:MaterialIcon>
+                                                </StackPanel>
+                                            </TabItem.Header>
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="20" />
@@ -259,6 +282,7 @@
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="25" />
+                                                                    <ColumnDefinition Width="75" />
                                                                     <ColumnDefinition Width="75" />
                                                                     <ColumnDefinition Width="70" />
                                                                     <ColumnDefinition Width="60" />
@@ -345,7 +369,19 @@
                                                                         </TextBlock.Text>
                                                                     </TextBlock>
                                                                 </StackPanel>
-                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0" 
+                                                                           Text="{Binding TxtDetails.Compression, Converter={StaticResource CompressionFormatConverter}}">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
+                                                                                    <Setter Property="Text" Value="N/A" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="5,-1,0,0">
                                                                     <TextBlock.Text>
                                                                         <MultiBinding StringFormat="{}{0}x{1}">
                                                                             <Binding Path="TxtDetails.Width" />
@@ -362,8 +398,8 @@
                                                                         </Style>
                                                                     </TextBlock.Style>
                                                                 </TextBlock>
-                                                                <Image Grid.Column="3" Width="60" Source="{Binding ImageThumbnail}" />
-                                                                <Button Grid.Column="4" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
+                                                                <Image Grid.Column="4" Width="60" Source="{Binding ImageThumbnail}" />
+                                                                <Button Grid.Column="5" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
                                                                 <Grid.ContextMenu>
                                                                     <ContextMenu>
                                                                         <MenuItem Click="HandleTextureOptimization_Click">
@@ -401,7 +437,28 @@
                                             </Grid>
                                         </TabItem>
                                         
-                                        <TabItem Header="Embedded Textures">
+                                        <TabItem>
+                                            <TabItem.Header>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Embedded Textures" VerticalAlignment="Center" />
+                                                    <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0"
+                                                                       Foreground="{DynamicResource Brush950}"
+                                                                       ToolTip="Some embedded textures have warnings"
+                                                                       ToolTipService.InitialShowDelay="0">
+                                                        <icons:MaterialIcon.Style>
+                                                            <Style TargetType="icons:MaterialIcon">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Setter Property="Margin" Value="0,0,0,0" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.Details.HasEmbeddedTextureWarnings}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </icons:MaterialIcon.Style>
+                                                    </icons:MaterialIcon>
+                                                </StackPanel>
+                                            </TabItem.Header>
                                             <Grid>
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="20" />
@@ -435,6 +492,7 @@
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="25" />
                                                                     <ColumnDefinition Width="75" />
+                                                                    <ColumnDefinition Width="75" />
                                                                     <ColumnDefinition Width="70" />
                                                                     <ColumnDefinition Width="60" />
                                                                 </Grid.ColumnDefinitions>
@@ -454,6 +512,20 @@
                                                                             </Style>
                                                                         </icons:MaterialIcon.Style>
                                                                     </icons:MaterialIcon>
+                                                                    <ContentControl ToolTip="{Binding Value.Details.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
+                                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
+                                                                            <icons:MaterialIcon.Style>
+                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    <Style.Triggers>
+                                                                                        <DataTrigger Binding="{Binding Value.Details.IsOptimizeNeeded}" Value="True">
+                                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                                        </DataTrigger>
+                                                                                    </Style.Triggers>
+                                                                                </Style>
+                                                                            </icons:MaterialIcon.Style>
+                                                                        </icons:MaterialIcon>
+                                                                    </ContentControl>
                                                                     
                                                                     <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
                                                                         <TextBlock.Style>
@@ -475,7 +547,19 @@
                                                                     </TextBlock>
                                                                 </StackPanel>
                                                                 
-                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0">
+                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0" 
+                                                                           Text="{Binding Value.Details.Compression, Converter={StaticResource CompressionFormatConverter}}">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
+                                                                                    <Setter Property="Text" Value="N/A" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="5,-1,0,0">
                                                                     <TextBlock.Text>
                                                                         <MultiBinding StringFormat="{}{0}x{1}">
                                                                             <Binding Path="Value.Details.Width" />
@@ -493,8 +577,8 @@
                                                                     </TextBlock.Style>
                                                                 </TextBlock>
                                                                 
-                                                                <Image Grid.Column="3" Width="60" Source="{Binding Value.ImageThumbnail}" />
-                                                                <Button Grid.Column="4" Width="60" Click="EmbeddedTexturePreview_Click" DataContext="{Binding Value}" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
+                                                                <Image Grid.Column="4" Width="60" Source="{Binding Value.ImageThumbnail}" />
+                                                                <Button Grid.Column="5" Width="60" Click="EmbeddedTexturePreview_Click" DataContext="{Binding Value}" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
                                                                 <Grid.ContextMenu>
                                                                     <ContextMenu>
                                                                         <MenuItem Click="HandleEmbeddedTextureOptimization_Click">
@@ -544,6 +628,7 @@
                                                 <StackPanel.Style>
                                                     <Style TargetType="StackPanel">
                                                         <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Setter Property="Margin" Value="0,5,0,0" />
                                                         <Style.Triggers>
                                                             <MultiDataTrigger>
                                                                 <MultiDataTrigger.Conditions>
@@ -564,6 +649,7 @@
                                                 <StackPanel.Style>
                                                     <Style TargetType="StackPanel">
                                                         <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Setter Property="Margin" Value="0,5,0,0" />
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="6">
                                                                 <Setter Property="Visibility" Value="Visible" />

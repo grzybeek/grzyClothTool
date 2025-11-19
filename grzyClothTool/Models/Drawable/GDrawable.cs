@@ -561,7 +561,7 @@ public class GDrawable : INotifyPropertyChanged
 
         details.TexturesCount = Textures.Count;
 
-        details.Validate();
+        details.Validate(Textures);
         return details;
     }
 }

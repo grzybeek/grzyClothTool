@@ -20,6 +20,8 @@ namespace grzyClothTool.Views
 
         public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
+        public int[] TextureResolutionOptions { get; } = [128, 256, 512, 1024, 2048, 4096];
+
         private string _selectedGroup;
         public string SelectedGroup
         {

@@ -45,6 +45,27 @@ public class SettingsHelper : INotifyPropertyChanged
         set => SetProperty(ref _autoDeleteFiles, value, nameof(AutoDeleteFiles));
     }
 
+    private int _textureResolutionLimitDiffuse;
+    public int TextureResolutionLimitDiffuse
+    {
+        get => _textureResolutionLimitDiffuse;
+        set => SetProperty(ref _textureResolutionLimitDiffuse, value, nameof(TextureResolutionLimitDiffuse), revalidateDrawables: true);
+    }
+
+    private int _textureResolutionLimitNormal;
+    public int TextureResolutionLimitNormal
+    {
+        get => _textureResolutionLimitNormal;
+        set => SetProperty(ref _textureResolutionLimitNormal, value, nameof(TextureResolutionLimitNormal), revalidateDrawables: true);
+    }
+
+    private int _textureResolutionLimitSpecular;
+    public int TextureResolutionLimitSpecular
+    {
+        get => _textureResolutionLimitSpecular;
+        set => SetProperty(ref _textureResolutionLimitSpecular, value, nameof(TextureResolutionLimitSpecular), revalidateDrawables: true);
+    }
+
     private SettingsHelper()
     {
         _displaySelectedDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;
@@ -53,6 +74,9 @@ public class SettingsHelper : INotifyPropertyChanged
         _polygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
         _autoDeleteFiles = Properties.Settings.Default.AutoDeleteFiles;
         _markNewDrawables = Properties.Settings.Default.MarkNewDrawables;
+        _textureResolutionLimitDiffuse = Properties.Settings.Default.TextureResolutionLimitDiffuse;
+        _textureResolutionLimitNormal = Properties.Settings.Default.TextureResolutionLimitNormal;
+        _textureResolutionLimitSpecular = Properties.Settings.Default.TextureResolutionLimitSpecular;
     }
 
     private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)
@@ -66,13 +90,34 @@ public class SettingsHelper : INotifyPropertyChanged
 
             if (revalidateDrawables)
             {
-                foreach (var addon in MainWindow.AddonManager.Addons)
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    foreach (var drawable in addon.Drawables)
+                    foreach (var addon in MainWindow.AddonManager.Addons)
                     {
-                        drawable.Details.Validate();
+                        foreach (var drawable in addon.Drawables)
+                        {
+                            foreach (var texture in drawable.Textures)
+                            {
+                                texture.TxtDetails?.Validate();
+                            }
+                            
+                            foreach (var embeddedTexture in drawable.Details.EmbeddedTextures.Values)
+                            {
+                                embeddedTexture?.Details?.Validate();
+                            }
+                            
+                            drawable.Details.Validate(drawable.Textures);
+                        }
                     }
-                }
+                    
+                    var selectedAddon = MainWindow.AddonManager.SelectedAddon;
+                    if (selectedAddon?.SelectedDrawable != null)
+                    {
+                        var currentSelected = selectedAddon.SelectedDrawable;
+                        selectedAddon.SelectedDrawable = null;
+                        selectedAddon.SelectedDrawable = currentSelected;
+                    }
+                }));
             }
         }
     }
