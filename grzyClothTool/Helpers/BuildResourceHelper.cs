@@ -2,6 +2,7 @@
 using CodeWalker.Utils;
 using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
+using grzyClothTool.Views;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -170,6 +171,8 @@ public class BuildResourceHelper
 
     public async Task BuildFiveMResource()
     {
+        CleanupExistingBuildDirectories();
+
         int counter = 1;
         var metaFiles = new List<string>();
         var tasks = new List<Task>();
@@ -266,6 +269,8 @@ public class BuildResourceHelper
 
     public async Task BuildAltVResource()
     {
+        CleanupExistingBuildDirectories();
+
         int counter = 1;
         var metaFiles = new List<string>();
         var tasks = new List<Task>();
@@ -446,6 +451,19 @@ public class BuildResourceHelper
 
     public async Task BuildSingleplayerResource()
     {
+        string dlcRpfPath = Path.Combine(_buildPath, "dlc.rpf");
+        if (File.Exists(dlcRpfPath))
+        {
+            try
+            {
+                File.Delete(dlcRpfPath);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to delete existing dlc.rpf: {ex.Message}", LogType.Warning);
+            }
+        }
+
         var dlcRpf = RpfFile.CreateNew(_buildPath, "dlc.rpf", RpfEncryption.OPEN);
         var creatureMetadatas = BuildContentXml(dlcRpf.Root);
         BuildSetupXml(dlcRpf.Root);
@@ -1178,6 +1196,114 @@ public class BuildResourceHelper
             SexType.female => "mp_f_freemode_01",
             _ => throw new ArgumentOutOfRangeException(nameof(sex), sex, "Wrong sexType GetPedName")
         };
+    }
+
+
+    private void CleanupExistingBuildDirectories()
+    {
+        try
+        {
+            var sourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var addon in MainWindow.AddonManager.Addons)
+            {
+                foreach (var drawable in addon.Drawables)
+                {
+                    if (!string.IsNullOrEmpty(drawable.FilePath))
+                    {
+                        sourceFilePaths.Add(Path.GetFullPath(drawable.FilePath));
+                    }
+
+                    if (!string.IsNullOrEmpty(drawable.ClothPhysicsPath))
+                    {
+                        sourceFilePaths.Add(Path.GetFullPath(drawable.ClothPhysicsPath));
+                    }
+
+                    if (!string.IsNullOrEmpty(drawable.FirstPersonPath))
+                    {
+                        sourceFilePaths.Add(Path.GetFullPath(drawable.FirstPersonPath));
+                    }
+
+                    foreach (var texture in drawable.Textures)
+                    {
+                        if (!string.IsNullOrEmpty(texture.FilePath))
+                        {
+                            sourceFilePaths.Add(Path.GetFullPath(texture.FilePath));
+                        }
+                    }
+                }
+            }
+
+            if (_splitAddons)
+            {
+                int addonCount = MainWindow.AddonManager.Addons.Count;
+                for (int i = 1; i <= addonCount; i++)
+                {
+                    string projectDir = Path.Combine(_baseBuildPath, GetProjectName(i));
+                    if (Directory.Exists(projectDir))
+                    {
+                        CleanupDirectorySelectively(projectDir, sourceFilePaths);
+                    }
+                }
+            }
+            else
+            {
+                if (Directory.Exists(_baseBuildPath))
+                {
+                    CleanupDirectorySelectively(_baseBuildPath, sourceFilePaths);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Failed to clean up existing build directories: {ex.Message}", LogType.Warning);
+        }
+    }
+
+    private void CleanupDirectorySelectively(string directory, HashSet<string> sourceFilePaths)
+    {
+        try
+        {
+            var files = Directory.GetFiles(directory);
+            foreach (var file in files)
+            {
+                string fullPath = Path.GetFullPath(file);
+                
+                if (!sourceFilePaths.Contains(fullPath))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.Log($"Could not delete file {Path.GetFileName(file)}: {ex.Message}", LogType.Warning);
+                    }
+                }
+            }
+
+            var subdirectories = Directory.GetDirectories(directory);
+            foreach (var subdirectory in subdirectories)
+            {
+                CleanupDirectorySelectively(subdirectory, sourceFilePaths);
+
+                try
+                {
+                    if (Directory.GetFiles(subdirectory).Length == 0 && 
+                        Directory.GetDirectories(subdirectory).Length == 0)
+                    {
+                        Directory.Delete(subdirectory);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Could not delete directory {Path.GetFileName(subdirectory)}: {ex.Message}", LogType.Warning);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Failed to clean directory {directory}: {ex.Message}", LogType.Warning);
+        }
     }
 
     #endregion
