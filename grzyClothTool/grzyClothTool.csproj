@@ -21,14 +21,14 @@
     <Resource Include="Resources\reservedTexture.ytd" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.7.0" />
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.9.1" />
     <PackageReference Include="Material.Icons.WPF" Version="2.4.1" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.8" />
-    <PackageReference Include="Sentry" Version="5.14.0" />
-    <PackageReference Include="Sentry.Profiling" Version="5.14.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.0" />
+    <PackageReference Include="Sentry" Version="5.16.2" />
+    <PackageReference Include="Sentry.Profiling" Version="5.16.2" />
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="9.0.8" />
-    <PackageReference Include="System.Composition" Version="9.0.8" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="10.0.0" />
+    <PackageReference Include="System.Composition" Version="10.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
