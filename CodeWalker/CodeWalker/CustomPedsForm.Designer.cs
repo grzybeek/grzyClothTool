@@ -54,6 +54,13 @@ namespace CodeWalker
             this.ToolsPanel = new System.Windows.Forms.Panel();
             this.ToolsTabControl = new System.Windows.Forms.TabControl();
             this.ToolsPedTabPage = new System.Windows.Forms.TabPage();
+            this.button1 = new System.Windows.Forms.Button();
+            this.label13 = new System.Windows.Forms.Label();
+            this.PolygonCountText = new System.Windows.Forms.Label();
+            this.VertexCountText = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label8 = new System.Windows.Forms.Label();
             this.PlaybackSpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.PlaybackSpeedLabel = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -115,11 +122,7 @@ namespace CodeWalker
             this.head_updown = new System.Windows.Forms.NumericUpDown();
             this.StatusBarCheckBox = new System.Windows.Forms.CheckBox();
             this.ErrorConsoleCheckBox = new System.Windows.Forms.CheckBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.VertexCountText = new System.Windows.Forms.Label();
-            this.PolygonCountText = new System.Windows.Forms.Label();
+            this.CustomAnimComboBox = new System.Windows.Forms.ComboBox();
             this.ConsolePanel.SuspendLayout();
             this.StatusStrip.SuspendLayout();
             this.ToolsPanel.SuspendLayout();
@@ -270,6 +273,9 @@ namespace CodeWalker
             // 
             // ToolsPedTabPage
             // 
+            this.ToolsPedTabPage.Controls.Add(this.button1);
+            this.ToolsPedTabPage.Controls.Add(this.label13);
+            this.ToolsPedTabPage.Controls.Add(this.CustomAnimComboBox);
             this.ToolsPedTabPage.Controls.Add(this.PolygonCountText);
             this.ToolsPedTabPage.Controls.Add(this.VertexCountText);
             this.ToolsPedTabPage.Controls.Add(this.label12);
@@ -294,13 +300,92 @@ namespace CodeWalker
             this.ToolsPedTabPage.Text = "Ped";
             this.ToolsPedTabPage.UseVisualStyleBackColor = true;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(213, 148);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(23, 23);
+            this.button1.TabIndex = 59;
+            this.button1.Text = "+";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.AddCustomAnimButton_Click);
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(7, 152);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(45, 13);
+            this.label13.TabIndex = 58;
+            this.label13.Text = "Custom:";
+            // 
+            // CustomAnimComboBox
+            // 
+            this.CustomAnimComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.CustomAnimComboBox.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.SuggestAppend;
+            this.CustomAnimComboBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
+            this.CustomAnimComboBox.FormattingEnabled = true;
+            this.CustomAnimComboBox.Location = new System.Drawing.Point(53, 149);
+            this.CustomAnimComboBox.Name = "comboBox1";
+            this.CustomAnimComboBox.Size = new System.Drawing.Size(154, 21);
+            this.CustomAnimComboBox.TabIndex = 57;
+            this.CustomAnimComboBox.SelectedIndexChanged += new System.EventHandler(this.CustomAnimComboBox_SelectedIndexChanged);
+            // 
+            // PolygonCountText
+            // 
+            this.PolygonCountText.AutoSize = true;
+            this.PolygonCountText.Location = new System.Drawing.Point(89, 580);
+            this.PolygonCountText.Name = "PolygonCountText";
+            this.PolygonCountText.Size = new System.Drawing.Size(13, 13);
+            this.PolygonCountText.TabIndex = 56;
+            this.PolygonCountText.Text = "0";
+            // 
+            // VertexCountText
+            // 
+            this.VertexCountText.AutoSize = true;
+            this.VertexCountText.Location = new System.Drawing.Point(89, 557);
+            this.VertexCountText.Name = "VertexCountText";
+            this.VertexCountText.Size = new System.Drawing.Size(13, 13);
+            this.VertexCountText.TabIndex = 55;
+            this.VertexCountText.Text = "0";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(12, 580);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(81, 13);
+            this.label12.TabIndex = 54;
+            this.label12.Text = "Polygon count: ";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(12, 557);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(70, 13);
+            this.label9.TabIndex = 53;
+            this.label9.Text = "Vertex count:";
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
+            this.label8.Location = new System.Drawing.Point(2, 529);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(162, 20);
+            this.label8.TabIndex = 52;
+            this.label8.Text = "Selected drawable:";
+            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // PlaybackSpeedTrackBar
             // 
             this.PlaybackSpeedTrackBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.PlaybackSpeedTrackBar.BackColor = System.Drawing.SystemColors.ControlLightLight;
             this.PlaybackSpeedTrackBar.LargeChange = 1;
-            this.PlaybackSpeedTrackBar.Location = new System.Drawing.Point(6, 170);
+            this.PlaybackSpeedTrackBar.Location = new System.Drawing.Point(6, 196);
             this.PlaybackSpeedTrackBar.Maximum = 60;
             this.PlaybackSpeedTrackBar.Name = "PlaybackSpeedTrackBar";
             this.PlaybackSpeedTrackBar.Size = new System.Drawing.Size(222, 45);
@@ -312,7 +397,7 @@ namespace CodeWalker
             // PlaybackSpeedLabel
             // 
             this.PlaybackSpeedLabel.AutoSize = true;
-            this.PlaybackSpeedLabel.Location = new System.Drawing.Point(89, 152);
+            this.PlaybackSpeedLabel.Location = new System.Drawing.Point(89, 178);
             this.PlaybackSpeedLabel.Name = "PlaybackSpeedLabel";
             this.PlaybackSpeedLabel.Size = new System.Drawing.Size(13, 13);
             this.PlaybackSpeedLabel.TabIndex = 50;
@@ -321,7 +406,7 @@ namespace CodeWalker
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 152);
+            this.label2.Location = new System.Drawing.Point(3, 178);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(86, 13);
             this.label2.TabIndex = 49;
@@ -1012,53 +1097,6 @@ namespace CodeWalker
             this.ErrorConsoleCheckBox.UseVisualStyleBackColor = true;
             this.ErrorConsoleCheckBox.CheckedChanged += new System.EventHandler(this.ErrorConsoleCheckBox_CheckedChanged);
             // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.label8.Location = new System.Drawing.Point(2, 529);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(162, 20);
-            this.label8.TabIndex = 52;
-            this.label8.Text = "Selected drawable:";
-            this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(12, 557);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(70, 13);
-            this.label9.TabIndex = 53;
-            this.label9.Text = "Vertex count:";
-            // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(12, 580);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(81, 13);
-            this.label12.TabIndex = 54;
-            this.label12.Text = "Polygon count: ";
-            // 
-            // VertexCountText
-            // 
-            this.VertexCountText.AutoSize = true;
-            this.VertexCountText.Location = new System.Drawing.Point(89, 557);
-            this.VertexCountText.Name = "VertexCountText";
-            this.VertexCountText.Size = new System.Drawing.Size(13, 13);
-            this.VertexCountText.TabIndex = 55;
-            this.VertexCountText.Text = "0";
-            // 
-            // PolygonCountText
-            // 
-            this.PolygonCountText.AutoSize = true;
-            this.PolygonCountText.Location = new System.Drawing.Point(89, 580);
-            this.PolygonCountText.Name = "PolygonCountText";
-            this.PolygonCountText.Size = new System.Drawing.Size(13, 13);
-            this.PolygonCountText.TabIndex = 56;
-            this.PolygonCountText.Text = "0";
-            // 
             // CustomPedsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1160,6 +1198,7 @@ namespace CodeWalker
         private System.Windows.Forms.CheckBox ShadowsCheckBox;
         private System.Windows.Forms.CheckBox HDRRenderingCheckBox;
         private System.Windows.Forms.ComboBox RenderModeComboBox;
+        private System.Windows.Forms.ComboBox CustomAnimComboBox;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.ComboBox TextureSamplerComboBox;
         private System.Windows.Forms.ComboBox TextureCoordsComboBox;
@@ -1189,5 +1228,7 @@ namespace CodeWalker
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label13;
     }
 }

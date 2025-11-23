@@ -100,6 +100,11 @@ namespace CodeWalker
         private bool highheelvaluechanged = false;
         private bool renderOnlySelected = false;
 
+        private List<string> CustomAnimationPaths = new List<string>();
+        private Dictionary<string, YcdFile> CustomAnimations = new Dictionary<string, YcdFile>();
+        private bool _suppressClipDictEvent = false;
+
+
         private System.Windows.Forms.Timer autoRotateTimer;
         private float autoRotateAngle = 0f;
         private const float AutoRotateSpeed = 1.0f;
@@ -460,6 +465,8 @@ namespace CodeWalker
             Input.Init();
 
             Renderer.Start();
+
+            LoadCustomAnimationsFromFolder();
         }
 
         private void ContentThread()
@@ -528,6 +535,7 @@ namespace CodeWalker
             EnableAnimationCheckBox.Checked = false;
             ClipComboBox.Enabled = false;
             ClipDictComboBox.Enabled = false;
+            CustomAnimComboBox.Enabled = false;
             EnableRootMotionCheckBox.Enabled = false;
             PlaybackSpeedTrackBar.Enabled = false;
 
@@ -1490,8 +1498,11 @@ namespace CodeWalker
 
         private void ClipDictComboBox_TextChanged(object sender, EventArgs e)
         {
+            if (_suppressClipDictEvent) return;
+
             LoadClipDict(ClipDictComboBox.Text);
         }
+
 
         private void ClipComboBox_TextChanged(object sender, EventArgs e)
         {
@@ -1515,6 +1526,7 @@ namespace CodeWalker
         {
             ClipComboBox.Enabled = EnableAnimationCheckBox.Checked;
             ClipDictComboBox.Enabled = EnableAnimationCheckBox.Checked;
+            CustomAnimComboBox.Enabled = EnableAnimationCheckBox.Checked;
             EnableRootMotionCheckBox.Enabled = EnableAnimationCheckBox.Checked;
             PlaybackSpeedTrackBar.Enabled = EnableAnimationCheckBox.Checked;
 
@@ -1526,6 +1538,7 @@ namespace CodeWalker
             {
                 ClipDictComboBox.Text = "";
                 ClipComboBox.Text = "";
+                CustomAnimComboBox.Text = "";
             }
         }
 
@@ -1707,9 +1720,199 @@ namespace CodeWalker
             }
         }
 
+        private void LoadCustomAnimationsFromFolder()
+        {
+            try
+            {
+                string exeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string animationsFolder = Path.Combine(exeDirectory, "animations");
+
+                if (!Directory.Exists(animationsFolder))
+                    return;
+
+                string[] files = Directory.GetFiles(animationsFolder, "*.ycd", SearchOption.TopDirectoryOnly);
+
+                foreach (string filePath in files)
+                {
+                    string fileName = Path.GetFileName(filePath);
+
+                    if (CustomAnimations.ContainsKey(fileName))
+                        continue;
+
+                    try
+                    {
+                        byte[] data = File.ReadAllBytes(filePath);
+
+                        RpfResourceFileEntry resentry = RpfFile.CreateResourceFileEntry(ref data, 46);
+                        byte[] decompressedData = ResourceBuilder.Decompress(data);
+
+                        YcdFile ycd = new YcdFile();
+                        ycd.Load(decompressedData, resentry);
+
+                        if (ycd.ClipDictionary != null && ycd.ClipMapEntries != null && ycd.ClipMapEntries.Length > 0)
+                        {
+                            ycd.Loaded = true;
+                            CustomAnimations[fileName] = ycd;
+                            CustomAnimationPaths.Add(filePath);
+
+                            CustomAnimComboBox.Items.Add(fileName);
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Skipping invalid custom animation: {fileName}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error loading custom animation {fileName}: {ex.Message}");
+                    }
+                }
+
+                CustomAnimComboBox.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"LoadCustomAnimationsFromFolder() failed: {ex.Message}");
+            }
+        }
+
+
+        private string CopyAnimationToFolder(string sourceFilePath)
+        {
+            try
+            {
+                string exeDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string animationsFolder = Path.Combine(exeDirectory, "animations");
+
+                if (!Directory.Exists(animationsFolder))
+                {
+                    Directory.CreateDirectory(animationsFolder);
+                }
+
+                string fileName = Path.GetFileName(sourceFilePath);
+                string destinationPath = Path.Combine(animationsFolder, fileName);
+
+                File.Copy(sourceFilePath, destinationPath, true);
+
+                return destinationPath;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error copying animation file:\n{ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return sourceFilePath;
+            }
+        }
+
         private void RestartCamera_Click(object sender, EventArgs e)
         {
             SetDefaultCameraPosition();
         }
+
+        private void AddCustomAnimButton_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "YCD Files (*.ycd)|*.ycd|All Files (*.*)|*.*";
+                ofd.Title = "Select Animation File";
+                ofd.Multiselect = true;
+
+                if (ofd.ShowDialog() != DialogResult.OK)
+                    return;
+
+                foreach (string filePath in ofd.FileNames)
+                {
+                    string fileName = Path.GetFileName(filePath);
+
+                    if (CustomAnimations.ContainsKey(fileName))
+                    {
+                        UpdateStatus($"Animation already loaded: {fileName}");
+                        continue;
+                    }
+
+                    try
+                    {
+                        string copiedPath = CopyAnimationToFolder(filePath);
+
+                        byte[] data = File.ReadAllBytes(copiedPath);
+                        RpfResourceFileEntry resentry = RpfFile.CreateResourceFileEntry(ref data, 46);
+                        byte[] decompressedData = ResourceBuilder.Decompress(data);
+
+                        YcdFile ycd = new YcdFile();
+                        ycd.Load(decompressedData, resentry);
+
+                        if (ycd.ClipDictionary != null && ycd.ClipMapEntries != null && ycd.ClipMapEntries.Length > 0)
+                        {
+                            ycd.Loaded = true;
+                            CustomAnimationPaths.Add(copiedPath);
+                            CustomAnimations[fileName] = ycd;
+
+                            CustomAnimComboBox.Items.Add(fileName);
+                            CustomAnimComboBox.Refresh();
+
+                            UpdateStatus($"Loaded custom animation: {fileName}  ({ycd.ClipMapEntries.Length} clips)");
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Invalid animation file: {fileName}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error loading file {fileName}:\n{ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+
+        private void CustomAnimComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (CustomAnimComboBox.SelectedIndex < 0)
+                return;
+
+            string selectedFileName = CustomAnimComboBox.SelectedItem.ToString();
+
+            if (!CustomAnimations.TryGetValue(selectedFileName, out YcdFile ycd))
+                return;
+
+            SelectedPed.Ycd = ycd;
+
+            ClipComboBox.Items.Clear();
+            ClipComboBox.Items.Add("");
+
+            if (ycd?.ClipMapEntries != null)
+            {
+                List<string> items = new List<string>();
+
+                foreach (var cme in ycd.ClipMapEntries)
+                {
+                    if (cme.Clip != null)
+                        items.Add(cme.Clip.ShortName);
+                }
+
+                items.Sort();
+                foreach (var item in items)
+                    ClipComboBox.Items.Add(item);
+            }
+
+            _suppressClipDictEvent = true;
+            try
+            {
+                ClipDictComboBox.Text = "";
+            }
+            finally
+            {
+                _suppressClipDictEvent = false;
+            }
+
+            if (ClipComboBox.Items.Count > 1)
+            {
+                ClipComboBox.SelectedIndex = 1;
+                SelectClip(ClipComboBox.Items[1].ToString());
+            }
+        }
+
     }
 }
