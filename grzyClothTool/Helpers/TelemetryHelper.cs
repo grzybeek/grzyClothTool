@@ -40,7 +40,7 @@ public class TelemetryHelper
 
         try
         {
-            var response = await App.httpClient.PostAsync("https://www.grzybeek.pl/grzyClothTool/log", content);
+            var response = await App.httpClient.PostAsync("https://grzy.tools/grzyClothTool/log", content);
             response.EnsureSuccessStatusCode();
         }
         catch (HttpRequestException)

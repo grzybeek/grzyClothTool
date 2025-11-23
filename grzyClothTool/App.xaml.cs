@@ -49,9 +49,9 @@ namespace grzyClothTool
             ResetSplashCreated.WaitOne();
             base.OnStartup(e);
 
-            CheckPluginsVersion().Wait();
-            LoadPlugins();
-            _ = RunPlugins();
+            //CheckPluginsVersion().Wait();
+            //LoadPlugins();
+            //_ = RunPlugins();
 
             //get value from settings properties
             bool isDarkTheme = Settings.Default.IsDarkMode;
@@ -94,7 +94,7 @@ namespace grzyClothTool
         {
             try
             {
-                string url = "https://www.grzybeek.pl/grzyClothTool/sentry-dsn";
+                string url = "https://grzy.tools/grzyClothTool/sentry-dsn";
                 var response = await httpClient.GetAsync(url).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
@@ -153,7 +153,7 @@ namespace grzyClothTool
         {
             try
             {
-                string url = $"https://grzybeek.pl/grzyClothTool/version?filename={name}";
+                string url = $"https://grzy.tools/grzyClothTool/version?filename={name}";
                 if (!string.IsNullOrEmpty(version))
                 {
                     url += $"&version={version}";
@@ -193,12 +193,12 @@ namespace grzyClothTool
 
         private static async Task RunPlugins()
         {
-            if(patreonAuthPlugin != null)
+            if (patreonAuthPlugin != null)
             {
                 try
                 {
                     await patreonAuthPlugin?.Run();
-                } 
+                }
                 catch
                 {
                     //todo ignore?

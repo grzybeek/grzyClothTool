@@ -42,7 +42,7 @@
                 </Button>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <c:CustomButton Label="PATREON ACCOUNT" Padding="10" Width="200" CornerRadius="5" MyBtnClickEvent="PatreonAccount_Click" />
+                <!--<c:CustomButton Label="PATREON ACCOUNT" Padding="10" Width="200" CornerRadius="5" MyBtnClickEvent="PatreonAccount_Click" />-->
 
                 <ToggleButton Margin="5"  IsChecked="{Binding IsDarkMode, Mode=OneWay}" Click="ThemeModeChange_Click">
                     <ToggleButton.Style>
