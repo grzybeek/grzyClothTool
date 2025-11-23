@@ -104,7 +104,7 @@ namespace grzyClothTool.Views
 
         private async Task FetchPatreons()
         {
-            var url = "https://grzy.tools/grzyClothTool/patreons";
+            var url = $"{GlobalConstants.GRZY_TOOLS_URL}/grzyClothTool/patreons";
 
             var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
@@ -158,7 +158,7 @@ namespace grzyClothTool.Views
 
         private async Task FetchChangelog()
         {
-            var url = "https://grzy.tools/grzyClothTool/changelog";
+            var url = $"{GlobalConstants.GRZY_TOOLS_URL}/grzyClothTool/changelog";
 
             var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)

@@ -94,7 +94,7 @@ namespace grzyClothTool
         {
             try
             {
-                string url = "https://grzy.tools/grzyClothTool/sentry-dsn";
+                string url = $"{GlobalConstants.GRZY_TOOLS_URL}/grzyClothTool/sentry-dsn";
                 var response = await httpClient.GetAsync(url).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
@@ -153,7 +153,7 @@ namespace grzyClothTool
         {
             try
             {
-                string url = $"https://grzy.tools/grzyClothTool/version?filename={name}";
+                string url = $"{GlobalConstants.GRZY_TOOLS_URL}/grzyClothTool/version?filename={name}";
                 if (!string.IsNullOrEmpty(version))
                 {
                     url += $"&version={version}";
