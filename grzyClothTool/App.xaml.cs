@@ -17,6 +17,7 @@ using System.Net.Http;
 using Sentry;
 using System.Windows.Threading;
 using Sentry.Profiling;
+using grzyClothTool.Constants;
 
 namespace grzyClothTool
 {

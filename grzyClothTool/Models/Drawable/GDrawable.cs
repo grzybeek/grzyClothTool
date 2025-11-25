@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using grzyClothTool.Constants;
 using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
@@ -212,6 +213,20 @@ public class GDrawable : INotifyPropertyChanged
     {
         get => _enableHighHeels;
         set { _enableHighHeels = value; OnPropertyChanged(); }
+    }
+
+    private bool _hidesHair;
+    public bool HidesHair
+    {
+        get => _hidesHair;
+        set
+        {
+            if (_hidesHair != value)
+            {
+                _hidesHair = value;
+                OnPropertyChanged();
+            }
+        }
     }
 
     private string _audio;

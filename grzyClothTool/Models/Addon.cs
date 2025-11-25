@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Models.Drawable;
+﻿using grzyClothTool.Constants;
+using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
 using grzyClothTool.Models.Texture;
 using System;

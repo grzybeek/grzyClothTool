@@ -6,7 +6,7 @@
         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-        xmlns:constants="clr-namespace:grzyClothTool"
+        xmlns:constants="clr-namespace:grzyClothTool.Constants"
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
         Background="{DynamicResource Brush50}"

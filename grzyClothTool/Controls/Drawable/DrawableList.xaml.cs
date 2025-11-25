@@ -787,14 +787,18 @@ namespace grzyClothTool.Controls
             bool hasGroupX = !string.IsNullOrEmpty(groupX);
             bool hasGroupY = !string.IsNullOrEmpty(groupY);
 
-            // Both have groups - sort alphabetically by group name
+            // Both have groups - sort by group name with natural number ordering
             if (hasGroupX && hasGroupY)
             {
-                int groupComparison = string.Compare(groupX, groupY, StringComparison.OrdinalIgnoreCase);
+                int groupComparison = CompareNatural(groupX, groupY);
                 if (groupComparison != 0)
                     return groupComparison;
 
-                // Within the same group, sort by Number
+                // Within the same group, sort by TypeName alphabetically, then by Number
+                int typeComparison = string.Compare(drawableX.TypeName, drawableY.TypeName, StringComparison.OrdinalIgnoreCase);
+                if (typeComparison != 0)
+                    return typeComparison;
+
                 return drawableX.Number.CompareTo(drawableY.Number);
             }
 
@@ -806,8 +810,59 @@ namespace grzyClothTool.Controls
             if (!hasGroupX && hasGroupY)
                 return 1;
 
-            // Neither has a group - sort by Number to maintain order
+            // Neither has a group - sort by TypeName alphabetically, then by Number
+            int typeComparisonNoGroup = string.Compare(drawableX.TypeName, drawableY.TypeName, StringComparison.OrdinalIgnoreCase);
+            if (typeComparisonNoGroup != 0)
+                return typeComparisonNoGroup;
+
             return drawableX.Number.CompareTo(drawableY.Number);
+        }
+
+        private static int CompareNatural(string x, string y)
+        {
+            if (x == y) return 0;
+            if (x == null) return -1;
+            if (y == null) return 1;
+
+            int ix = 0, iy = 0;
+
+            while (ix < x.Length && iy < y.Length)
+            {
+                if (char.IsDigit(x[ix]) && char.IsDigit(y[iy]))
+                {
+                    int numStartX = ix;
+                    while (ix < x.Length && char.IsDigit(x[ix])) ix++;
+                    
+                    int numStartY = iy;
+                    while (iy < y.Length && char.IsDigit(y[iy])) iy++;
+
+                    string numStrX = x.Substring(numStartX, ix - numStartX);
+                    string numStrY = y.Substring(numStartY, iy - numStartY);
+
+                    if (int.TryParse(numStrX, out int numX) && int.TryParse(numStrY, out int numY))
+                    {
+                        int numComparison = numX.CompareTo(numY);
+                        if (numComparison != 0)
+                            return numComparison;
+                    }
+                    else
+                    {
+                        int strComparison = string.Compare(numStrX, numStrY, StringComparison.OrdinalIgnoreCase);
+                        if (strComparison != 0)
+                            return strComparison;
+                    }
+                }
+                else
+                {
+                    int charComparison = char.ToLowerInvariant(x[ix]).CompareTo(char.ToLowerInvariant(y[iy]));
+                    if (charComparison != 0)
+                        return charComparison;
+                    ix++;
+                    iy++;
+                }
+            }
+
+            return x.Length.CompareTo(y.Length);
         }
     }
 

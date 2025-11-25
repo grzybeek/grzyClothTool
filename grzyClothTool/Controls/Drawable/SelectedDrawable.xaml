@@ -109,6 +109,25 @@
                                         <Style.Triggers>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsComponent}" Value="True" />
+                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="1" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <c:ModernLabelCheckBox Tag="HidesHair" Label="Hides Hair" IsChecked="{Binding SelectedAddon.FirstDrawable.HidesHair}" IsUpdated="SelectedDrawable_Updated" />
+                            </StackPanel>
+
+                            <StackPanel Orientation="Vertical" Margin="0">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
                                                     <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsProp}" Value="True" />
                                                     <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="0" />
                                                 </MultiDataTrigger.Conditions>
@@ -623,6 +642,26 @@
                                             <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.SelectedDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.SelectedDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
 
                                             <c:ModernLabelComboBox x:Name="GroupComboBox" Label="Group" Tag="Group" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Group, Mode=TwoWay}" ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" IsUpdated="SelectedDrawable_Updated" />
+
+                                            <StackPanel Orientation="Vertical" Margin="0">
+                                                <StackPanel.Style>
+                                                    <Style TargetType="StackPanel">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Setter Property="Margin" Value="0,5,0,0" />
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Value="True" />
+                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="1" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </StackPanel.Style>
+
+                                                <c:ModernLabelCheckBox Tag="HidesHair" Label="Hides Hair" IsChecked="{Binding SelectedAddon.SelectedDrawable.HidesHair}" IsUpdated="SelectedDrawable_Updated" />
+                                            </StackPanel>
 
                                             <StackPanel Orientation="Vertical" Margin="0">
                                                 <StackPanel.Style>

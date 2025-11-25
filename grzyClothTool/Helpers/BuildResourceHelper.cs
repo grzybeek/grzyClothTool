@@ -1,5 +1,6 @@
 ﻿using CodeWalker.GameFiles;
 using CodeWalker.Utils;
+using grzyClothTool.Constants;
 using grzyClothTool.Models;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Views;
@@ -192,6 +193,7 @@ public class BuildResourceHelper
 
                 await Task.WhenAll(tasks);
                 BuildFirstPersonAlternatesMeta();
+                BuildPedAlternativeVariationsMeta();
                 BuildFxManifest(metaFiles);
 
                 counter++;
@@ -216,6 +218,7 @@ public class BuildResourceHelper
 
             await Task.WhenAll(tasks);
             BuildFirstPersonAlternatesMeta();
+            BuildPedAlternativeVariationsMeta();
             BuildFxManifest(metaFiles);
         }
 
@@ -241,6 +244,14 @@ public class BuildResourceHelper
             filesSectionBuilder.Append($",\n  'first_person_alternates_{_projectName}.meta'");
         }
 
+        var projectName = GetProjectName();
+        var pedAltVarPath = Path.Combine(_buildPath, $"pedalternativevariations_{projectName}.meta");
+        var hasPedAltVar = File.Exists(pedAltVarPath);
+        if (hasPedAltVar)
+        {
+            filesSectionBuilder.Append($",\n  'pedalternativevariations_{projectName}.meta'");
+        }
+
         contentBuilder.AppendLine($"  {filesSectionBuilder}");
 
         contentBuilder.AppendLine("}");
@@ -254,6 +265,11 @@ public class BuildResourceHelper
         if (firstPersonFiles.Count > 0)
         {
             contentBuilder.AppendLine($"data_file 'PED_FIRST_PERSON_ALTERNATE_DATA' 'first_person_alternates_{_projectName}.meta'");
+        }
+
+        if (hasPedAltVar)
+        {
+            contentBuilder.AppendLine($"data_file 'ALTERNATE_VARIATIONS_FILE' 'pedalternativevariations_{projectName}.meta'");
         }
 
         var finalPath = Path.Combine(_buildPath, "fxmanifest.lua");
@@ -987,6 +1003,114 @@ public class BuildResourceHelper
             var finalPath = Path.Combine(_buildPath, $"first_person_alternates_{_projectName}.meta");
             File.WriteAllText(finalPath, sb.ToString());
         }
+    }
+
+    private void BuildPedAlternativeVariationsMeta()
+    {
+        var projectName = GetProjectName();
+        var pedAlternativeVariations = new PedAlternativeVariations();
+
+        foreach (var sex in new[] { SexType.male, SexType.female })
+        {
+
+            var addonMasksHideHair = _addon.Drawables
+                .Where(x => x.Sex == sex && x.TypeNumeric == 1 && !x.IsProp && x.HidesHair)
+                .ToList();
+
+            var addonHairs = _addon.Drawables
+                .Where(x => x.Sex == sex && x.TypeNumeric == 2 && !x.IsProp)
+                .ToList();
+
+            if (addonMasksHideHair.Count == 0 && addonHairs.Count == 0)
+            {
+                continue;
+            }
+
+            var pedName = sex == SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
+            var ped = new PedVariation { Name = pedName };
+
+            if (addonMasksHideHair.Count != 0)
+            {
+                var hairEntries = PedAlternativeVariationsHelper.GetHairEntriesForSex(sex);
+
+                foreach (var hairEntry in hairEntries)
+                {
+                    foreach (var hairIndex in hairEntry.Indices)
+                    {
+                        ped.Switches.Add(new AlternateSwitch
+                        {
+                            DlcNameHash = string.IsNullOrEmpty(hairEntry.DlcNameHash) ? null : hairEntry.DlcNameHash,
+                            Component = 2,
+                            Index = hairIndex,
+                            Alt = 1,
+                            SourceAssets = [.. addonMasksHideHair.Select(mask => new SourceAsset
+                            {
+                                DlcNameHash = projectName,
+                                Component = 1,
+                                Index = mask.Number
+                            })]
+                        });
+                    }
+                }
+
+                foreach (var hair in addonHairs)
+                {
+                    ped.Switches.Add(new AlternateSwitch
+                    {
+                        DlcNameHash = projectName,
+                        Component = 2,
+                        Index = hair.Number,
+                        Alt = 1,
+                        SourceAssets = [.. addonMasksHideHair.Select(mask => new SourceAsset
+                        {
+                            DlcNameHash = projectName,
+                            Component = 1,
+                            Index = mask.Number
+                        })]
+                    });
+                }
+            }
+
+            if (addonHairs.Count != 0)
+            {
+                var maskEntries = PedAlternativeVariationsHelper.GetMaskEntriesForSex(sex);
+
+                foreach (var hair in addonHairs)
+                {
+                    var sourceAssets = new List<SourceAsset>();
+                    
+                    foreach (var maskEntry in maskEntries)
+                    {
+                        sourceAssets.AddRange(maskEntry.Indices.Select(maskIndex => new SourceAsset
+                        {
+                            DlcNameHash = maskEntry.DlcNameHash,
+                            Component = 1,
+                            Index = maskIndex
+                        }));
+                    }
+
+                    ped.Switches.Add(new AlternateSwitch
+                    {
+                        DlcNameHash = projectName,
+                        Component = 2,
+                        Index = hair.Number,
+                        Alt = 1,
+                        SourceAssets = sourceAssets
+                    });
+                }
+            }
+
+            pedAlternativeVariations.Peds.Add(ped);
+        }
+
+        if (pedAlternativeVariations.Peds.Count == 0)
+        {
+            return;
+        }
+
+        var xmlDoc = pedAlternativeVariations.ToXml();
+        var finalPath = Path.Combine(_buildPath, $"pedalternativevariations_{projectName}.meta");
+        xmlDoc.Save(finalPath);
     }
 
     private static RbfFile GenerateCreatureMetadata(List<GDrawable> drawables)

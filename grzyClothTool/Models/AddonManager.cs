@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using grzyClothTool.Constants;
 using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;

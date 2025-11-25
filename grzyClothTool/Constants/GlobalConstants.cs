@@ -1,6 +1,6 @@
 using System;
 
-namespace grzyClothTool;
+namespace grzyClothTool.Constants;
 
 public static class GlobalConstants
 {
