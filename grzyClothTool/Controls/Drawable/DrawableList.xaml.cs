@@ -843,7 +843,11 @@ namespace grzyClothTool.Controls
                 if (groupComparison != 0)
                     return groupComparison;
 
-                // Within the same group, sort by TypeName alphabetically, then by Number
+                // Within the same group, sort by gender (female first), then TypeName alphabetically, then by Number
+                int genderComparison = drawableX.Sex.CompareTo(drawableY.Sex);
+                if (genderComparison != 0)
+                    return genderComparison;
+
                 int typeComparison = string.Compare(drawableX.TypeName, drawableY.TypeName, StringComparison.OrdinalIgnoreCase);
                 if (typeComparison != 0)
                     return typeComparison;
@@ -859,7 +863,11 @@ namespace grzyClothTool.Controls
             if (!hasGroupX && hasGroupY)
                 return 1;
 
-            // Neither has a group - sort by TypeName alphabetically, then by Number
+            // Neither has a group - sort by gender (female first), then TypeName alphabetically, then by Number
+            int genderComparisonNoGroup = drawableX.Sex.CompareTo(drawableY.Sex);
+            if (genderComparisonNoGroup != 0)
+                return genderComparisonNoGroup;
+
             int typeComparisonNoGroup = string.Compare(drawableX.TypeName, drawableY.TypeName, StringComparison.OrdinalIgnoreCase);
             if (typeComparisonNoGroup != 0)
                 return typeComparisonNoGroup;
