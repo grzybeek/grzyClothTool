@@ -153,20 +153,20 @@ namespace grzyClothTool.Controls
 
         private void Drawable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(GDrawable.Group))
+        if (e.PropertyName == nameof(GDrawable.Group))
+        {
+            if (_pendingSelection == null)
             {
-                if (_pendingSelection == null)
+                _pendingSelection = [.. MyListBox.SelectedItems.Cast<GDrawable>()];
+
+                DrawablesView?.Refresh();
+
+                Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    _pendingSelection = [.. MyListBox.SelectedItems.Cast<GDrawable>()];
-
-                    DrawablesView?.Refresh();
-
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        RestoreSelection();
-                    }), System.Windows.Threading.DispatcherPriority.Loaded);
-                }
+                    RestoreSelection();
+                }), System.Windows.Threading.DispatcherPriority.Loaded);
             }
+        }
         }
 
         private void RestoreSelection()
@@ -536,66 +536,80 @@ namespace grzyClothTool.Controls
 
         private void MyListBox_DragOver(object sender, DragEventArgs e)
         {
-            e.Effects = DragDropEffects.Move;
-            
-            bool isOverGroupHeader = IsOverGroupHeader(e.OriginalSource);
-            
-            DependencyObject hitElement = e.OriginalSource as DependencyObject;
-            
-            if (isOverGroupHeader && hitElement != null)
+            if (e.Data.GetDataPresent(typeof(GDrawable)))
             {
-                Border groupBorder = FindAncestor<Border>(hitElement);
-                if (groupBorder != null && groupBorder.Name == "GroupHeaderBorder")
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+                
+                bool isOverGroupHeader = IsOverGroupHeader(e.OriginalSource);
+                
+                DependencyObject hitElement = e.OriginalSource as DependencyObject;
+                
+                if (isOverGroupHeader && hitElement != null)
                 {
-                    if (_currentGroupHeaderBorder != null && _currentGroupHeaderBorder != groupBorder)
+                    Border groupBorder = FindAncestor<Border>(hitElement);
+                    if (groupBorder != null && groupBorder.Name == "GroupHeaderBorder")
+                    {
+                        if (_currentGroupHeaderBorder != null && _currentGroupHeaderBorder != groupBorder)
+                        {
+                            SetIsDragOver(_currentGroupHeaderBorder, false);
+                        }
+                        
+                        SetIsDragOver(groupBorder, true);
+                        _currentGroupHeaderBorder = groupBorder;
+                        
+                        _ghostLineAdorner?.Hide();
+                    }
+                }
+                else
+                {
+                    if (_currentGroupHeaderBorder != null)
                     {
                         SetIsDragOver(_currentGroupHeaderBorder, false);
+                        _currentGroupHeaderBorder = null;
                     }
                     
-                    SetIsDragOver(groupBorder, true);
-                    _currentGroupHeaderBorder = groupBorder;
-                    
-                    _ghostLineAdorner?.Hide();
-                }
-            }
-            else
-            {
-                if (_currentGroupHeaderBorder != null)
-                {
-                    SetIsDragOver(_currentGroupHeaderBorder, false);
-                    _currentGroupHeaderBorder = null;
-                }
-                
-                if (_ghostLineAdorner != null && hitElement != null)
-                {
-                    ListBoxItem targetItem = FindAncestor<ListBoxItem>(hitElement);
-                    
-                    if (targetItem != null)
+                    if (_ghostLineAdorner != null && hitElement != null)
                     {
-                        int index = MyListBox.ItemContainerGenerator.IndexFromContainer(targetItem);
-                        if (index >= 0)
+                        ListBoxItem targetItem = FindAncestor<ListBoxItem>(hitElement);
+                        
+                        if (targetItem != null)
                         {
-                            _ghostLineAdorner.Show();
-                            _ghostLineAdorner.UpdatePosition(targetItem, false, MyListBox);
+                            int index = MyListBox.ItemContainerGenerator.IndexFromContainer(targetItem);
+                            if (index >= 0)
+                            {
+                                _ghostLineAdorner.Show();
+                                _ghostLineAdorner.UpdatePositionWithEvent(targetItem, e, MyListBox);
+                            }
                         }
                     }
                 }
+
+                var scrollViewer = FindChildOfType<ScrollViewer>(MyListBox);
+                if (scrollViewer != null)
+                {
+                    const double heightOfAutoScrollZone = 35;
+                    double mousePos = e.GetPosition(MyListBox).Y;
+
+                    if (mousePos < heightOfAutoScrollZone)
+                    {
+                        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - 1);
+                    }
+                    else if (mousePos > MyListBox.ActualHeight - heightOfAutoScrollZone)
+                    {
+                        scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + 1);
+                    }
+                }
             }
-
-            var scrollViewer = FindChildOfType<ScrollViewer>(MyListBox);
-            if (scrollViewer != null)
+            else if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
-                const double heightOfAutoScrollZone = 35;
-                double mousePos = e.GetPosition(MyListBox).Y;
-
-                if (mousePos < heightOfAutoScrollZone)
-                {
-                    scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - 1);
-                }
-                else if (mousePos > MyListBox.ActualHeight - heightOfAutoScrollZone)
-                {
-                    scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset + 1);
-                }
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
             }
         }
 
@@ -690,23 +704,58 @@ namespace grzyClothTool.Controls
                             return;
                         }
 
-                        if (oldIndex < newIndex)
+                        var sameTypeDrawables = ItemsSource
+                            .Where(x => x.IsProp == droppedData.IsProp && 
+                                       x.Sex == droppedData.Sex && 
+                                       x.TypeNumeric == droppedData.TypeNumeric &&
+                                       x.Group == droppedData.Group)
+                            .OrderBy(x => x.Number)
+                            .ToList();
+
+                        int oldVisualIndex = sameTypeDrawables.IndexOf(droppedData);
+                        int targetVisualIndex = sameTypeDrawables.IndexOf(target);
+
+                        if (oldVisualIndex == targetVisualIndex)
                         {
-                            for (int i = oldIndex; i < newIndex; i++)
-                            {
-                                (ItemsSource[i + 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i + 1]);
-                            }
+                            CleanupGhostLine();
+                            return;
                         }
-                        else
+
+                        bool insertAfter = false;
+                        if (e.OriginalSource is DependencyObject depObj)
                         {
-                            for (int i = oldIndex; i > newIndex; i--)
+                            var listBoxItem = FindAncestor<ListBoxItem>(depObj);
+                            if (listBoxItem != null)
                             {
-                                (ItemsSource[i - 1], ItemsSource[i]) = (ItemsSource[i], ItemsSource[i - 1]);
+                                var mousePos = e.GetPosition(listBoxItem);
+                                insertAfter = mousePos.Y > listBoxItem.ActualHeight / 2;
                             }
                         }
 
-                        LogHelper.Log($"Drawable '{droppedData.Name}' moved from position {oldIndex} to {newIndex}");
-                        MainWindow.AddonManager.SelectedAddon.Drawables.ReassignNumbers(droppedData);
+                        int newVisualIndex = targetVisualIndex;
+                        if (insertAfter)
+                        {
+                            newVisualIndex = targetVisualIndex + 1;
+                        }
+                        
+                        if (oldVisualIndex < newVisualIndex)
+                        {
+                            newVisualIndex--;
+                        }
+
+                        sameTypeDrawables.RemoveAt(oldVisualIndex);
+                        sameTypeDrawables.Insert(newVisualIndex, droppedData);
+
+                        for (int i = 0; i < sameTypeDrawables.Count; i++)
+                        {
+                            sameTypeDrawables[i].Number = i;
+                            sameTypeDrawables[i].SetDrawableName();
+                        }
+
+                        LogHelper.Log($"Drawable '{droppedData.Name}' moved from position {oldVisualIndex} to {newVisualIndex}");
+                        SaveHelper.SetUnsavedChanges(true);
+
+                        DrawablesView?.Refresh();
 
                         MyListBox.SelectedItem = droppedData;
                         MyListBox.ScrollIntoView(droppedData);
@@ -958,7 +1007,39 @@ namespace grzyClothTool.Controls
             if (targetElement == null) return;
 
             var targetPos = targetElement.TransformToAncestor(AdornedElement).Transform(new Point(0, 0));
+            var targetHeight = targetElement.RenderSize.Height;
+            
             _position = new Point(0, targetPos.Y);
+            
+            if (listBox != null && Mouse.PrimaryDevice != null)
+            {
+                var mousePos = Mouse.GetPosition(targetElement);
+                
+                if (mousePos.Y > targetHeight / 2)
+                {
+                    _position = new Point(0, targetPos.Y + targetHeight);
+                }
+            }
+            
+            InvalidateArrange();
+            InvalidateVisual();
+        }
+
+        public void UpdatePositionWithEvent(UIElement targetElement, DragEventArgs e, UIElement listBox)
+        {
+            if (targetElement == null) return;
+
+            var targetPos = targetElement.TransformToAncestor(AdornedElement).Transform(new Point(0, 0));
+            var targetHeight = targetElement.RenderSize.Height;
+            
+            _position = new Point(0, targetPos.Y);
+            
+            var mousePos = e.GetPosition(targetElement);
+            
+            if (mousePos.Y > targetHeight / 2)
+            {
+                _position = new Point(0, targetPos.Y + targetHeight);
+            }
             
             InvalidateArrange();
             InvalidateVisual();

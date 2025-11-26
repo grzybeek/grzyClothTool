@@ -291,6 +291,8 @@
                                                     HorizontalContentAlignment="Stretch"
                                                     IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
                                                     AllowDrop="True"
+                                                    PreviewMouseLeftButtonDown="TextureListBox_PreviewMouseLeftButtonDown"
+                                                    PreviewMouseMove="TextureListBox_PreviewMouseMove"
                                                     Drop="TextureListBox_Drop"
                                                     DragEnter="TextureListBox_DragEnter"
                                                     DragOver="TextureListBox_DragOver"

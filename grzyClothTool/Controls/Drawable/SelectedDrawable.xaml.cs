@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using static grzyClothTool.Controls.CustomMessageBox;
@@ -90,6 +92,10 @@ namespace grzyClothTool.Controls
             get { return (int)GetValue(SelectedIndexProperty); }
             set { SetValue(SelectedIndexProperty, value); }
         }
+
+        // Ghost line adorner for texture drag and drop
+        private AdornerLayer _textureAdornerLayer;
+        private GhostLineAdorner _textureGhostLineAdorner;
 
         public SelectedDrawable()
         {
@@ -470,7 +476,11 @@ namespace grzyClothTool.Controls
         {
             try
             {
-                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                if (e.Data.GetDataPresent(typeof(GTexture)))
+                {
+                    e.Effects = DragDropEffects.Move;
+                }
+                else if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 {
                     var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                     e.Effects = files.Any(f => IsValidTextureFile(f)) ? DragDropEffects.Copy : DragDropEffects.None;
@@ -499,7 +509,25 @@ namespace grzyClothTool.Controls
         {
             try
             {
-                if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                if (e.Data.GetDataPresent(typeof(GTexture)))
+                {
+                    e.Effects = DragDropEffects.Move;
+                    
+                    if (_textureGhostLineAdorner != null)
+                    {
+                        DependencyObject hitElement = e.OriginalSource as DependencyObject;
+                        if (hitElement != null)
+                        {
+                            ListBoxItem targetItem = FindAncestor<ListBoxItem>(hitElement);
+                            if (targetItem != null)
+                            {
+                                _textureGhostLineAdorner.Show();
+                                _textureGhostLineAdorner.UpdatePositionWithEvent(targetItem, e, sender as ListBox);
+                            }
+                        }
+                    }
+                }
+                else if (e.Data.GetDataPresent(DataFormats.FileDrop))
                 {
                     var files = (string[])e.Data.GetData(DataFormats.FileDrop);
                     e.Effects = files.Any(f => IsValidTextureFile(f)) ? DragDropEffects.Copy : DragDropEffects.None;
@@ -528,6 +556,67 @@ namespace grzyClothTool.Controls
             {
                 if (SelectedDraw == null)
                 {
+                    return;
+                }
+
+                if (e.Data.GetDataPresent(typeof(GTexture)))
+                {
+                    if (e.Data.GetData(typeof(GTexture)) is GTexture droppedTexture && SelectedDraw.Textures.Contains(droppedTexture))
+                    {
+                        GTexture target = null;
+                        if (e.OriginalSource is FrameworkElement element)
+                        {
+                            target = element.DataContext as GTexture;
+                        }
+
+                        if (target != null && SelectedDraw.Textures.Contains(target))
+                        {
+                            int oldIndex = SelectedDraw.Textures.IndexOf(droppedTexture);
+                            int targetIndex = SelectedDraw.Textures.IndexOf(target);
+
+                            if (oldIndex != targetIndex)
+                            {
+                                bool insertAfter = false;
+                                if (e.OriginalSource is DependencyObject depObj)
+                                {
+                                    var listBoxItem = FindAncestor<ListBoxItem>(depObj);
+                                    if (listBoxItem != null)
+                                    {
+                                        var mousePos = e.GetPosition(listBoxItem);
+                                        insertAfter = mousePos.Y > listBoxItem.ActualHeight / 2;
+                                    }
+                                }
+
+                                int newIndex = targetIndex;
+                                if (insertAfter)
+                                {
+                                    newIndex = targetIndex + 1;
+                                }
+
+                                if (oldIndex < newIndex)
+                                {
+                                    newIndex--;
+                                }
+
+                                SelectedDraw.Textures.Move(oldIndex, newIndex);
+
+                                SelectedDraw.Textures.ReassignNumbers();
+
+                                LogHelper.Log($"Texture '{droppedTexture.DisplayName}' moved from position {oldIndex} to {newIndex}");
+                                SaveHelper.SetUnsavedChanges(true);
+
+                                var textureListBox = FindTextureListBox(this);
+                                if (textureListBox != null)
+                                {
+                                    textureListBox.SelectedItem = droppedTexture;
+                                    textureListBox.ScrollIntoView(droppedTexture);
+                                }
+                            }
+                        }
+                    }
+
+                    CleanupTextureGhostLine();
+                    e.Handled = true;
                     return;
                 }
 
@@ -938,5 +1027,88 @@ namespace grzyClothTool.Controls
             txt.Name = Path.GetFileNameWithoutExtension(filePath);
             return txt;
         }
+
+        #region Texture Drag and Drop Reordering
+
+        private System.Windows.Point _textureDragStartPoint;
+        private bool _isTextureDragging;
+
+        private void TextureListBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _textureDragStartPoint = e.GetPosition(null);
+        }
+
+        private void TextureListBox_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            System.Windows.Point mousePos = e.GetPosition(null);
+            Vector diff = _textureDragStartPoint - mousePos;
+
+            if (e.LeftButton == MouseButtonState.Pressed &&
+                (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                 Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance))
+            {
+                if (sender is not ListBox listBox) return;
+
+                ListBoxItem listBoxItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+                if (listBoxItem != null && !_isTextureDragging)
+                {
+                    _isTextureDragging = true;
+                    CleanupTextureGhostLine();
+
+                    _textureAdornerLayer = AdornerLayer.GetAdornerLayer(listBox);
+                    if (_textureAdornerLayer != null)
+                    {
+                        _textureGhostLineAdorner = new GhostLineAdorner(listBox);
+                        _textureAdornerLayer.Add(_textureGhostLineAdorner);
+                        
+                        _textureGhostLineAdorner.UpdatePosition(listBoxItem, false, listBox);
+                    }
+
+                    var selectedItem = listBox.SelectedItem;
+                    if (selectedItem is GTexture)
+                    {
+                        DataObject data = new(typeof(GTexture), selectedItem);
+                        
+                        try
+                        {
+                            DragDrop.DoDragDrop(listBox, data, DragDropEffects.Move);
+                        }
+                        finally
+                        {
+                            _isTextureDragging = false;
+                            CleanupTextureGhostLine();
+                        }
+                    }
+                    else
+                    {
+                        _isTextureDragging = false;
+                    }
+                }
+            }
+        }
+
+        private void CleanupTextureGhostLine()
+        {
+            if (_textureGhostLineAdorner != null)
+            {
+                _textureAdornerLayer?.Remove(_textureGhostLineAdorner);
+                _textureGhostLineAdorner = null;
+            }
+        }
+
+        private static T FindAncestor<T>(DependencyObject current) where T : DependencyObject
+        {
+            while (current != null)
+            {
+                if (current is T t)
+                {
+                    return t;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            return null;
+        }
+
+        #endregion
     }
 }
