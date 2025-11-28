@@ -175,13 +175,10 @@ namespace CodeWalker
             Renderer.controllightdir = !Settings.Default.Skydome;
             Renderer.rendercollisionmeshes = false;
             Renderer.renderclouds = false;
-            //Renderer.renderclouds = true;
-            //Renderer.individualcloudfrag = "Contrails";
             Renderer.rendermoon = true;
             Renderer.renderskeletons = false;
             Renderer.SelectionFlagsTestAll = true;
             Renderer.swaphemisphere = true;
-
 
             Renderer.renderskydome = false;
             Renderer.renderhdtextures = true;
@@ -272,39 +269,60 @@ namespace CodeWalker
 
             if (pauserendering) return;
 
-            GameFileCache.BeginFrame();
+            try
+            {
+                GameFileCache.BeginFrame();
 
-            if (!Monitor.TryEnter(Renderer.RenderSyncRoot, 50))
-            { return; } //couldn't get a lock, try again next time
+                if (!Monitor.TryEnter(Renderer.RenderSyncRoot, 50))
+                { return; }
 
-            UpdateControlInputs(elapsed);
+                try
+                {
+                    UpdateControlInputs(elapsed);
 
-            Renderer.Update(elapsed, MouseLastPoint.X, MouseLastPoint.Y);
+                    Renderer.Update(elapsed, MouseLastPoint.X, MouseLastPoint.Y);
 
-            Renderer.BeginRender(context);
+                    Renderer.BeginRender(context);
 
-            Renderer.RenderSkyAndClouds();
+                    Renderer.RenderSkyAndClouds();
 
-            RenderSelectedItems();
+                    RenderSelectedItems();
 
-            RenderFloor();
+                    RenderFloor();
 
-            Renderer.SelectedDrawable = null;
+                    Renderer.SelectedDrawable = null;
 
-            Renderer.RenderPed(SelectedPed);
+                    Renderer.RenderPed(SelectedPed);
 
-            Renderer.RenderQueued();
+                    Renderer.RenderQueued();
 
-            Renderer.RenderFinalPass();
+                    Renderer.RenderFinalPass();
 
-            Renderer.EndRender();
+                    Renderer.EndRender();
 
-            Monitor.Exit(Renderer.RenderSyncRoot);
+                    Monitor.Exit(Renderer.RenderSyncRoot);
+                }
+                catch
+                {
+                    if (Monitor.IsEntered(Renderer.RenderSyncRoot))
+                    {
+                        Monitor.Exit(Renderer.RenderSyncRoot);
+                    }
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                pauserendering = true;
+                UpdateStatus($"Rendering error - preview paused");
+                LogError($"3D Preview rendering crashed: {ex.Message}");
+            }
         }
 
         private void RenderSelectedItems()
         {
-            foreach(var drawable in LoadedDrawables.Values)
+            var loadedDrawables = LoadedDrawables.Values.ToList();
+            foreach(var drawable in loadedDrawables)
             {
                 if (LoadedTextures.TryGetValue(drawable, out var texture))
                 {
@@ -314,7 +332,8 @@ namespace CodeWalker
 
             if (SavedDrawables.Count > 0)
             {
-                foreach (var drawable in SavedDrawables.Values)
+                var savedDrawables = SavedDrawables.Values.ToList();
+                foreach (var drawable in savedDrawables)
                 {
                     if (LoadedDrawables.TryGetValue(drawable.Name, out var loadedDrawable) && loadedDrawable.Name.Equals(drawable.Name))
                     {
@@ -491,6 +510,7 @@ namespace CodeWalker
             GameFileCache.EnableMods = false;
             GameFileCache.LoadPeds = true;
             GameFileCache.LoadVehicles = false;
+            GameFileCache.LoadAudio = false;
             GameFileCache.LoadArchetypes = false;//to speed things up a little
             GameFileCache.BuildExtendedJenkIndex = false;//to speed things up a little
             GameFileCache.DoFullStringIndex = true;//to get all global text from DLC...
@@ -545,18 +565,50 @@ namespace CodeWalker
         }
         private void LoadWorld()
         {
-            UpdateStatus("Loading timecycles...");
-            timecycle.Init(GameFileCache, UpdateStatus);
-            timecycle.SetTime(Renderer.timeofday);
+            try
+            {
+                UpdateStatus("Loading timecycles...");
+                timecycle.Init(GameFileCache, UpdateStatus);
+                timecycle.SetTime(Renderer.timeofday);
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus("Warning: Timecycle loading failed");
+                LogError($"Timecycle init error: {ex.Message}");
+            }
 
-            UpdateStatus("Loading materials...");
-            BoundsMaterialTypes.Init(GameFileCache);
+            try
+            {
+                UpdateStatus("Loading materials...");
+                BoundsMaterialTypes.Init(GameFileCache);
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus("Warning: Materials loading failed");
+                LogError($"Materials init error: {ex.Message}");
+            }
 
-            UpdateStatus("Loading weather...");
-            weather.Init(GameFileCache, UpdateStatus, timecycle);
+            try
+            {
+                UpdateStatus("Loading weather...");
+                weather.Init(GameFileCache, UpdateStatus, timecycle);
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus("Warning: Weather loading failed");
+                LogError($"Weather init error: {ex.Message}");
+            }
 
-            UpdateStatus("Loading clouds...");
-            clouds.Init(GameFileCache, UpdateStatus, weather);
+            try
+            {
+                UpdateStatus("Loading clouds...");
+                clouds.Init(GameFileCache, UpdateStatus, weather);
+            }
+            catch (Exception ex)
+            {
+                UpdateStatus("Warning: Clouds loading failed");
+                LogError($"Clouds init error: {ex.Message}");
+            }
 
         }
 

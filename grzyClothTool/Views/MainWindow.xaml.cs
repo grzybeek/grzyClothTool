@@ -14,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Navigation;
+using AvalonDock.Themes;
 using static grzyClothTool.Enums;
 
 namespace grzyClothTool
@@ -66,6 +67,11 @@ namespace grzyClothTool
 
             SaveHelper.Init();
 
+            CWHelper.DockedPreviewHost = PreviewHost;
+
+            PreviewAnchorable.Closing += PreviewAnchorable_Closing;
+            PreviewAnchorable.IsVisibleChanged += PreviewAnchorable_IsVisibleChanged;
+
             Dispatcher.BeginInvoke((Action)(async () =>
             {
 #if !DEBUG
@@ -74,14 +80,40 @@ namespace grzyClothTool
 #endif
                 App.splashScreen.AddMessage("Starting app");
 
-                // Wait until the SplashScreen's message queue is empty
                 while (App.splashScreen.MessageQueueCount > 0)
                 {
                     await Task.Delay(2000);
                 }
 
                 await App.splashScreen.LoadComplete();
+
+                this.Dispatcher.Invoke(() =>
+                {
+                    PreviewHost?.InitializePreviewInBackground();
+                });
             }));
+
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            PreviewAnchorable.Hide();
+        }
+        
+        private void PreviewAnchorable_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            PreviewAnchorable.Hide();
+            AddonManager.IsPreviewEnabled = false;
+        }
+
+        private void PreviewAnchorable_IsVisibleChanged(object sender, EventArgs e)
+        {
+            if (PreviewAnchorable.IsVisible)
+            {
+                PreviewHost?.InitializePreview();
+            }
         }
 
         private void ProgressHelper_ProgressStatusChanged(object sender, ProgressMessageEventArgs e)
@@ -305,11 +337,7 @@ namespace grzyClothTool
         {
             _ = TelemetryHelper.LogSession(false);
 
-            if (CWHelper.CWForm.formopen)
-            {
-                CWHelper.CWForm.Close();
-            }
-
+            PreviewHost?.ClosePreview();
             LogHelper.Close();
         }
 
@@ -342,6 +370,14 @@ namespace grzyClothTool
                 {
                     Directory.Delete(tempPath, true);
                 }
+            }
+        }
+
+        public void UpdateAvalonDockTheme(bool isDarkMode)
+        {
+            if (DockManager != null)
+            {
+                DockManager.Theme = isDarkMode ? new Vs2013DarkTheme() : new Vs2013LightTheme();
             }
         }
     }

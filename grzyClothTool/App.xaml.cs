@@ -250,6 +250,8 @@ namespace grzyClothTool
             Current.Resources.MergedDictionaries.Clear();
             Current.Resources.MergedDictionaries.Add(theme);
             Current.Resources.MergedDictionaries.Add(shared);
+
+            grzyClothTool.MainWindow.Instance?.UpdateAvalonDockTheme(isDarkMode);
         }
 
     }

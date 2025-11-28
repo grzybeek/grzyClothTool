@@ -221,7 +221,7 @@ namespace CodeWalker.Rendering
             lock (rendersyncroot)
             {
                 camera.OnWindowResize(width, height);
-                shaders.OnWindowResize(width, height);
+                shaders?.OnWindowResize(width, height);
             }
         }
 
@@ -276,6 +276,8 @@ namespace CodeWalker.Rendering
 
             dxman.ClearRenderTarget(context);
 
+            if (shaders == null) return;
+
             shaders.BeginFrame(context, currentRealTime, currentElapsedTime);
 
             shaders.EnsureShaderTextures(gameFileCache, renderableCache);
@@ -313,6 +315,8 @@ namespace CodeWalker.Rendering
 
         public void RenderQueued()
         {
+            if (shaders == null) return;
+
             shaders.RenderQueued(context, camera, currentWindVec);
 
             RenderSkeletons();
@@ -321,6 +325,8 @@ namespace CodeWalker.Rendering
 
         public void RenderFinalPass()
         {
+            if (shaders == null) return;
+
             shaders.RenderFinalPass(context);
         }
 
@@ -664,12 +670,16 @@ namespace CodeWalker.Rendering
 
         public void RenderLines(List<VertexTypePC> linelist, DepthStencilMode dsmode = DepthStencilMode.Enabled)
         {
+            if (shaders == null) return;
+
             shaders.SetDepthStencilMode(context, dsmode);
             shaders.Paths.RenderLines(context, linelist, camera, shaders.GlobalLights);
         }
 
         public void RenderTriangles(List<VertexTypePC> linelist, DepthStencilMode dsmode = DepthStencilMode.Enabled)
         {
+            if (shaders == null) return;
+
             shaders.SetDepthStencilMode(context, dsmode);
             shaders.Paths.RenderTriangles(context, linelist, camera, shaders.GlobalLights);
         }
@@ -679,6 +689,7 @@ namespace CodeWalker.Rendering
             if (MapViewEnabled) return;
             if (!renderskydome) return;
             if (!weather.Inited) return;
+            if (shaders == null) return;
 
             var shader = shaders.Skydome;
             shader.UpdateSkyLocals(weather, globalLights);
@@ -776,6 +787,7 @@ namespace CodeWalker.Rendering
             if (!renderskydome) return;
             if (!weather.Inited) return;
             if (!clouds.Inited) return;
+            if (shaders == null) return;
 
 
             var shader = shaders.Clouds;
@@ -1705,7 +1717,7 @@ namespace CodeWalker.Rendering
                 RenderSkeleton(rndbl, entity);
             }
 
-            if (renderlights && shaders.deferred && (rndbl.Lights != null))
+            if (renderlights && shaders != null && shaders.deferred && (rndbl.Lights != null))
             {
                 entity?.EnsureLights(rndbl.Key);
 
@@ -1746,7 +1758,7 @@ namespace CodeWalker.Rendering
 
 
             bool retval = true;// false;
-            if ((rndbl.AllTexturesLoaded || !waitforchildrentoload))
+            if ((rndbl.AllTexturesLoaded || !waitforchildrentoload) && (shaders != null))
             {
                 RenderableGeometryInst rginst = new RenderableGeometryInst();
                 rginst.Inst.Renderable = rndbl;
@@ -1931,7 +1943,7 @@ namespace CodeWalker.Rendering
             }
 
             RenderableBoundComposite rndbc = renderableCache.GetRenderableBoundComp(bounds);
-            if ((rndbc != null) && rndbc.IsLoaded)
+            if ((rndbc != null) && rndbc.IsLoaded && (shaders != null))
             {
                 RenderableBoundGeometryInst rbginst = new RenderableBoundGeometryInst();
                 rbginst.Inst.Renderable = rndbc;

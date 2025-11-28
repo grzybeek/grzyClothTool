@@ -11,7 +11,7 @@ using System.Linq;
 namespace grzyClothTool.Helpers;
 public static class CWHelper
 {
-    public static CustomPedsForm CWForm;
+    public static PreviewWindowHost DockedPreviewHost;
     public static string GTAVPath => GTAFolder.GetCurrentGTAFolderWithTrailingSlash();
     public static bool IsCacheStartupEnabled => Properties.Settings.Default.GtaCacheStartup;
 
@@ -35,8 +35,6 @@ public static class CWHelper
         {
             // todo: load cw cache
         }
-
-        CWForm = new CustomPedsForm();
     }
 
     public static void SetGTAFolder(string path)
@@ -110,14 +108,15 @@ public static class CWHelper
     {
         string pedModel = sexType == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
         PrevDrawableSex = sexType;
-        CWForm.PedModel = pedModel;
+        DockedPreviewHost?.SetPedModel(pedModel);
     }
 
     public static void SendDrawableUpdateToPreview(EventArgs args)
     {
-        // MainWindow.AddonManager.IsPreviewEnabled is still true, but preview window is closed already
-        // It causes deadlock if user is fast enough to select different drawable. Check if form is open
-        if (!CWForm.formopen || CWForm.isLoading) return;
+        if (DockedPreviewHost == null)
+        {
+            return;
+        }
 
         var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables;
 
@@ -130,19 +129,6 @@ public static class CWHelper
             updateDict[dargs.UpdatedName] = dargs.Value.ToString();
         }
 
-        // Identify drawables that are no longer selected and remove them
-        var selectedNames = selectedDrawables.Select(d => d.Name).ToHashSet();
-        var removedDrawables = CWForm.LoadedDrawables.Keys.Where(name => !selectedNames.Contains(name)).ToList();
-        foreach (var removed in removedDrawables)
-        {
-
-            if (CWForm.LoadedDrawables.TryGetValue(removed, out var removedDrawable))
-            {
-                CWForm.LoadedTextures.Remove(removedDrawable);
-            }
-            CWForm.LoadedDrawables.Remove(removed);
-        }
-
         if (selectedDrawables.Count == 1)
         {
             var firstSelected = selectedDrawables.First();
@@ -153,45 +139,6 @@ public static class CWHelper
             }
         }
 
-        // Add or update selected drawables and their textures
-        foreach (var drawable in selectedDrawables)
-        {
-            if (drawable.IsEncrypted)
-            {
-                continue;
-            }
-
-            var ydd = CreateYddFile(drawable);
-            if (ydd == null || ydd.Drawables.Length == 0) continue;
-
-            var firstDrawable = ydd.Drawables.First();
-            CWForm.LoadedDrawables[drawable.Name] = firstDrawable;
-
-            GTexture selectedTexture = MainWindow.AddonManager.SelectedAddon.SelectedTexture;
-            YtdFile ytd = null;
-            if (selectedTexture != null)
-            {
-                ytd = CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
-                CWForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
-            }
-
-            if (selectedTexture == null && selectedDrawables.Count > 1)
-            {
-                // If multiple drawables are selected, we need to load the first texture of the first drawable
-                // to prevent the preview from being empty
-                var firstTexture = drawable.Textures.FirstOrDefault();
-                if (firstTexture != null)
-                {
-                    ytd = CreateYtdFile(firstTexture, firstTexture.DisplayName);
-                    CWForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
-                }
-            }
-
-            CWForm.UpdateSelectedDrawable(
-                firstDrawable,
-                ytd.TextureDict,
-                updateDict
-            );
-        }
+        DockedPreviewHost.UpdateDrawables(selectedDrawables, MainWindow.AddonManager.SelectedAddon.SelectedTexture, updateDict);
     }
 }

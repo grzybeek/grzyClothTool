@@ -216,42 +216,21 @@ namespace grzyClothTool.Views
 
         private void Preview_Btn(object sender, RoutedEventArgs e)
         {
-            if (CWHelper.CWForm == null || CWHelper.CWForm.IsDisposed)
-            {
-                CWHelper.CWForm = new CustomPedsForm();
-                CWHelper.CWForm.FormClosed += CWForm_FormClosed;
-            }
+            var mainWindow = MainWindow.Instance;
+            if (mainWindow == null) return;
 
-            if (Addon.SelectedDrawable == null)
+            if (mainWindow.PreviewAnchorable != null)
             {
-                CWHelper.CWForm.Show();
+                mainWindow.PreviewAnchorable.Show();
+                mainWindow.PreviewHost?.InitializePreview();
+
+                if (Addon.SelectedDrawable != null && !Addon.SelectedDrawable.IsEncrypted)
+                {
+                    CWHelper.SendDrawableUpdateToPreview(e);
+                }
+
                 MainWindow.AddonManager.IsPreviewEnabled = true;
-                return;
             }
-
-            if (Addon.SelectedDrawable.IsEncrypted)
-            {
-                return;
-            }
-
-            var ydd = CWHelper.CreateYddFile(Addon.SelectedDrawable);
-            CWHelper.CWForm.LoadedDrawables.Add(Addon.SelectedDrawable.Name, ydd.Drawables.First());
-
-            if (Addon.SelectedTexture != null)
-            {
-                var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
-                CWHelper.CWForm.LoadedTextures.Add(ydd.Drawables.First(), ytd.TextureDict);
-            }
-
-            CWHelper.SetPedModel(Addon.SelectedDrawable.Sex);
-
-            CWHelper.CWForm.Show();
-            MainWindow.AddonManager.IsPreviewEnabled = true;
-        }
-
-        private void CWForm_FormClosed(object sender, FormClosedEventArgs e)
-        {
-                MainWindow.AddonManager.IsPreviewEnabled = false;
         }
 
         private void SelectedDrawable_Changed(object sender, EventArgs e)
@@ -270,7 +249,6 @@ namespace grzyClothTool.Views
                 drawable.IsNew = false;
             }
 
-            // Handle the case when a single item is selected
             if (Addon.SelectedDrawables.Count == 1)
             {
                 Addon.SelectedDrawable = Addon.SelectedDrawables.First();
@@ -288,8 +266,11 @@ namespace grzyClothTool.Views
             }
 
             if (!MainWindow.AddonManager.IsPreviewEnabled || (Addon.SelectedDrawable == null && Addon.SelectedDrawables.Count == 0)) return;
+            
+            var mainWindow = MainWindow.Instance;
+            if (mainWindow?.PreviewAnchorable?.IsVisible != true) return;
+            
             CWHelper.SendDrawableUpdateToPreview(e);
-            CWHelper.CWForm.Refresh();
         }
 
         private void SelectedDrawable_Updated(object sender, DrawableUpdatedArgs e)
@@ -301,6 +282,9 @@ namespace grzyClothTool.Views
             {
                 return;
             }
+
+            var mainWindow = MainWindow.Instance;
+            if (mainWindow?.PreviewAnchorable?.IsVisible != true) return;
 
             CWHelper.SendDrawableUpdateToPreview(e);
         }
@@ -318,10 +302,10 @@ namespace grzyClothTool.Views
 
             if (!MainWindow.AddonManager.IsPreviewEnabled) return;
 
-            var ytd = CWHelper.CreateYtdFile(Addon.SelectedTexture, Addon.SelectedTexture.DisplayName);
-            var cwydd = CWHelper.CWForm.LoadedDrawables[Addon.SelectedDrawable.Name];
-            CWHelper.CWForm.LoadedTextures[cwydd] = ytd.TextureDict;
-            CWHelper.CWForm.Refresh();
+            var mainWindow = MainWindow.Instance;
+            if (mainWindow?.PreviewAnchorable?.IsVisible != true) return;
+
+            CWHelper.SendDrawableUpdateToPreview(e);
         }
 
         #region Drag and Drop for Drawables

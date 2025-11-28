@@ -7,6 +7,9 @@
         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:constants="clr-namespace:grzyClothTool.Constants"
+        xmlns:controls="clr-namespace:grzyClothTool.Controls"
+        xmlns:ad="https://github.com/Dirkster99/AvalonDock"
+        xmlns:themes="clr-namespace:AvalonDock.Themes;assembly=AvalonDock.Themes.VS2013"
         d:DataContext="{d:DesignInstance Type=helpers:NavigationHelper, IsDesignTimeCreatable=True}"
         mc:Ignorable="d"
         Background="{DynamicResource Brush50}"
@@ -14,7 +17,7 @@
         MouseDown="Window_MouseDown"
         Closed="Window_Closed"
         Closing="Window_Closing"
-        >
+    >
 
     <Window.Resources>
         <CollectionViewSource x:Key="SortedSaveFiles" Source="{Binding SaveFiles}">
@@ -105,9 +108,37 @@
             </StatusBarItem>
         </StatusBar>
 
-        <Grid Margin="5,5,5,5">
-            <ContentControl x:Name="MainWindowContentControl" Content="{Binding CurrentPage}" />
-        </Grid>
+        <ad:DockingManager x:Name="DockManager" AllowMixedOrientation="True">
+            <ad:LayoutRoot>
+                <ad:LayoutPanel Orientation="Horizontal">
 
+                    <ad:LayoutDocumentPane DockWidth="*" ShowHeader="False">
+                        <ad:LayoutDocument
+                            ContentId="MainContent"
+                            Title="">
+
+                            <ContentControl x:Name="MainWindowContentControl" Content="{Binding CurrentPage}" />
+                        </ad:LayoutDocument>
+                    </ad:LayoutDocumentPane>
+
+                    <ad:LayoutAnchorablePane DockWidth="500">
+                        <ad:LayoutAnchorable
+                            x:Name="PreviewAnchorable"
+                            ContentId="PreviewAnchorable"
+                            Title="3D Preview"
+                            CanClose="True"
+                            CanHide="True"
+                            CanFloat="True"
+                            AutoHideWidth="500"
+                            FloatingWidth="800"
+                            FloatingHeight="600"
+                            IsVisible="False">
+
+                            <controls:PreviewWindowHost x:Name="PreviewHost" />
+                        </ad:LayoutAnchorable>
+                    </ad:LayoutAnchorablePane>
+                </ad:LayoutPanel>
+            </ad:LayoutRoot>
+        </ad:DockingManager>
     </DockPanel>
 </Window>
