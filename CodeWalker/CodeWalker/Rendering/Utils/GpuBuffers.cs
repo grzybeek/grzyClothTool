@@ -36,19 +36,27 @@ namespace CodeWalker.Rendering
         {
             try
             {
+                if (Buffer == null || Buffer.IsDisposed) return;
+                
                 var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
                 Utilities.Write(dataBox.DataPointer, ref Vars);
                 context.UnmapSubresource(Buffer, 0);
             }
-            catch { } //not much we can do about this except ignore it..
+            catch { }
         }
         public void SetVSCBuffer(DeviceContext context, int slot)
         {
-            context.VertexShader.SetConstantBuffer(slot, Buffer);
+            if (Buffer != null && !Buffer.IsDisposed)
+            {
+                context.VertexShader.SetConstantBuffer(slot, Buffer);
+            }
         }
         public void SetPSCBuffer(DeviceContext context, int slot)
         {
-            context.PixelShader.SetConstantBuffer(slot, Buffer);
+            if (Buffer != null && !Buffer.IsDisposed)
+            {
+                context.PixelShader.SetConstantBuffer(slot, Buffer);
+            }
         }
     }
 
@@ -77,18 +85,30 @@ namespace CodeWalker.Rendering
         }
         public void Update(DeviceContext context, T[] data)
         {
-            var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
-            Utilities.Write(dataBox.DataPointer, data, 0, Math.Min(data.Length, StructCount));
-            context.UnmapSubresource(Buffer, 0);
+            try
+            {
+                if (Buffer == null || Buffer.IsDisposed) return;
+                
+                var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+                Utilities.Write(dataBox.DataPointer, data, 0, Math.Min(data.Length, StructCount));
+                context.UnmapSubresource(Buffer, 0);
+            }
+            catch { }
         }
 
         public void SetVSCBuffer(DeviceContext context, int slot)
         {
-            context.VertexShader.SetConstantBuffer(slot, Buffer);
+            if (Buffer != null && !Buffer.IsDisposed)
+            {
+                context.VertexShader.SetConstantBuffer(slot, Buffer);
+            }
         }
         public void SetPSCBuffer(DeviceContext context, int slot)
         {
-            context.PixelShader.SetConstantBuffer(slot, Buffer);
+            if (Buffer != null && !Buffer.IsDisposed)
+            {
+                context.PixelShader.SetConstantBuffer(slot, Buffer);
+            }
         }
 
     }
@@ -181,28 +201,46 @@ namespace CodeWalker.Rendering
 
         public void Update(DeviceContext context)
         {
-            for (int i = 0; i < CurrentCount; i++)
+            try
             {
-                DataArray[i] = Data[i];
+                if (Buffer == null || Buffer.IsDisposed) return;
+                
+                for (int i = 0; i < CurrentCount; i++)
+                {
+                    DataArray[i] = Data[i];
+                }
+                var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+                Utilities.Write(dataBox.DataPointer, DataArray, 0, CurrentCount);
+                context.UnmapSubresource(Buffer, 0);
             }
-            var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
-            Utilities.Write(dataBox.DataPointer, DataArray, 0, CurrentCount);
-            context.UnmapSubresource(Buffer, 0);
+            catch { }
         }
         public void Update(DeviceContext context, T[] data)
         {
-            var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
-            Utilities.Write(dataBox.DataPointer, data, 0, data.Length);
-            context.UnmapSubresource(Buffer, 0);
+            try
+            {
+                if (Buffer == null || Buffer.IsDisposed) return;
+                
+                var dataBox = context.MapSubresource(Buffer, 0, MapMode.WriteDiscard, MapFlags.None);
+                Utilities.Write(dataBox.DataPointer, data, 0, data.Length);
+                context.UnmapSubresource(Buffer, 0);
+            }
+            catch { }
         }
 
         public void SetVSResource(DeviceContext context, int slot)
         {
-            context.VertexShader.SetShaderResource(slot, SRV);
+            if (SRV != null && !SRV.IsDisposed)
+            {
+                context.VertexShader.SetShaderResource(slot, SRV);
+            }
         }
         public void SetPSResource(DeviceContext context, int slot)
         {
-            context.PixelShader.SetShaderResource(slot, SRV);
+            if (SRV != null && !SRV.IsDisposed)
+            {
+                context.PixelShader.SetShaderResource(slot, SRV);
+            }
         }
 
     }

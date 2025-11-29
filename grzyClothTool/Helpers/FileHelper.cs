@@ -71,6 +71,17 @@ public static class FileHelper
         await sourceStream.CopyToAsync(destinationStream);
     }
 
+    /// <summary>
+    /// Reads all bytes from a file asynchronously with file sharing enabled to prevent access conflicts
+    /// </summary>
+    public static async Task<byte[]> ReadAllBytesAsync(string filePath)
+    {
+        using var sourceStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+        using var memoryStream = new MemoryStream();
+        await sourceStream.CopyToAsync(memoryStream);
+        return memoryStream.ToArray();
+    }
+
     public static void OpenFileLocation(string path)
     {
         try

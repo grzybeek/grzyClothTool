@@ -135,7 +135,7 @@ public class BuildResourceHelper
                         } 
                         else
                         {
-                            txtBytes = File.ReadAllBytes(t.FilePath);
+                            txtBytes = await FileHelper.ReadAllBytesAsync(t.FilePath);
                         }
 
                         fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
@@ -1184,16 +1184,20 @@ public class BuildResourceHelper
             string tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_buildtemp");
             Directory.CreateDirectory(tempDir);
             string inputPath = dr.FilePath;
-            string outputPath = Path.Combine(tempDir, Path.GetFileName(inputPath));
+            string uniqueFileName = $"{dr.Id}_{Path.GetFileName(inputPath)}";
+            string outputPath = Path.Combine(tempDir, uniqueFileName);
 
             // If drawable is encrypted or has no embedded textures, just copy the original file without processing
             if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0)
             {
-                await FileHelper.CopyAsync(inputPath, outputPath);
+                if (!File.Exists(outputPath))
+                {
+                    await FileHelper.CopyAsync(inputPath, outputPath);
+                }
                 return outputPath;
             }
 
-            var fileBytes = await File.ReadAllBytesAsync(inputPath);
+            var fileBytes = await FileHelper.ReadAllBytesAsync(inputPath);
             var yddFile = new YddFile();
             await yddFile.LoadAsync(fileBytes);
 

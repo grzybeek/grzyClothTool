@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace grzyClothTool.Models;
@@ -26,6 +27,96 @@ public class PedAlternativeVariations
             new XDeclaration("1.0", "UTF-8", null),
             root
         );
+    }
+
+    public static PedAlternativeVariations FromXml(XDocument doc)
+    {
+        var pedAlternativeVariations = new PedAlternativeVariations();
+        
+        var root = doc.Element("CAlternateVariations");
+        if (root == null) return pedAlternativeVariations;
+
+        var pedsElement = root.Element("peds");
+        if (pedsElement == null) return pedAlternativeVariations;
+
+        foreach (var pedItem in pedsElement.Elements("Item"))
+        {
+            var pedVariation = new PedVariation();
+            
+            var nameElement = pedItem.Element("name");
+            if (nameElement != null)
+            {
+                pedVariation.Name = nameElement.Value;
+            }
+
+            var switchesElement = pedItem.Element("switches");
+            if (switchesElement != null)
+            {
+                foreach (var switchItem in switchesElement.Elements("Item"))
+                {
+                    var alternateSwitch = new AlternateSwitch();
+                    
+                    var dlcNameHashElement = switchItem.Element("dlcNameHash");
+                    if (dlcNameHashElement != null)
+                    {
+                        alternateSwitch.DlcNameHash = dlcNameHashElement.Value;
+                    }
+
+                    var componentElement = switchItem.Element("component");
+                    if (componentElement != null)
+                    {
+                        alternateSwitch.Component = int.Parse(componentElement.Attribute("value")?.Value ?? "0");
+                    }
+
+                    var indexElement = switchItem.Element("index");
+                    if (indexElement != null)
+                    {
+                        alternateSwitch.Index = int.Parse(indexElement.Attribute("value")?.Value ?? "0");
+                    }
+
+                    var altElement = switchItem.Element("alt");
+                    if (altElement != null)
+                    {
+                        alternateSwitch.Alt = int.Parse(altElement.Attribute("value")?.Value ?? "0");
+                    }
+
+                    var sourceAssetsElement = switchItem.Element("sourceAssets");
+                    if (sourceAssetsElement != null)
+                    {
+                        foreach (var assetItem in sourceAssetsElement.Elements("Item"))
+                        {
+                            var sourceAsset = new SourceAsset();
+                            
+                            var assetDlcElement = assetItem.Element("dlcNameHash");
+                            if (assetDlcElement != null)
+                            {
+                                sourceAsset.DlcNameHash = assetDlcElement.Value;
+                            }
+
+                            var assetComponentElement = assetItem.Element("component");
+                            if (assetComponentElement != null)
+                            {
+                                sourceAsset.Component = int.Parse(assetComponentElement.Attribute("value")?.Value ?? "0");
+                            }
+
+                            var assetIndexElement = assetItem.Element("index");
+                            if (assetIndexElement != null)
+                            {
+                                sourceAsset.Index = int.Parse(assetIndexElement.Attribute("value")?.Value ?? "0");
+                            }
+
+                            alternateSwitch.SourceAssets.Add(sourceAsset);
+                        }
+                    }
+
+                    pedVariation.Switches.Add(alternateSwitch);
+                }
+            }
+
+            pedAlternativeVariations.Peds.Add(pedVariation);
+        }
+
+        return pedAlternativeVariations;
     }
 }
 

@@ -15,6 +15,7 @@ using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace grzyClothTool.Models
 {
@@ -98,6 +99,36 @@ namespace grzyClothTool.Models
             OnPropertyChanged("Addons");
         }
 
+        private async Task<PedAlternativeVariations> LoadPedAlternativeVariationsFileAsync(string dirPath, string addonName)
+        {
+            try
+            {
+                var pedAltVariationsFiles = await Task.Run(() => 
+                    Directory.GetFiles(dirPath, "pedalternativevariations*.meta", SearchOption.AllDirectories)
+                        .Where(x => x.Contains(addonName))
+                        .ToArray());
+
+                if (pedAltVariationsFiles.Length == 0)
+                {
+                    return null;
+                }
+
+                var pedAltVariationsFile = pedAltVariationsFiles.FirstOrDefault();
+                if (pedAltVariationsFile == null)
+                {
+                    return null;
+                }
+
+                var xmlDoc = await Task.Run(() => XDocument.Load(pedAltVariationsFile));
+                return PedAlternativeVariations.FromXml(xmlDoc);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error loading pedalternativevariations.meta: {ex.Message}", Views.LogType.Warning);
+                return null;
+            }
+        }
+
         public async Task LoadAddon(string path, bool shouldSetProjectName = false)
         {
             var dirPath = Path.GetDirectoryName(path);
@@ -154,15 +185,18 @@ namespace grzyClothTool.Models
             }
 
             var ymt = new PedFile();
-            RpfFile.LoadResourceFile(ymt, File.ReadAllBytes(ymtFile), 2);
+            var ymtBytes = await FileHelper.ReadAllBytesAsync(ymtFile);
+            RpfFile.LoadResourceFile(ymt, ymtBytes, 2);
+            
+            var pedAltVariations = await LoadPedAlternativeVariationsFileAsync(dirPath, addonNameWithoutGender);
             
             //merge ydd with yld files
             var mergedFiles = yddFiles.Concat(yldFiles).ToArray();
 
-            await AddDrawables(mergedFiles, sex, ymt, dirPath);
+            await AddDrawables(mergedFiles, sex, ymt, dirPath, pedAltVariations);
         }
 
-        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null)
+        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null, PedAlternativeVariations pedAltVariations = null)
         {
             // We need to count how many drawables of each type we have added so far
             // this is because if we are loading from ymt file, numbers are relative to this ymt file, once adding it to existing project
@@ -320,6 +354,28 @@ namespace grzyClothTool.Models
 
                                 // grzyClothTool saves hairScaleValue as positive number, on resource build it makes it negative
                                 drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0);
+                            }
+                        }
+                    }
+                }
+
+                // Set HidesHair property from pedalternativevariations.meta if available
+                if (pedAltVariations != null && !drawable.IsProp)
+                {
+                    string pedName = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
+                    var pedVariation = pedAltVariations.Peds.FirstOrDefault(p => p.Name == pedName);
+                    if (pedVariation != null)
+                    {
+                        foreach (var alternateSwitch in pedVariation.Switches)
+                        {
+                            var matchingAsset = alternateSwitch.SourceAssets.FirstOrDefault(asset => 
+                                asset.Component == drawable.TypeNumeric && 
+                                asset.Index == drawable.Number);
+                            
+                            if (matchingAsset != null)
+                            {
+                                drawable.HidesHair = true;
+                                break;
                             }
                         }
                     }

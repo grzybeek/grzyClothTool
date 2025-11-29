@@ -250,16 +250,17 @@ namespace CodeWalker
 
         public void CleanupScene()
         {
+            pauserendering = true;
             formopen = false;
 
-            Renderer.DeviceDestroyed();
-
             int count = 0;
-            while (running && (count < 5000)) //wait for the content thread to exit gracefully
+            while (running && (count < 5000))
             {
                 Thread.Sleep(1);
                 count++;
             }
+
+            Renderer.DeviceDestroyed();
         }
 
         public void RenderScene(DeviceContext context)
