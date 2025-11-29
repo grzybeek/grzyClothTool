@@ -239,7 +239,7 @@
                                         <TabItem>
                                             <TabItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Textures" VerticalAlignment="Center" />
+                                                    <TextBlock Foreground="{DynamicResource Brush950}" Text="Textures" VerticalAlignment="Center" />
                                                     <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0" 
                                                                        Foreground="{DynamicResource Brush950}"
                                                                        ToolTip="Some textures have warnings"
@@ -270,7 +270,7 @@
                                                            StringFormat='Textures:  {0} / 26'}"
                                                      Grid.Row="0"
                                                      TextWrapping="Wrap" 
-                                                     Foreground="{StaticResource Brush950}"
+                                                     Foreground="{DynamicResource Brush950}"
                                                      Background="Transparent" BorderThickness="0"
                                                      IsReadOnly="True"
                                                      Cursor="Arrow"
@@ -461,7 +461,7 @@
                                         <TabItem>
                                             <TabItem.Header>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Embedded Textures" VerticalAlignment="Center" />
+                                                    <TextBlock Foreground="{DynamicResource Brush950}" Text="Embedded Textures" VerticalAlignment="Center" />
                                                     <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0"
                                                                        Foreground="{DynamicResource Brush950}"
                                                                        ToolTip="Some embedded textures have warnings"
@@ -490,7 +490,7 @@
                                                      Text="Embedded Textures"
                                                      Grid.Row="0"
                                                      TextWrapping="Wrap" 
-                                                     Foreground="{StaticResource Brush950}"
+                                                     Foreground="{DynamicResource Brush950}"
                                                      Background="Transparent" BorderThickness="0"
                                                      IsReadOnly="True"
                                                      Cursor="Arrow"
