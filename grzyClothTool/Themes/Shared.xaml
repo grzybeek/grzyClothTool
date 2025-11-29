@@ -45,6 +45,7 @@
 
     <!-- Custom style for GroupBox with the key "FixedGroupBox" -->
     <Style x:Key="FixedGroupBox" TargetType="{x:Type GroupBox}">
+        <Setter Property="Background" Value="{DynamicResource Brush50}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource GroupBoxBorder}"/>
         <Setter Property="Foreground" Value="{DynamicResource Brush950}"/>
         <Setter Property="BorderThickness" Value="1"/>

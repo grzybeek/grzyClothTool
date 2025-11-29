@@ -99,6 +99,9 @@ namespace grzyClothTool
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             PreviewAnchorable.Hide();
+            
+            bool isDarkMode = Properties.Settings.Default.IsDarkMode;
+            App.ChangeTheme(isDarkMode);
         }
         
         private void PreviewAnchorable_Closing(object sender, System.ComponentModel.CancelEventArgs e)

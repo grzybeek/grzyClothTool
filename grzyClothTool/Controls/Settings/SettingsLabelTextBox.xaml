@@ -22,7 +22,7 @@
             Grid.Row="0" 
             TextWrapping="Wrap" 
             Padding="0,0,0,1" 
-            Foreground="{DynamicResource Brush950}" 
+            Foreground="{DynamicResource Brush950}"
             Margin="5" 
             FontWeight="Bold" 
             Text="{Binding Label, ElementName=MyLabelTextBox}" 

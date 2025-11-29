@@ -27,7 +27,7 @@
 
         <ComboBox 
             Grid.Row="1" 
-            Margin="5,0,0,0" 
+            Margin="5,0,0,0"
             VerticalContentAlignment="Center"
             ItemsSource="{Binding ItemsSource, ElementName=MyLabelComboBox}"
             SelectedItem="{Binding SelectedItem, ElementName=MyLabelComboBox, Mode=TwoWay}" 
