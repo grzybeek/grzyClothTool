@@ -48,8 +48,42 @@ public static class FileHelper
         }
     }
 
-    public static Task<GDrawable> CreateDrawableAsync(string filePath, Enums.SexType sex, bool isProp, int typeNumber, int countOfType)
+    public static async Task<bool> IsReservedDrawable(string filePath)
     {
+        try
+        {
+            if (!File.Exists(filePath))
+                return false;
+
+            var reservedDrawablePath = Path.Combine(ReservedAssetsPath, "reservedDrawable.ydd");
+            if (!File.Exists(reservedDrawablePath))
+                return false;
+
+            var fileInfo = new FileInfo(filePath);
+            var reservedFileInfo = new FileInfo(reservedDrawablePath);
+
+            if (fileInfo.Length != reservedFileInfo.Length)
+                return false;
+
+            var fileBytes = await ReadAllBytesAsync(filePath);
+            var reservedBytes = await ReadAllBytesAsync(reservedDrawablePath);
+
+            return fileBytes.SequenceEqual(reservedBytes);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public static async Task<GDrawable> CreateDrawableAsync(string filePath, Enums.SexType sex, bool isProp, int typeNumber, int countOfType)
+    {
+        var isReserved = await IsReservedDrawable(filePath);
+        if (isReserved)
+        {
+            return new GDrawableReserved(sex, isProp, typeNumber, countOfType);
+        }
+
         var name = EnumHelper.GetName(typeNumber, isProp);
 
         var matchingTextures = FindMatchingTextures(filePath, name, isProp);
@@ -61,7 +95,7 @@ public static class FileHelper
         // Should we inform user, that they tried to add too many textures?
         var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(Guid.Empty, path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
 
-        return Task.FromResult(new GDrawable(Guid.Empty, filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures));
+        return new GDrawable(Guid.Empty, filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures);
     }
 
     public static async Task CopyAsync(string sourcePath, string destinationPath)

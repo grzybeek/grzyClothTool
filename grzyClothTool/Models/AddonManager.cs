@@ -293,7 +293,7 @@ namespace grzyClothTool.Models
                     continue;
                 }
 
-                var drawable = await Task.Run(() => FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType));
+                var drawable = await FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType);
 
                 if (!string.IsNullOrEmpty(basePath) && filePath.StartsWith(basePath))
                 {
