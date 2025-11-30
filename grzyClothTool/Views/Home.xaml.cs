@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,6 +17,7 @@ namespace grzyClothTool.Views
     public partial class Home : UserControl, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+        
         private List<string> _patreonList;
         public List<string> PatreonList
         {
@@ -27,28 +29,38 @@ namespace grzyClothTool.Views
             }
         }
 
-        private List<string> _ghSponsorsList;
-        public List<string> GhSponsorsList
+        private string _latestVersion;
+        public string LatestVersion
         {
-            get => _ghSponsorsList;
+            get => _latestVersion;
             set
             {
-                _ghSponsorsList = value;
-                OnPropertyChanged(nameof(GhSponsorsList));
+                _latestVersion = value;
+                OnPropertyChanged(nameof(LatestVersion));
             }
         }
 
-        private string _changelog;
-        public string Changelog
+        private List<string> _changelogHighlights;
+        public List<string> ChangelogHighlights
         {
-            get => _changelog;
+            get => _changelogHighlights;
             set
             {
-                _changelog = value;
-                OnPropertyChanged(nameof(Changelog));
+                _changelogHighlights = value;
+                OnPropertyChanged(nameof(ChangelogHighlights));
             }
         }
 
+        private List<ToolInfo> _otherTools;
+        public List<ToolInfo> OtherTools
+        {
+            get => _otherTools;
+            set
+            {
+                _otherTools = value;
+                OnPropertyChanged(nameof(OtherTools));
+            }
+        }
 
         private readonly List<string> didYouKnowStrings = [
             "You can open any existing addon and it will load all properties such as heels or hats.",
@@ -69,7 +81,21 @@ namespace grzyClothTool.Views
             InitializeComponent();
             DataContext = this;
 
-            GhSponsorsList = [];
+            OtherTools = [
+                new ToolInfo
+                {
+                    Name = "grzyOptimizer",
+                    Description = "Optimize YDD models, reduce polygon and vertex count while maintaining visual quality.",
+                    Url = GlobalConstants.GRZY_TOOLS_URL
+                },
+                new ToolInfo
+                {
+                    Name = "grzyTattooTool",
+                    Description = "Create and edit tattoos with preview and quick addon resource generation for FiveM.",
+                    Url = GlobalConstants.GRZY_TOOLS_URL
+                }
+            ];
+
             Loaded += Home_Loaded;
         }
 
@@ -86,20 +112,12 @@ namespace grzyClothTool.Views
 
             try
             {
-                await FetchGithubSponsors();
+                await FetchLatestRelease();
             }
             catch
             {
-                GhSponsorsList = ["Failed to fetch github sponsors"];
-            }
-
-            try
-            {
-                await FetchChangelog();
-            }
-            catch
-            {
-                ChangelogBrowser.NavigateToString("Failed to fetch changelog");
+                LatestVersion = "Unable to fetch version";
+                ChangelogHighlights = ["Failed to load changelog highlights"];
             }
         }
 
@@ -115,60 +133,128 @@ namespace grzyClothTool.Views
             }
         }
 
-        private async Task FetchGithubSponsors()
+        private async Task FetchLatestRelease()
         {
-            var url = "https://ghs.vercel.app/v3/sponsors/grzybeek";
+            var url = "https://api.github.com/repos/grzybeek/grzyClothTool/releases/latest";
 
-            try
-            {
-                var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    Console.WriteLine("JSON Response: " + content); // Log the JSON response
-
-                    GhSponsorsList = new List<string>();
-                    using var jsonDocument = JsonDocument.Parse(content);
-
-                    var currentSponsors = jsonDocument.RootElement.GetProperty("sponsors").GetProperty("current");
-                    foreach (var sponsor in currentSponsors.EnumerateArray())
-                    {
-                        var username = sponsor.GetProperty("username").GetString();
-                        if (!string.IsNullOrEmpty(username))
-                        {
-                            GhSponsorsList.Add(username);
-                        }
-                    }
-
-                    OnPropertyChanged(nameof(GhSponsorsList));
-                }
-                else
-                {
-                    Console.WriteLine("Failed to fetch GitHub sponsors. Status code: " + response.StatusCode);
-                }
-            }
-            catch (JsonException jsonEx)
-            {
-                Console.WriteLine("JSON Parsing Error: " + jsonEx.Message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error: " + ex.Message);
-            }
-        }
-
-        private async Task FetchChangelog()
-        {
-            var url = $"{GlobalConstants.GRZY_TOOLS_URL}/grzyClothTool/changelog";
+            App.httpClient.DefaultRequestHeaders.UserAgent.Clear();
+            App.httpClient.DefaultRequestHeaders.Add("User-Agent", "grzyClothTool");
 
             var response = await App.httpClient.GetAsync(url).ConfigureAwait(false);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var release = JsonSerializer.Deserialize<JsonElement>(content);
+                
                 await Dispatcher.InvokeAsync(() =>
                 {
-                    ChangelogBrowser.NavigateToString(content);
+                    if (release.TryGetProperty("tag_name", out var tagName))
+                    {
+                        LatestVersion = tagName.GetString();
+                    }
+
+                    if (release.TryGetProperty("body", out var body))
+                    {
+                        ChangelogHighlights = ParseChangelogHighlights(body.GetString());
+                    }
                 });
+            }
+        }
+
+        private static List<string> ParseChangelogHighlights(string changelogBody)
+        {
+            if (string.IsNullOrWhiteSpace(changelogBody))
+                return ["No changelog available"];
+
+            var highlights = new List<string>();
+            var lines = changelogBody.Split(['\r', '\n'], StringSplitOptions.None);
+            var inChangelogSection = false;
+
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+
+                if (trimmedLine.Contains("Changelog", StringComparison.OrdinalIgnoreCase))
+                {
+                    inChangelogSection = true;
+                    continue;
+                }
+
+                if (inChangelogSection && string.IsNullOrWhiteSpace(trimmedLine))
+                {
+                    continue;
+                }
+
+                if (inChangelogSection && trimmedLine.StartsWith("##"))
+                {
+                    break;
+                }
+
+                if (inChangelogSection &&
+                    (trimmedLine.StartsWith("-") || trimmedLine.StartsWith("*") || trimmedLine.StartsWith("•")))
+                {
+                    var cleanLine = trimmedLine.TrimStart('-', '*', '•', ' ').Trim();
+                    if (!string.IsNullOrWhiteSpace(cleanLine))
+                    {
+                        highlights.Add(cleanLine);
+
+                        if (highlights.Count >= 10)
+                            break;
+                    }
+                }
+            }
+
+            return highlights.Count > 0 ? highlights : ["See full changelog for details"];
+        }
+
+        private void ViewChangelog_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "https://github.com/grzybeek/grzyClothTool/releases",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open changelog: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OpenAllTools_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = GlobalConstants.GRZY_TOOLS_URL,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to open website: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OpenToolUrl_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.CommandParameter is string url)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = url,
+                        UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to open URL: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -205,5 +291,12 @@ namespace grzyClothTool.Views
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+    }
+
+    public class ToolInfo
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Url { get; set; }
     }
 }

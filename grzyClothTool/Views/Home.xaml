@@ -5,25 +5,65 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:grzyClothTool.Views"
              xmlns:c="clr-namespace:grzyClothTool.Controls"
+             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
 
              mc:Ignorable="d" 
              d:Background="white"
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType">
+    <UserControl.Resources>
+        <Style x:Key="ToolCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Brush100}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush400}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource Brush200}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource Brush350}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ClickableCardButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1*" />
             <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0">
-            <c:CustomButton Label="Close" Height="60" DockPanel.Dock="Bottom" Padding="5" CornerRadius="5" MyBtnClickEvent="Close_Click" />
-            
-            <StackPanel>
-                <c:CustomButton Label="Create new project" Height="100" FontSize="20" Padding="5" CornerRadius="5" MyBtnClickEvent="CreateNew_Click" />
-                <c:CustomButton Label="Import project" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="ImportProject_Click" />
-                <c:CustomButton Label="Open addon" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenAddon_Click" />
-            </StackPanel>
-        </DockPanel>
+        <GroupBox Style="{StaticResource FixedGroupBox}" Header="Start your journey" Grid.Column="0" Margin="2">
+            <DockPanel>
+                <c:CustomButton Label="Close" Height="60" DockPanel.Dock="Bottom" Padding="5" CornerRadius="5" MyBtnClickEvent="Close_Click" />
+
+                <StackPanel>
+                    <c:CustomButton Label="Create new project" Height="100" FontSize="20" Padding="5" CornerRadius="5" MyBtnClickEvent="CreateNew_Click" />
+                    <c:CustomButton Label="Import project" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="ImportProject_Click" />
+                    <c:CustomButton Label="Open addon" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenAddon_Click" />
+                </StackPanel>
+            </DockPanel>
+        </GroupBox>
 
         <Grid Grid.Column="1">
             <Grid.ColumnDefinitions>
@@ -32,24 +72,122 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="3*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Did You Know?" Grid.Column="0" Grid.Row="0" Margin="2">
+            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Explore my other tools" Grid.Column="0" Grid.Row="1" Margin="2">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding OtherTools}" Padding="4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource ClickableCardButton}"
+                                               CommandParameter="{Binding Url}"
+                                               Click="OpenToolUrl_Click">
+                                    <Border Style="{StaticResource ToolCardStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Background="{DynamicResource Brush300}" 
+                                                           CornerRadius="8" 
+                                                           Width="48" 
+                                                           Height="48" 
+                                                           Margin="0,0,14,0"
+                                                           VerticalAlignment="Top"
+                                                           Grid.Column="0">
+                                                <icons:MaterialIcon Kind="Tools" 
+                                                                           Width="28" 
+                                                                           Height="28" 
+                                                                           Foreground="{DynamicResource Brush800}"
+                                                                           HorizontalAlignment="Center"
+                                                                           VerticalAlignment="Center"
+                                                                           UseLayoutRounding="True"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Name}" 
+                                                                  FontSize="17" 
+                                                                  FontWeight="Bold" 
+                                                                  Foreground="{DynamicResource Brush900}"
+                                                                  Margin="0,0,0,6"
+                                                                  UseLayoutRounding="True"
+                                                                  TextOptions.TextFormattingMode="Display"/>
+
+                                                <TextBlock Text="{Binding Description}" 
+                                                                  FontSize="13" 
+                                                                  TextWrapping="Wrap" 
+                                                                  Foreground="{DynamicResource Brush700}"
+                                                                  LineHeight="19"
+                                                                  Margin="0,0,0,8"
+                                                                  UseLayoutRounding="True"
+                                                                  TextOptions.TextFormattingMode="Display"/>
+
+                                                <StackPanel Orientation="Horizontal">
+                                                    <icons:MaterialIcon Kind="CursorDefaultClick" 
+                                                                               Width="14" 
+                                                                               Height="14" 
+                                                                               Foreground="{DynamicResource Brush950}"
+                                                                               VerticalAlignment="Center"
+                                                                               Margin="0,0,5,0"
+                                                                               UseLayoutRounding="True"/>
+                                                    <TextBlock Text="Click to learn more" 
+                                                                      FontSize="12" 
+                                                                      FontWeight="Medium"
+                                                                      Foreground="{DynamicResource Brush950}"
+                                                                      VerticalAlignment="Center"
+                                                                      UseLayoutRounding="True"
+                                                                      TextOptions.TextFormattingMode="Display"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </GroupBox>
+
+            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Did you know?" Grid.Column="0" Grid.Row="0" Margin="2">
                 <TextBlock Text="{Binding RandomDidYouKnow}" FontSize="14" FontStyle="Italic" Padding="5" Margin="5" TextWrapping="WrapWithOverflow"  />
             </GroupBox>
 
-            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Changelog" Grid.Column="0" Grid.Row="1" Margin="2">
-                <WebBrowser x:Name="ChangelogBrowser" Margin="5" IsHitTestVisible="False" />
+            <GroupBox Style="{StaticResource FixedGroupBox}" Header="Latest changes" Grid.Column="0" Grid.Row="2" Margin="2">
+                <DockPanel Margin="5">
+                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                        <TextBlock FontSize="13" FontWeight="Bold" Margin="0,0,0,3">
+                            <Run Text="Version: " />
+                            <Run Text="{Binding LatestVersion, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+
+                    <c:CustomButton Label="View Full Changelog on GitHub" Height="35" DockPanel.Dock="Bottom" Margin="0,5,0,0" Padding="5" CornerRadius="5" MyBtnClickEvent="ViewChangelog_Click" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ChangelogHighlights}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,1">
+                                        <TextBlock Text="• " FontSize="12" />
+                                        <TextBlock Text="{Binding}" FontSize="12" TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </GroupBox>
 
-            <Grid Grid.Column="1" Grid.RowSpan="2">
+            <Grid Grid.Column="1" Grid.RowSpan="4">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="3*" />
-                    <RowDefinition Height="1*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
-                <GroupBox Style="{StaticResource FixedGroupBox}" Header="Patreons" Margin="2" Padding="5" Grid.Row="0">
+                <GroupBox Style="{StaticResource FixedGroupBox}" Header="Supporters" Margin="2" Padding="5" Grid.Row="0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
                         <ItemsControl ItemsSource="{Binding PatreonList}">
                             <ItemsControl.ItemTemplate>
@@ -60,20 +198,7 @@
                         </ItemsControl>
                     </ScrollViewer>
                 </GroupBox>
-
-                <GroupBox Style="{StaticResource FixedGroupBox}" Header="Github Sponsors" Margin="2" Padding="5" Grid.Row="1">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding GhSponsorsList}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding}" Margin="2" FontStyle="Italic" FontSize="14" />
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </GroupBox>
             </Grid>
-
         </Grid>
     </Grid>
 </UserControl>
