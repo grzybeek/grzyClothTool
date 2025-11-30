@@ -16,7 +16,6 @@ namespace grzyClothTool.Views
     public partial class SettingsWindow : UserControl, INotifyPropertyChanged
     { 
         public static string GTAVPath => CWHelper.GTAVPath;
-        public static bool CacheStartupIsChecked => CWHelper.IsCacheStartupEnabled;
 
         public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
@@ -79,14 +78,6 @@ namespace grzyClothTool.Views
                     CWHelper.SetGTAFolder(selectedGTAPath.FolderName);
                 }
             }
-        }
-
-        private void CacheSettings_Click(object sender, RoutedEventArgs e)
-        {
-            CheckBoxClickEventArgs c = e as CheckBoxClickEventArgs;
-            //CWHelper.SetCacheStartup(c.IsChecked);
-
-            LogHelper.Log($"This is not implemented yet :(", LogType.Warning);
         }
 
         public void PatreonAccount_Click(object sender, RoutedEventArgs e)

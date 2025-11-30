@@ -334,6 +334,7 @@ namespace CodeWalker
             // 
             // PolygonCountText
             // 
+            this.PolygonCountText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.PolygonCountText.AutoSize = true;
             this.PolygonCountText.Location = new System.Drawing.Point(89, 580);
             this.PolygonCountText.Name = "PolygonCountText";
@@ -343,6 +344,7 @@ namespace CodeWalker
             // 
             // VertexCountText
             // 
+            this.VertexCountText.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.VertexCountText.AutoSize = true;
             this.VertexCountText.Location = new System.Drawing.Point(89, 557);
             this.VertexCountText.Name = "VertexCountText";
@@ -352,6 +354,7 @@ namespace CodeWalker
             // 
             // label12
             // 
+            this.label12.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label12.AutoSize = true;
             this.label12.Location = new System.Drawing.Point(12, 580);
             this.label12.Name = "label12";
@@ -361,6 +364,7 @@ namespace CodeWalker
             // 
             // label9
             // 
+            this.label9.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label9.AutoSize = true;
             this.label9.Location = new System.Drawing.Point(12, 557);
             this.label9.Name = "label9";
@@ -370,6 +374,7 @@ namespace CodeWalker
             // 
             // label8
             // 
+            this.label8.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label8.AutoSize = true;
             this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
             this.label8.Location = new System.Drawing.Point(2, 529);

@@ -14,7 +14,6 @@ public static class CWHelper
 {
     public static PreviewWindowHost DockedPreviewHost;
     public static string GTAVPath => GTAFolder.GetCurrentGTAFolderWithTrailingSlash();
-    public static bool IsCacheStartupEnabled => Properties.Settings.Default.GtaCacheStartup;
 
     private static readonly YtdFile _ytdFile = new();
 
@@ -31,22 +30,11 @@ public static class CWHelper
                 SetGTAFolder(folder);
             }
         }
-
-        if (IsCacheStartupEnabled)
-        {
-            // todo: load cw cache
-        }
     }
 
     public static void SetGTAFolder(string path)
     {
         GTAFolder.SetGTAFolder(path);
-    }
-
-    public static void SetCacheStartup(bool value)
-    {
-        Properties.Settings.Default.GtaCacheStartup = value;
-        Properties.Settings.Default.Save();
     }
 
     public static YtdFile GetYtdFile(string path)
