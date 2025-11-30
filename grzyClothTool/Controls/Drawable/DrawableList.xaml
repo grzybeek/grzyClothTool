@@ -197,6 +197,7 @@
             PreviewKeyDown="DrawableList_PreviewKeyDown"
             Style="{StaticResource ListBoxStyleWithContextMenu}"
             AllowDrop="True"
+            MouseDoubleClick="MyListBox_MouseDoubleClick"
             PreviewMouseLeftButtonDown="MyListBox_PreviewMouseLeftButtonDown"
             PreviewMouseMove="MyListBox_PreviewMouseMove"
             Drop="MyListBox_Drop"

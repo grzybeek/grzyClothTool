@@ -116,6 +116,25 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private void TextureListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var listBoxItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+            if (listBoxItem != null && listBoxItem.DataContext is GTexture texture)
+            {
+                if (texture.IsPreviewDisabled)
+                {
+                    return;
+                }
+
+                if (SelectedDraw != null && !SelectedDraw.IsEncrypted && !SelectedDraw.IsReserved)
+                {
+                    CWHelper.OpenDrawableInPreview(SelectedDraw);
+                }
+
+                e.Handled = true;
+            }
+        }
+
 
         private void TexturePreview_Click(object sender, RoutedEventArgs e)
         {

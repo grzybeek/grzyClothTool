@@ -534,6 +534,21 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private void MyListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var listBoxItem = FindAncestor<ListBoxItem>((DependencyObject)e.OriginalSource);
+            if (listBoxItem != null && listBoxItem.DataContext is GDrawable drawable)
+            {
+                if (drawable.IsEncrypted || drawable.IsReserved)
+                {
+                    return;
+                }
+
+                CWHelper.OpenDrawableInPreview(drawable);
+                e.Handled = true;
+            }
+        }
+
         private void MyListBox_DragOver(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(typeof(GDrawable)))

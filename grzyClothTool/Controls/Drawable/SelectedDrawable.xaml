@@ -291,6 +291,7 @@
                                                     HorizontalContentAlignment="Stretch"
                                                     IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
                                                     AllowDrop="True"
+                                                    MouseDoubleClick="TextureListBox_MouseDoubleClick"
                                                     PreviewMouseLeftButtonDown="TextureListBox_PreviewMouseLeftButtonDown"
                                                     PreviewMouseMove="TextureListBox_PreviewMouseMove"
                                                     Drop="TextureListBox_Drop"
@@ -299,7 +300,7 @@
                                                     d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid Height="30" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                            <Grid Height="30" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}" Background="Transparent">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="25" />
@@ -508,7 +509,7 @@
                                                     IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}">
                                                     <ListBox.ItemTemplate>
                                                         <DataTemplate>
-                                                            <Grid Height="30" IsEnabled="{Binding Value.IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                            <Grid Height="30" IsEnabled="{Binding Value.IsLoading, Converter={StaticResource InverseBooleanConverter}}" Background="Transparent">
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="25" />

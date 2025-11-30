@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows;
 
 namespace grzyClothTool.Helpers;
 public static class CWHelper
@@ -140,5 +141,34 @@ public static class CWHelper
         }
 
         DockedPreviewHost.UpdateDrawables(selectedDrawables, MainWindow.AddonManager.SelectedAddon.SelectedTexture, updateDict);
+    }
+
+    public static void OpenDrawableInPreview(GDrawable drawable)
+    {
+        if (drawable == null)
+            return;
+
+        if (!MainWindow.AddonManager.SelectedAddon.SelectedDrawables.Contains(drawable))
+        {
+            MainWindow.AddonManager.SelectedAddon.SelectedDrawables.Clear();
+            MainWindow.AddonManager.SelectedAddon.SelectedDrawables.Add(drawable);
+            MainWindow.AddonManager.SelectedAddon.SelectedDrawable = drawable;
+        }
+
+        var mainWindow = MainWindow.Instance;
+        if (mainWindow == null) return;
+
+        if (mainWindow.PreviewAnchorable != null)
+        {
+            mainWindow.PreviewAnchorable.Show();
+            mainWindow.PreviewHost?.InitializePreview();
+
+            if (!drawable.IsEncrypted)
+            {
+                SendDrawableUpdateToPreview(new RoutedEventArgs());
+            }
+
+            MainWindow.AddonManager.IsPreviewEnabled = true;
+        }
     }
 }
