@@ -6,7 +6,7 @@
 	  <UseWindowsForms>true</UseWindowsForms>
 	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	  <ApplicationIcon>Resources\grzyClothToolIcon.ico</ApplicationIcon>
-	  <FileVersion>1.0.3</FileVersion>
+	  <FileVersion>1.1</FileVersion>
 	  
 	  <SelfContained>true</SelfContained>
 	  <PublishSingleFile>false</PublishSingleFile>
@@ -37,10 +37,10 @@
     <PackageReference Include="SharpDX.Mathematics" Version="4.2.0" />
     <PackageReference Include="System.ComponentModel.Composition" Version="10.0.0" />
     <PackageReference Include="System.Composition" Version="10.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.0" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Private.Uri" Version="4.3.2" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageReference Include="WPF-UI" Version="4.0.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\grzyClothTool.Shared\grzyClothTool.Shared.csproj" />

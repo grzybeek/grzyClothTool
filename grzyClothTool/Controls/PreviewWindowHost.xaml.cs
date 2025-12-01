@@ -112,22 +112,8 @@ namespace grzyClothTool.Controls
             {
                 try
                 {
-                    if (PreviewHost.Child != null)
-                    {
-                        PreviewHost.Child = null;
-                    }
-
-                    if (!_customPedsForm.IsDisposed)
-                    {
-                        _customPedsForm.CleanupScene();
-
-                        _customPedsForm.Close();
-                        _customPedsForm.Dispose();
-                    }
-
                     _customPedsForm = null;
                     _isInitialized = false;
-
                     Environment.Exit(0);
                 }
                 catch (Exception ex)
