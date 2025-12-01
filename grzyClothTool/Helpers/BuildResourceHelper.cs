@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using CodeWalker.GameFiles;
 using CodeWalker.Utils;
 using grzyClothTool.Constants;
 using grzyClothTool.Models;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -82,6 +84,8 @@ public class BuildResourceHelper
         var streamDirectory = Path.Combine(_buildPath, "stream");
         Directory.CreateDirectory(streamDirectory);
         
+        var yddPathsDict = await BatchResaveYdd(drawables, maxParallelism: 4, progress: _progress);
+        
         var fileOperations = new List<Task>();
         
         var ymtPath = Path.Combine(streamDirectory, $"{pedName}_{projectName}.ymt");
@@ -91,7 +95,7 @@ public class BuildResourceHelper
         {
             foreach (var d in group)
             {
-                var tempYddPath = await ResaveYdd(d);
+                var tempYddPath = yddPathsDict[d];
 
                 var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
                 
@@ -370,6 +374,8 @@ public class BuildResourceHelper
             Directory.CreateDirectory(dir);
         }
 
+        var yddPathsDict = await BatchResaveYdd(drawables, maxParallelism: 4, progress: _progress);
+
         var fileOperations = new List<Task>();
 
         foreach(var group in drawableGroups) {
@@ -379,7 +385,7 @@ public class BuildResourceHelper
             foreach(var d in group) {
                 var folderPath = d.IsProp ? thirdLevelPropFolder : thirdLevelFolder;
 
-                var tempYddPath = await ResaveYdd(d);
+                var tempYddPath = yddPathsDict[d];
                 fileOperations.Add(FileHelper.CopyAsync(tempYddPath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FilePath)}")));
 
                 foreach(var t in d.Textures)
@@ -710,6 +716,8 @@ public class BuildResourceHelper
                                        .Select(x => x.Select(v => v.Value).ToList())
                                        .ToList();
 
+        var yddPathsDict = await BatchResaveYdd(drawables, maxParallelism: 4, progress: _progress);
+
         var fileOperations = new List<Task>();
 
         var genderRpfName = sex == SexType.male ? "_male" : "_female";
@@ -729,7 +737,7 @@ public class BuildResourceHelper
         {
             foreach (var d in group)
             {
-                var tempYddPath = await ResaveYdd(d);
+                var tempYddPath = yddPathsDict[d];
                 var drawableBytes = File.ReadAllBytes(tempYddPath);
 
                 RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;            
@@ -1175,6 +1183,43 @@ public class BuildResourceHelper
 
         RbfFile rbf = XmlRbf.GetRbf(xmldoc);
         return rbf;
+    }
+
+    /// <summary>
+    /// Batch process multiple drawables in parallel to improve performance
+    /// </summary>
+    private static async Task<Dictionary<GDrawable, string>> BatchResaveYdd(IEnumerable<GDrawable> drawables, int maxParallelism = 4, IProgress<int> progress = null)
+    {
+        var result = new Dictionary<GDrawable, string>();
+        var semaphore = new SemaphoreSlim(maxParallelism, maxParallelism);
+        var tasks = new List<Task>();
+        int completed = 0;
+        int total = drawables.Count();
+
+        foreach (var drawable in drawables)
+        {
+            tasks.Add(Task.Run(async () =>
+            {
+                await semaphore.WaitAsync();
+                try
+                {
+                    var path = await ResaveYdd(drawable);
+                    lock (result)
+                    {
+                        result[drawable] = path;
+                        completed++;
+                        progress?.Report(1);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }));
+        }
+
+        await Task.WhenAll(tasks);
+        return result;
     }
 
     public static async Task<string> ResaveYdd(GDrawable dr)

@@ -52,7 +52,7 @@ public class GTextureDetails
         }
 
         var expectedMipMapCount = ImgHelper.GetCorrectMipMapAmount(Width, Height);
-        if (MipMapCount != expectedMipMapCount)
+        if (MipMapCount == 1 && MipMapCount != expectedMipMapCount)
         {
             IsOptimizeNeeded = true;
             IsOptimizeNeededTooltip += $"Texture has {MipMapCount} mip maps but should have {expectedMipMapCount}. Optimize it to generate the correct amount.\n";

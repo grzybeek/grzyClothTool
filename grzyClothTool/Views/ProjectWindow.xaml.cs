@@ -79,6 +79,7 @@ namespace grzyClothTool.Views
             if (files.ShowDialog() == true)
             {
                 ProgressHelper.Start();
+                LogHelper.Log($"Scanning files to add...", LogType.Info);
 
                 await MainWindow.AddonManager.AddDrawables(files.FileNames, sexBtn);
 
@@ -103,21 +104,47 @@ namespace grzyClothTool.Views
             {
                 ProgressHelper.Start();
 
-                foreach (var fldr in folder.FolderNames)
+                try
                 {
-                    var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories)
-                        .OrderBy(f =>
-                        {
-                            var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(f));
-                            return number ?? int.MaxValue;
-                        })
-                        .ThenBy(Path.GetFileName)
-                        .ToArray();
-                    await MainWindow.AddonManager.AddDrawables(files, sexBtn);
-                }
+                    LogHelper.Log($"Scanning files to add...", LogType.Info);
 
-                ProgressHelper.Stop("Added drawables in {0}", true);
-                SaveHelper.SetUnsavedChanges(true);
+                    var allFiles = await Task.Run(() =>
+                    {
+                        var fileList = new List<string>();
+                        foreach (var fldr in folder.FolderNames)
+                        {
+                            var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories);
+                            fileList.AddRange(files);
+                        }
+                        
+                        return fileList
+                            .OrderBy(f =>
+                            {
+                                var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(f));
+                                return number ?? int.MaxValue;
+                            })
+                            .ThenBy(Path.GetFileName)
+                            .ToArray();
+                    });
+
+                    if (allFiles.Length == 0)
+                    {
+                        ProgressHelper.Stop("No drawable files found", false);
+                        return;
+                    }
+
+                    LogHelper.Log($"Adding {allFiles.Length} drawable files from {folder.FolderNames.Length} folder(s)...", LogType.Info);
+
+                    await MainWindow.AddonManager.AddDrawables(allFiles, sexBtn);
+
+                    ProgressHelper.Stop($"Added {allFiles.Length} drawables in {{0}}", true);
+                    SaveHelper.SetUnsavedChanges(true);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Error adding drawables: {ex.Message}", LogType.Error);
+                    ProgressHelper.Stop("Failed to add drawables", false);
+                }
             }
         }
 

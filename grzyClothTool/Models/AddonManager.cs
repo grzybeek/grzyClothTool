@@ -6,6 +6,7 @@ using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -34,6 +36,9 @@ namespace grzyClothTool.Models
 
     public class AddonManager : INotifyPropertyChanged
     {
+        private static readonly Regex AlternateRegex = new(@"_\w_\d+\.ydd$", RegexOptions.Compiled);
+        private static readonly Regex PhysicsRegex = new(@"\.yld$", RegexOptions.Compiled);
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public string ProjectName { get; set; }
@@ -146,31 +151,41 @@ namespace grzyClothTool.Models
                 MainWindow.AddonManager.ProjectName = addonNameWithoutGender;
             }
 
-            string pattern = $@"^{genderSpecificPart}(_p)?.*?{Regex.Escape(addonNameWithoutGender)}\^";
+            var (yddFiles, ymtFile, yldFiles) = await Task.Run(() =>
+            {
+                string pattern = $@"^{genderSpecificPart}(_p)?.*?{Regex.Escape(addonNameWithoutGender)}\^";
+                var compiledPattern = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            var yddFiles = Directory.GetFiles(dirPath, "*.ydd", SearchOption.AllDirectories)
-                .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
-                .OrderBy(x =>
-                {
-                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
-                    return number ?? int.MaxValue;
-                })
-                .ThenBy(Path.GetFileName)
-                .ToArray();
+                var allFiles = Directory.GetFiles(dirPath, "*.*", SearchOption.AllDirectories);
+                
+                var ydds = allFiles
+                    .Where(f => f.EndsWith(".ydd", StringComparison.OrdinalIgnoreCase))
+                    .Where(f => compiledPattern.IsMatch(Path.GetFileName(f)))
+                    .OrderBy(x =>
+                    {
+                        var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
+                        return number ?? int.MaxValue;
+                    })
+                    .ThenBy(Path.GetFileName)
+                    .ToArray();
 
-            var ymtFile = Directory.GetFiles(dirPath, "*.ymt", SearchOption.AllDirectories)
-                .Where(x => x.Contains(addonName))
-                .FirstOrDefault();
+                var ymt = allFiles
+                    .Where(f => f.EndsWith(".ymt", StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault(x => x.Contains(addonName));
 
-            var yldFiles = Directory.GetFiles(dirPath, "*.yld", SearchOption.AllDirectories)
-                .Where(x => Regex.IsMatch(Path.GetFileName(x), pattern, RegexOptions.IgnoreCase))
-                .OrderBy(x =>
-                {
-                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
-                    return number ?? int.MaxValue;
-                })
-                .ThenBy(Path.GetFileName)
-                .ToArray();
+                var ylds = allFiles
+                    .Where(f => f.EndsWith(".yld", StringComparison.OrdinalIgnoreCase))
+                    .Where(f => compiledPattern.IsMatch(Path.GetFileName(f)))
+                    .OrderBy(x =>
+                    {
+                        var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
+                        return number ?? int.MaxValue;
+                    })
+                    .ThenBy(Path.GetFileName)
+                    .ToArray();
+
+                return (ydds, ymt, ylds);
+            });
 
             if (yddFiles.Length == 0)
             {
@@ -199,9 +214,7 @@ namespace grzyClothTool.Models
         public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null, PedAlternativeVariations pedAltVariations = null)
         {
             // We need to count how many drawables of each type we have added so far
-            // this is because if we are loading from ymt file, numbers are relative to this ymt file, once adding it to existing project
-            // we need to adjust numbers to get proper properties
-            Dictionary<(int, bool), int> typeNumericCounts = [];
+            var typeNumericCounts = new ConcurrentDictionary<(int, bool), int>();
 
             //read properties from provided ymt file if there is any
             Dictionary<(int, int), MCComponentInfo> compInfoDict = [];
@@ -229,162 +242,398 @@ namespace grzyClothTool.Models
                 }
             }
 
-            Regex alternateRegex = new(@"_\w_\d+\.ydd$");
-            Regex physicsRegex = new(@"\.yld$");
-            foreach (var filePath in filePaths)
+            if (Addons.Count == 0)
             {
-                var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
-                if (drawableType == -1)
+                CreateAddon();
+            }
+
+            var pendingDrawables = new ConcurrentQueue<GDrawable>();
+            var pendingGroups = new ConcurrentBag<string>();
+            var processedCount = 0;
+            var isTimerProcessing = false;
+            var batchTimer = new System.Timers.Timer(100);
+            
+            batchTimer.Elapsed += (s, e) =>
+            {
+                if (isTimerProcessing || (pendingDrawables.IsEmpty && pendingGroups.IsEmpty))
+                    return;
+                
+                isTimerProcessing = true;
+                    
+                var drawableBatch = new List<GDrawable>();
+                var batchSize = 0;
+                while (pendingDrawables.TryDequeue(out var drawable) && batchSize < 20)
                 {
-                    continue;
+                    drawableBatch.Add(drawable);
+                    batchSize++;
                 }
-
-                if(Addons.Count == 0)
+                
+                var groupsBatch = new List<string>();
+                while (pendingGroups.TryTake(out var group))
                 {
-                    CreateAddon();
+                    groupsBatch.Add(group);
                 }
-
-                // Start from the first Addon
-                var currentAddonIndex = 0;
-                Addon currentAddon = Addons[currentAddonIndex];
-
-                // Calculate countOfType for the current Addon
-                var drawablesOfType = currentAddon.Drawables.Where(x => x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex);
-                var countOfType = drawablesOfType.Count();
-
-                if (alternateRegex.IsMatch(filePath))
+                
+                if (drawableBatch.Count == 0 && groupsBatch.Count == 0)
                 {
-                    if (filePath.EndsWith("_1.ydd")) {
-                        // Add only first alternate variation as first person file
-
-                        var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
-                        if (number == null)
+                    isTimerProcessing = false;
+                    return;
+                }
+                
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+                {
+                    try
+                    {
+                        foreach (var group in groupsBatch.Distinct())
                         {
-                            LogHelper.Log($"Could not find associated YDD file for first person file: {filePath}, please do it manually", Views.LogType.Warning);
+                            if (!Groups.Contains(group))
+                            {
+                                Groups.Add(group);
+                                GroupManager.Instance.AddGroup(group);
+                            }
+                        }
+                        
+                        AddDrawablesBatch(drawableBatch);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogHelper.Log($"Error in batch update: {ex.Message}", Views.LogType.Error);
+                    }
+                    finally
+                    {
+                        isTimerProcessing = false;
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Background);
+            };
+            
+            batchTimer.Start();
+
+            try
+            {
+                var (filesToProcess, alternateFiles, physicsFiles) = await Task.Run(() =>
+                {
+                    var files = new List<(string filePath, bool isProp, int drawableType, int index)>();
+                    var altFiles = new List<(string filePath, int? number)>();
+                    var phyFiles = new List<(string filePath, int? number)>();
+
+                    for (int i = 0; i < filePaths.Length; i++)
+                    {
+                        var filePath = filePaths[i];
+                        var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
+                        
+                        if (drawableType == -1)
+                        {
                             continue;
                         }
 
-                        var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
-                        if (foundDrawable != null)
+                        if (AlternateRegex.IsMatch(filePath))
                         {
-                            foundDrawable.FirstPersonPath = filePath;
+                            if (filePath.EndsWith("_1.ydd"))
+                            {
+                                var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                                altFiles.Add((filePath, number));
+                            }
+                            continue;
                         }
+
+                        if (PhysicsRegex.IsMatch(filePath))
+                        {
+                            var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                            phyFiles.Add((filePath, number));
+                            continue;
+                        }
+
+                        files.Add((filePath, isProp, drawableType, i));
                     }
 
-                    // Skip all other alternate variations (_2, _3, etc.)
-                    continue;
+                    return (files, altFiles, phyFiles);
+                });
+
+                LogHelper.Log($"Starting processing of {filesToProcess.Count} files...", Views.LogType.Info);
+
+                var parallelOptions = new ParallelOptions 
+                { 
+                    MaxDegreeOfParallelism = 4
+                };
+
+                await Parallel.ForEachAsync(
+                    filesToProcess,
+                    parallelOptions,
+                    async (fileInfo, ct) =>
+                    {
+                        try
+                        {
+                            var (filePath, isProp, drawableType, index) = fileInfo;
+
+                            int countOfType = 0;
+                            
+                            var drawable = await FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType);
+
+                            if (!string.IsNullOrEmpty(basePath) && filePath.StartsWith(basePath))
+                            {
+                                var extractedGroup = ExtractGroupFromPath(filePath, basePath, sex, isProp);
+                                if (!string.IsNullOrWhiteSpace(extractedGroup))
+                                {
+                                    drawable.Group = extractedGroup;
+                                    pendingGroups.Add(extractedGroup);
+                                }
+                            }
+
+                            // Set properties from ymt file
+                            if (ymt is not null)
+                            {
+                                var ymtKey = (drawableType, isProp);
+                                var typeCount = typeNumericCounts.AddOrUpdate(ymtKey, 1, (k, v) => v + 1);
+
+                                var ymtLookupKey = (drawable.TypeNumeric, typeCount - 1);
+                                if (compInfoDict.TryGetValue(ymtLookupKey, out MCComponentInfo compInfo))
+                                {
+                                    drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
+                                    var list = EnumHelper.GetFlags((int)compInfo.Data.flags);
+                                    drawable.SelectedFlags = list.ToObservableCollection();
+
+                                    if (compInfo.Data.pedXml_expressionMods.f4 != 0)
+                                    {
+                                        drawable.EnableHighHeels = true;
+                                        drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
+                                    }
+                                }
+
+                                if (drawable.IsProp && pedPropMetaDataDict.TryGetValue(ymtLookupKey, out MCPedPropMetaData pedPropMetaData))
+                                {
+                                    drawable.Audio = pedPropMetaData.Data.audioId.ToString();
+                                    drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
+                                    var list = EnumHelper.GetFlags((int)pedPropMetaData.Data.propFlags);
+                                    drawable.SelectedFlags = list.ToObservableCollection();
+
+                                    if (pedPropMetaData.Data.expressionMods.f0 != 0)
+                                    {
+                                        drawable.EnableHairScale = true;
+                                        drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0);
+                                    }
+                                }
+                            }
+
+                            // Set HidesHair property
+                            if (pedAltVariations != null && !drawable.IsProp)
+                            {
+                                string pedName = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
+                                var pedVariation = pedAltVariations.Peds.FirstOrDefault(p => p.Name == pedName);
+                                if (pedVariation != null)
+                                {
+                                    foreach (var alternateSwitch in pedVariation.Switches)
+                                    {
+                                        var matchingAsset = alternateSwitch.SourceAssets.FirstOrDefault(asset =>
+                                            asset.Component == drawable.TypeNumeric &&
+                                            asset.Index == drawable.Number);
+
+                                        if (matchingAsset != null)
+                                        {
+                                            drawable.HidesHair = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            pendingDrawables.Enqueue(drawable);
+                            
+                            var currentProcessed = Interlocked.Increment(ref processedCount);
+                            if (currentProcessed % 100 == 0)
+                            {
+                                LogHelper.Log($"Processing: {currentProcessed}/{filesToProcess.Count} files...", Views.LogType.Info);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Log($"Error processing file {fileInfo.filePath}: {ex.Message}", Views.LogType.Error);
+                        }
+                    });
+
+                LogHelper.Log($"Finishing processing...", Views.LogType.Info);
+
+                var timeout = 0;
+                while (!pendingDrawables.IsEmpty && timeout < 100)
+                {
+                    await Task.Delay(100);
+                    timeout++;
                 }
 
-                if (physicsRegex.IsMatch(filePath))
+                LogHelper.Log($"Processing alternate and physics files...", Views.LogType.Info);
+
+                var currentAddon = Addons[0];
+                foreach (var (filePath, number) in alternateFiles)
                 {
-                    var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                    if (number == null)
+                    {
+                        LogHelper.Log($"Could not find associated YDD file for first person file: {filePath}, please do it manually", Views.LogType.Warning);
+                        continue;
+                    }
+
+                    var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
+                    var foundDrawable = currentAddon.Drawables.FirstOrDefault(x => 
+                        x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex && x.Number == number);
+                    
+                    if (foundDrawable != null)
+                    {
+                        foundDrawable.FirstPersonPath = filePath;
+                    }
+                }
+
+                foreach (var (filePath, number) in physicsFiles)
+                {
                     if (number == null)
                     {
                         LogHelper.Log($"Could not find associated YDD file for this YLD: {filePath}, please do it manually", Views.LogType.Warning);
                         continue;
                     }
 
-                    var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
+                    var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
+                    var foundDrawable = currentAddon.Drawables.FirstOrDefault(x => 
+                        x.TypeNumeric == drawableType && x.IsProp == isProp && x.Sex == sex && x.Number == number);
+                    
                     if (foundDrawable != null)
                     {
                         foundDrawable.ClothPhysicsPath = filePath;
                     }
-
-                    continue;
                 }
 
-                var drawable = await FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, countOfType);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error in AddDrawables: {ex.Message}\n{ex.StackTrace}", Views.LogType.Error);
+            }
+            finally
+            {
+                batchTimer.Stop();
+                batchTimer.Dispose();
 
-                if (!string.IsNullOrEmpty(basePath) && filePath.StartsWith(basePath))
+                var waitCount = 0;
+                while (isTimerProcessing && waitCount < 100)
                 {
-                    var extractedGroup = ExtractGroupFromPath(filePath, basePath, sex, isProp);
-                    if (!string.IsNullOrWhiteSpace(extractedGroup))
-                    {
-                        drawable.Group = extractedGroup;
-                        if (!Groups.Contains(extractedGroup))
-                        {
-                            Groups.Add(extractedGroup);
-                            GroupManager.Instance.AddGroup(extractedGroup);
-                        }
-                    }
+                    await Task.Delay(50);
+                    waitCount++;
                 }
 
-                // Set properties from ymt file if available
-                if (ymt is not null)
+                while (pendingGroups.TryTake(out var group))
                 {
-                    // Update the dictionary with the count of the current TypeNumeric
-                    var key = (drawableType, isProp);
-                    if (typeNumericCounts.TryGetValue(key, out int value))
+                    if (!Groups.Contains(group))
                     {
-                        typeNumericCounts[key] = ++value;
-                    }
-                    else
-                    {
-                        typeNumericCounts[key] = 1;
-                    }
-
-                    var ymtKey = (drawable.TypeNumeric, typeNumericCounts[(drawable.TypeNumeric, drawable.IsProp)] - 1);
-                    if (compInfoDict.TryGetValue(ymtKey, out MCComponentInfo compInfo))
-                    {
-                        drawable.Audio = compInfo.Data.pedXml_audioID.ToString();
-
-                        var list = EnumHelper.GetFlags((int)compInfo.Data.flags);
-                        drawable.SelectedFlags = list.ToObservableCollection();
-
-                        if (compInfo.Data.pedXml_expressionMods.f4 != 0)
-                        {
-                            drawable.EnableHighHeels = true;
-                            drawable.HighHeelsValue = compInfo.Data.pedXml_expressionMods.f4;
-                        }
-                    }
-
-                    if (drawable.IsProp)
-                    {
-                        if (pedPropMetaDataDict.TryGetValue(ymtKey, out MCPedPropMetaData pedPropMetaData))
-                        {
-                            drawable.Audio = pedPropMetaData.Data.audioId.ToString();
-                            drawable.RenderFlag = pedPropMetaData.Data.renderFlags.ToString();
-
-                            var list = EnumHelper.GetFlags((int)pedPropMetaData.Data.propFlags);
-                            drawable.SelectedFlags = list.ToObservableCollection();
-
-                            if (pedPropMetaData.Data.expressionMods.f0 != 0)
-                            {
-                                drawable.EnableHairScale = true;
-
-                                // grzyClothTool saves hairScaleValue as positive number, on resource build it makes it negative
-                                drawable.HairScaleValue = Math.Abs(pedPropMetaData.Data.expressionMods.f0);
-                            }
-                        }
+                        Groups.Add(group);
+                        GroupManager.Instance.AddGroup(group);
                     }
                 }
 
-                // Set HidesHair property from pedalternativevariations.meta if available
-                if (pedAltVariations != null && !drawable.IsProp)
+                var remainingDrawables = new List<GDrawable>();
+                while (pendingDrawables.TryDequeue(out var drawable))
                 {
-                    string pedName = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
-                    var pedVariation = pedAltVariations.Peds.FirstOrDefault(p => p.Name == pedName);
-                    if (pedVariation != null)
+                    remainingDrawables.Add(drawable);
+                }
+                
+                if (remainingDrawables.Count > 0)
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+
+                    _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
                     {
-                        foreach (var alternateSwitch in pedVariation.Switches)
+                        try
                         {
-                            var matchingAsset = alternateSwitch.SourceAssets.FirstOrDefault(asset => 
-                                asset.Component == drawable.TypeNumeric && 
-                                asset.Index == drawable.Number);
-                            
-                            if (matchingAsset != null)
-                            {
-                                drawable.HidesHair = true;
-                                break;
-                            }
+                            AddDrawablesBatch(remainingDrawables);
+                            tcs.SetResult(true);
                         }
-                    }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Log($"Error in final batch: {ex.Message}", Views.LogType.Error);
+                            tcs.SetException(ex);
+                        }
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+                    
+                    await tcs.Task;
                 }
 
-                AddDrawable(drawable);
+                Addons.Sort(true);
+                
+                LogHelper.Log($"All drawables successfully added!", Views.LogType.Info);
+            }
+        }
+
+        private void AddDrawablesBatch(List<GDrawable> drawables)
+        {
+            if (drawables == null || drawables.Count == 0)
+                return;
+
+            var addonDrawablesMap = new Dictionary<Addon, List<GDrawable>>();
+            
+            foreach (var drawable in drawables)
+            {
+                int currentAddonIndex = 0;
+                Addon targetAddon = null;
+                int nextNumber = 0;
+
+                while (currentAddonIndex < Addons.Count)
+                {
+                    var currentAddon = Addons[currentAddonIndex];
+                    
+                    int countOfType = 0;
+                    foreach (var d in currentAddon.Drawables)
+                    {
+                        if (d.TypeNumeric == drawable.TypeNumeric && d.IsProp == drawable.IsProp && d.Sex == drawable.Sex)
+                            countOfType++;
+                    }
+                    
+                    if (addonDrawablesMap.TryGetValue(currentAddon, out var pendingList))
+                    {
+                        foreach (var d in pendingList)
+                        {
+                            if (d.TypeNumeric == drawable.TypeNumeric && d.IsProp == drawable.IsProp && d.Sex == drawable.Sex)
+                                countOfType++;
+                        }
+                    }
+
+                    if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                    {
+                        currentAddonIndex++;
+                        continue;
+                    }
+
+                    targetAddon = currentAddon;
+                    nextNumber = countOfType;
+                    break;
+                }
+
+                if (targetAddon == null)
+                {
+                    targetAddon = new Addon("Addon " + (Addons.Count + 1));
+                    Addons.Add(targetAddon);
+                    nextNumber = 0;
+                }
+
+                drawable.IsNew = true;
+                drawable.Number = nextNumber;
+                drawable.SetDrawableName();
+                drawable.IsEncrypted = IsDrawableEncrypted(drawable.FilePath);
+
+                if (!addonDrawablesMap.TryGetValue(targetAddon, out List<GDrawable> value))
+                {
+                    value = [];
+                    addonDrawablesMap[targetAddon] = value;
+                }
+
+                value.Add(drawable);
             }
 
-            Addons.Sort(true);
+            foreach (var kvp in addonDrawablesMap)
+            {
+                var addon = kvp.Key;
+                var drawablesToAdd = kvp.Value;
+                
+                if (drawablesToAdd.Count > 0)
+                {
+                    addon.Drawables.AddRange(drawablesToAdd);
+                }
+            }
+
+            SaveHelper.SetUnsavedChanges(true);
         }
 
         /// <summary>
@@ -563,21 +812,22 @@ namespace grzyClothTool.Models
         {
             // RSC7 magic = 0x37435352 ("RSC7")
             const uint MagicRsc7 = 0x37435352;
-            byte[] buffer = new byte[4];
+            Span<byte> buffer = stackalloc byte[4];
 
-            using (var fs = new FileStream(
+            using var fs = new FileStream(
                 filePath,
                 FileMode.Open,
                 FileAccess.Read,
-                FileShare.ReadWrite
-            ))
-            {
-                int read = fs.Read(buffer, 0, 4);
-                if (read < 4)
-                    return true;
-            }
+                FileShare.ReadWrite,
+                4096,
+                FileOptions.SequentialScan
+            );
+            
+            int read = fs.Read(buffer);
+            if (read < 4)
+                return true;
 
-            uint magic = BitConverter.ToUInt32(buffer, 0);
+            uint magic = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(buffer);
             return magic != MagicRsc7;
         }
 

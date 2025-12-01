@@ -202,14 +202,27 @@
             PreviewMouseMove="MyListBox_PreviewMouseMove"
             Drop="MyListBox_Drop"
             DragOver="MyListBox_DragOver"
+            ScrollViewer.CanContentScroll="True"
+            ScrollViewer.IsDeferredScrollingEnabled="False"
+            SnapsToDevicePixels="True"
+            UseLayoutRounding="True"
             VirtualizingPanel.IsVirtualizing="True"
             VirtualizingPanel.VirtualizationMode="Recycling"
-            VirtualizingPanel.ScrollUnit="Pixel"
+            VirtualizingPanel.IsVirtualizingWhenGrouping="True"
             VirtualizingPanel.CacheLength="20,20"
             VirtualizingPanel.CacheLengthUnit="Item"
-            ScrollViewer.CanContentScroll="True"
-            SnapsToDevicePixels="True"
-            UseLayoutRounding="True">
+            VirtualizingPanel.ScrollUnit="Pixel">
+            
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel 
+                        IsVirtualizing="True"
+                        VirtualizationMode="Recycling"
+                        CacheLength="20,20"
+                        CacheLengthUnit="Item"
+                        ScrollUnit="Pixel" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
             
             <ListBox.GroupStyle>
                 <GroupStyle>
@@ -396,7 +409,13 @@
                     </GroupStyle.ContainerStyle>
                     <GroupStyle.Panel>
                         <ItemsPanelTemplate>
-                            <VirtualizingStackPanel IsVirtualizing="True" VirtualizationMode="Recycling" />
+                            <VirtualizingStackPanel 
+                                IsVirtualizing="True" 
+                                VirtualizationMode="Recycling"
+                                IsVirtualizingWhenGrouping="True"
+                                CacheLength="10,10"
+                                CacheLengthUnit="Item"
+                                ScrollUnit="Pixel" />
                         </ItemsPanelTemplate>
                     </GroupStyle.Panel>
                 </GroupStyle>

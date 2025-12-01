@@ -1,4 +1,5 @@
-﻿using grzyClothTool.Constants;
+﻿using grzyClothTool.Collections;
+using grzyClothTool.Constants;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
 using grzyClothTool.Models.Texture;
@@ -173,9 +174,9 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-    private ObservableCollection<GDrawable> _drawables;
+    private AsyncObservableCollection<GDrawable> _drawables;
 
-    public ObservableCollection<GDrawable> Drawables
+    public AsyncObservableCollection<GDrawable> Drawables
     {
         get { return _drawables; }
         set
