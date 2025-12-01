@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
 
@@ -107,13 +108,35 @@ namespace grzyClothTool.Controls
 
         public void ClosePreview()
         {
-            if (_customPedsForm != null && !_customPedsForm.IsDisposed)
+            if (_customPedsForm != null)
             {
-                PreviewHost.Child = null;
-                _customPedsForm.Close();
-                _customPedsForm = null;
-                _isInitialized = false;
-                PlaceholderText.Visibility = Visibility.Visible;
+                try
+                {
+                    if (PreviewHost.Child != null)
+                    {
+                        PreviewHost.Child = null;
+                    }
+
+                    if (!_customPedsForm.IsDisposed)
+                    {
+                        _customPedsForm.CleanupScene();
+
+                        _customPedsForm.Close();
+                        _customPedsForm.Dispose();
+                    }
+
+                    _customPedsForm = null;
+                    _isInitialized = false;
+
+                    Environment.Exit(0);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Error closing preview: {ex.Message}", Views.LogType.Error);
+
+                    _customPedsForm = null;
+                    _isInitialized = false;
+                }
             }
         }
 
