@@ -51,24 +51,35 @@ public static class UpdateHelper
             return;
         }
 
-        string currentVersion = GetCurrentVersion();
-        var latestVersion = await GetLatestVersion();
-
-        if (latestVersion is null)
+        try
         {
-            App.splashScreen.AddMessage("Checking for update failed.");
-            return;
-        }
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            
+            string currentVersion = GetCurrentVersion();
+            var latestVersion = await GetLatestVersion();
 
-        if(latestVersion == currentVersion)
+            if (latestVersion is null)
+            {
+                App.splashScreen.AddMessage("Checking for update failed.");
+                await Task.Delay(2000);
+                return;
+            }
+
+            if(latestVersion == currentVersion)
+            {
+                App.splashScreen.AddMessage("No new updates found.");
+                return;
+            }
+
+            App.splashScreen.AddMessage("New update found. Downloading...");
+            await DownloadUpdate(latestVersion);
+        }
+        catch (Exception ex)
         {
-            App.splashScreen.AddMessage("No new updates found.");
-            return;
+            App.splashScreen.AddMessage("Update check failed.");
+            File.WriteAllText("update_check_failed.log", ex.ToString());
+            await Task.Delay(2000);
         }
-
-        App.splashScreen.AddMessage("New update found. Downloading...");
-        await DownloadUpdate(latestVersion);
-
     }
 
     private async static Task<string> GetLatestVersion()
@@ -128,6 +139,7 @@ public static class UpdateHelper
             File.WriteAllText("download_failed.log", ex.ToString());
 
             App.splashScreen.AddMessage("Downloading failed");
+            await Task.Delay(2000);
             return;
         }
 
@@ -136,24 +148,39 @@ public static class UpdateHelper
 
     private static void ExtractAndRunUpdatedApp()
     {
-        string tempPath = Path.GetTempPath();
-        string downloadZip = Path.Combine(tempPath, "grzyClothTool.zip");
-
-        System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, tempPath);
-        File.Delete(downloadZip);
-
-        var newExeLocation = Path.Combine(tempPath, "grzyClothTool", "grzyClothTool.exe");
-        //run exe with args
-        ProcessStartInfo startInfo = new()
+        try
         {
-            FileName = newExeLocation,
-            ArgumentList = { "--skipUpdate", $"--removeTempFiles=\"{_exeLocation}\"" },
-            UseShellExecute = true
-        };
-        Process.Start(startInfo);
+            string tempPath = Path.GetTempPath();
+            string downloadZip = Path.Combine(tempPath, "grzyClothTool.zip");
+            string extractFolder = Path.Combine(tempPath, "grzyClothTool");
 
-        App.splashScreen.Shutdown();
-        Application.Current.Shutdown();
+            if (Directory.Exists(extractFolder))
+            {
+                Directory.Delete(extractFolder, true);
+            }
+
+            System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, tempPath);
+            File.Delete(downloadZip);
+
+            var newExeLocation = Path.Combine(tempPath, "grzyClothTool", "grzyClothTool.exe");
+            //run exe with args
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = newExeLocation,
+                ArgumentList = { "--skipUpdate", $"--removeTempFiles=\"{_exeLocation}\"" },
+                UseShellExecute = true
+            };
+            Process.Start(startInfo);
+
+            App.splashScreen.Shutdown();
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            File.WriteAllText("extract_failed.log", ex.ToString());
+            App.splashScreen.AddMessage("Update extraction failed.");
+            Task.Delay(2000).Wait();
+        }
     }
 
     public static void RemoveTempFiles(string oldExeLocation)

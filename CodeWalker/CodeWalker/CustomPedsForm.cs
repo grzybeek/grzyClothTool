@@ -322,7 +322,7 @@ namespace CodeWalker
 
         private void RenderSelectedItems()
         {
-            var loadedDrawables = LoadedDrawables.Values.ToList();
+            var loadedDrawables = LoadedDrawables.Values.ToList().Take(20);
             foreach(var drawable in loadedDrawables)
             {
                 if (LoadedTextures.TryGetValue(drawable, out var texture))

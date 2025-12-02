@@ -5,6 +5,7 @@ using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Texture;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -21,7 +22,17 @@ namespace grzyClothTool.Models.Drawable;
 
 public class GDrawable : INotifyPropertyChanged
 {
+    private static readonly BlockingCollection<GDrawable> _loadQueue = new();
     private readonly static SemaphoreSlim _semaphore = new(3);
+
+    static GDrawable()
+    {
+        // Start a few consumer tasks to process the queue
+        for (int i = 0; i < Environment.ProcessorCount; i++)
+        {
+            Task.Run(ProcessLoadQueue);
+        }
+    }
 
     public event PropertyChangedEventHandler PropertyChanged;
 
@@ -317,45 +328,13 @@ public class GDrawable : INotifyPropertyChanged
         Audio = "none";
         SetDrawableName();
 
-        if (FilePath != null)
+        if (FilePath != null && !IsEncrypted && File.Exists(FilePath))
         {
-            if (IsEncrypted)
-            {
-                IsLoading = false;
-                return;
-            }
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    var result = await LoadDrawableDetailsWithConcurrencyControl();
-                    if (result != null)
-                    {
-                        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            Details = result;
-                            OnPropertyChanged(nameof(Details));
-                            IsLoading = false;
-                        }), System.Windows.Threading.DispatcherPriority.Background);
-                    }
-                    else
-                    {
-                        System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            IsLoading = false;
-                        }), System.Windows.Threading.DispatcherPriority.Background);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                    System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        IsLoading = false;
-                    }), System.Windows.Threading.DispatcherPriority.Background);
-                }
-            });
+            _loadQueue.Add(this);
+        }
+        else
+        {
+            IsLoading = false;
         }
     }
 
@@ -372,6 +351,14 @@ public class GDrawable : INotifyPropertyChanged
         }
 
         IsLoading = false;
+    }
+
+    private static async void ProcessLoadQueue()
+    {
+        foreach (var drawable in _loadQueue.GetConsumingEnumerable())
+        {
+            await drawable.LoadDetails();
+        }
     }
 
     public void LoadTexturesThumbnail()

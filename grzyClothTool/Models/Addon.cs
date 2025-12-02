@@ -174,9 +174,9 @@ public class Addon : INotifyPropertyChanged
         }
     }
 
-    private AsyncObservableCollection<GDrawable> _drawables;
+    private ObservableCollection<GDrawable> _drawables;
 
-    public AsyncObservableCollection<GDrawable> Drawables
+    public ObservableCollection<GDrawable> Drawables
     {
         get { return _drawables; }
         set

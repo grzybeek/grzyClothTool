@@ -80,13 +80,18 @@ public static class SaveHelper
             timer.Start();
             LogHelper.Log("Started saving...");
 
-            MainWindow.AddonManager.Groups.Clear();
-            foreach (var group in GroupManager.Instance.Groups)
+            string json;
+            lock (AddonManager.AddonsLock)
             {
-                MainWindow.AddonManager.Groups.Add(group);
+                MainWindow.AddonManager.Groups.Clear();
+                foreach (var group in GroupManager.Instance.Groups)
+                {
+                    MainWindow.AddonManager.Groups.Add(group);
+                }
+
+                json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             }
 
-            var json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             var filename = $"save_{_saveCounter}.json";
             var path = Path.Combine(SavesPath, filename);
 
