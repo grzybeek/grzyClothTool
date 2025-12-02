@@ -532,7 +532,7 @@ namespace grzyClothTool.Models
                 drawable.Number = nextNumber;
                 drawable.SetDrawableName();
 
-                // drawable.IsEncrypted = IsDrawableEncrypted(drawable.FilePath);
+                drawable.IsEncrypted = IsDrawableEncrypted(drawable.FilePath);
                 currentAddon.Drawables.Add(drawable);
 
                 SaveHelper.SetUnsavedChanges(true);

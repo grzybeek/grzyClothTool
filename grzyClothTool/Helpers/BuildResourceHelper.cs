@@ -1233,7 +1233,7 @@ public class BuildResourceHelper
             string outputPath = Path.Combine(tempDir, uniqueFileName);
 
             // If drawable is encrypted or has no embedded textures, just copy the original file without processing
-            if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0)
+            if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0 || dr.Details.EmbeddedTextures.All(x => x.Value.Details.Width == 0))
             {
                 if (!File.Exists(outputPath))
                 {
@@ -1249,6 +1249,21 @@ public class BuildResourceHelper
             var drawable = yddFile.Drawables.FirstOrDefault()
                           ?? throw new InvalidOperationException($"No drawables found in YDD: {inputPath}");
 
+            if (drawable.ShaderGroup.TextureDictionary == null)
+            {
+                var dict = new TextureDictionary();
+                drawable.ShaderGroup.TextureDictionary = dict;
+
+                drawable.ShaderGroup.TextureDictionaryPointer = 1;
+
+                drawable.ShaderGroup.TextureDictionary.Dict = new Dictionary<uint, Texture>();
+                drawable.ShaderGroup.TextureDictionary.Textures = new ResourcePointerList64<Texture> { data_items = [] };
+                drawable.ShaderGroup.TextureDictionary.TextureNameHashes = new ResourceSimpleList64_uint { data_items = [] };
+            }
+
+            var texturesToAdd = new List<Texture>();
+            var textureHashesToAdd = new List<uint>();
+
             foreach (var kvp in dr.Details.EmbeddedTextures)
             {
                 var embeddedDto = kvp.Value;
@@ -1259,10 +1274,70 @@ public class BuildResourceHelper
                     continue;
 
                 var originalTexturePair = drawable.ShaderGroup.TextureDictionary.Dict
-                    .FirstOrDefault(x => x.Value.Name == embeddedDto.OriginalName);
+                    .FirstOrDefault(x => x.Value?.Name == embeddedDto.OriginalName);
+
+                // If original texture doesn't exist but we have a replacement, add it as new texture
+                if (originalTexturePair.Value == null && embeddedDto.HasReplacement)
+                {
+                    Texture newTexture;
+                    if (embeddedDto.IsOptimizedDuringBuild)
+                    {
+                        var dds = DDSIO.GetDDSFile(embeddedDto.ReplacementTextureData);
+                        var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                        newTexture = DDSIO.GetTexture(optimizedBytes);
+                    }
+                    else
+                    {
+                        newTexture = embeddedDto.ReplacementTextureData;
+                    }
+
+                    newTexture.Name = embeddedDto.Details.Name;
+                    newTexture.NameHash = JenkHash.GenHash(newTexture.Name);
+
+                    var texList = drawable.ShaderGroup.TextureDictionary.Textures.data_items?.ToList() ?? [];
+                    texList.Add(newTexture);
+
+                    drawable.ShaderGroup.TextureDictionary.BuildFromTextureList(texList);
+
+                    bool isSpec = embeddedDto.Details.Type.Contains("specular", StringComparison.OrdinalIgnoreCase);
+                    bool isBump = embeddedDto.Details.Type.Contains("normal", StringComparison.OrdinalIgnoreCase);
+
+                    foreach (var shader in drawable.ShaderGroup.Shaders.data_items)
+                    {
+                        var plist = shader.ParametersList;
+                        var parameters = plist.Parameters;
+                        var hashes = plist.Hashes;
+
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            string samplerName = hashes[i].ToString();
+
+                            // normal map
+                            if (isBump && samplerName.Equals("bumpsampler", StringComparison.OrdinalIgnoreCase))
+                            {
+                                parameters[i].DataType = 0;
+                                parameters[i].Data = newTexture;
+                                break;
+                            }
+
+                            // specular map
+                            if (isSpec && samplerName.Equals("specsampler", StringComparison.OrdinalIgnoreCase))
+                            {
+                                parameters[i].DataType = 0;
+                                parameters[i].Data = newTexture;
+                                break;
+                            }
+                        }
+                    }
+
+                    continue;
+                }
 
                 if (originalTexturePair.Value == null)
+                {
+                    LogHelper.Log($"Original texture '{embeddedDto.OriginalName}' not found in TextureDictionary for drawable {dr.Name}. Skipping.", LogType.Warning);
                     continue;
+                }
 
                 Texture textureToUpdate;
                 if (embeddedDto.HasReplacement && embeddedDto.IsOptimizedDuringBuild)
@@ -1335,6 +1410,8 @@ public class BuildResourceHelper
             }
 
             byte[] outputBytes = yddFile.Save();
+            var testload = new YddFile();
+
             await File.WriteAllBytesAsync(outputPath, outputBytes);
 
             return outputPath;

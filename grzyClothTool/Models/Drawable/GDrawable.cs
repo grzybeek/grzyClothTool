@@ -27,7 +27,6 @@ public class GDrawable : INotifyPropertyChanged
 
     static GDrawable()
     {
-        // Start a few consumer tasks to process the queue
         for (int i = 0; i < Environment.ProcessorCount; i++)
         {
             Task.Run(ProcessLoadQueue);
@@ -317,6 +316,12 @@ public class GDrawable : INotifyPropertyChanged
         FilePath = filePath;
         Textures = textures;
         Textures.CollectionChanged += OnTexturesCollectionChanged;
+        
+        foreach (var texture in Textures)
+        {
+            texture.PropertyChanged += OnTexturePropertyChanged;
+        }
+        
         TypeNumeric = typeNumeric;
         Number = number;
         HasSkin = hasSkin;
@@ -345,8 +350,8 @@ public class GDrawable : INotifyPropertyChanged
             var result = await LoadDrawableDetailsWithConcurrencyControl();
             if (result != null)
             {
-                Details = result;
-                OnPropertyChanged(nameof(Details));
+                    Details = result;
+                    OnPropertyChanged(nameof(Details));
             }
         }
 
@@ -424,13 +429,37 @@ public class GDrawable : INotifyPropertyChanged
 
     private void OnTexturesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
+        if (e.NewItems != null)
+        {
+            foreach (GTexture texture in e.NewItems)
+            {
+                texture.PropertyChanged += OnTexturePropertyChanged;
+            }
+        }
+        
+        if (e.OldItems != null)
+        {
+            foreach (GTexture texture in e.OldItems)
+            {
+                texture.PropertyChanged -= OnTexturePropertyChanged;
+            }
+        }
+        
         if (Details == null)
         {
             return;
         }
 
         Details.TexturesCount = Textures.Count;
-        Details.Validate();
+        Details.Validate(Textures);
+    }
+
+    private void OnTexturePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GTexture.TxtDetails) && Details != null)
+        {
+            Details.Validate(Textures);
+        }
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? name = null)
