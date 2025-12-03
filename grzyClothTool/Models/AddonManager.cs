@@ -296,7 +296,7 @@ namespace grzyClothTool.Models
 
                 var (filePath, sex, basePath, ymt, pedAltVariations, compInfoDict, pedPropMetaDataDict, typeNumericCounts) = (DrawableWorkItem)workItem;
 
-                var (isProp, drawableType) = FileHelper.ResolveDrawableType(filePath);
+                var (isProp, drawableType) = await FileHelper.ResolveDrawableType(filePath);
                 if (drawableType == -1)
                 {
                     continue;

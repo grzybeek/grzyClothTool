@@ -143,32 +143,33 @@ public static class FileHelper
         string[] nameParts = Path.GetFileNameWithoutExtension(fileName).Split("_");
 
         string searchedNumber, regexToSearch;
-        if (nameParts.Length == 1) //this will happen when someone is adding weirdly named ydds (for example 5.ydd)
+        if (nameParts.Length == 1) //this will happen when someone is adding weirdly named ydds (for example 5.ydd or m.ydd)
         {
             searchedNumber = nameParts[0];
-            regexToSearch = $"^{searchedNumber}([a-z]|_[a-z])?"; //this will try to find 5.ytd 5a.ytd or 5_a.ytd files
+            var escapedNumber = Regex.Escape(searchedNumber);
+            regexToSearch = $"^{escapedNumber}([a-z]|_[a-z])?$";
         } 
         else
         {
             searchedNumber = isProp ? nameParts[2] : nameParts[1];
             var searchedName = isProp ? nameParts[0] + "_" + nameParts[1] : nameParts[0];
-            regexToSearch = $"^{searchedName}_diff_{searchedNumber}";
+            regexToSearch = $"^{Regex.Escape(searchedName)}_diff_{Regex.Escape(searchedNumber)}";
         }
 
         if (addonName != string.Empty)
         {
-            regexToSearch = $"^{addonName}\\{regexToSearch}";
+            regexToSearch = $"^{Regex.Escape(addonName)}\\^{regexToSearch.TrimStart('^')}";
         }
 
         var allYtds = Directory.EnumerateFiles(folderPath)
             .Where(x => Path.GetExtension(x) == ".ytd" &&
-                Regex.IsMatch(Path.GetFileNameWithoutExtension(x), regexToSearch))
+                Regex.IsMatch(Path.GetFileNameWithoutExtension(x), regexToSearch, RegexOptions.IgnoreCase))
             .ToList();
 
         return allYtds;
     }
 
-    public static (bool, int) ResolveDrawableType(string file)
+    public static async Task<(bool, int)> ResolveDrawableType(string file)
     {
         string fileName = Path.GetFileNameWithoutExtension(file);
         if (fileName.Contains('^'))
@@ -194,15 +195,18 @@ public static class FileHelper
             return (true, value);
         }
 
-        var window = new DrawableSelectWindow(file);
-        var result = window.ShowDialog();
-        if (result == true)
+        return await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var value = EnumHelper.GetValue(window.SelectedDrawableType, window.IsProp);
-            return (window.IsProp, value);
-        }
+            var window = new DrawableSelectWindow(file);
+            var result = window.ShowDialog();
+            if (result == true)
+            {
+                var value = EnumHelper.GetValue(window.SelectedDrawableType, window.IsProp);
+                return (window.IsProp, value);
+            }
 
-        return (false, -1);
+            return (false, -1);
+        });
     }
 
     public static int? GetDrawableNumberFromFileName(string fileName)
