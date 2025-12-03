@@ -176,7 +176,7 @@ public class BuildResourceHelper
 
     public async Task BuildFiveMResource()
     {
-        CleanupExistingBuildDirectories();
+        //CleanupExistingBuildDirectories(); todo: fix it removing too much
 
         int counter = 1;
         var metaFiles = new List<string>();
@@ -289,7 +289,7 @@ public class BuildResourceHelper
 
     public async Task BuildAltVResource()
     {
-        CleanupExistingBuildDirectories();
+        //CleanupExistingBuildDirectories(); todo: fix it removing too much
 
         int counter = 1;
         var metaFiles = new List<string>();
