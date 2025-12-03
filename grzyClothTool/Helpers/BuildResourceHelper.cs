@@ -1242,6 +1242,18 @@ public class BuildResourceHelper
                 return outputPath;
             }
 
+            var texturesToProcess = dr.Details.EmbeddedTextures.Where(kvp =>
+            {
+                var embeddedDto = kvp.Value;
+                return embeddedDto.IsOptimizedDuringBuild || embeddedDto.HasReplacement || embeddedDto.OriginalName != embeddedDto.Details.Name;
+            });
+
+            if (!texturesToProcess.Any())
+            {
+                await FileHelper.CopyAsync(inputPath, outputPath);
+                return outputPath;
+            }
+
             var fileBytes = await FileHelper.ReadAllBytesAsync(inputPath);
             var yddFile = new YddFile();
             await yddFile.LoadAsync(fileBytes);
@@ -1264,14 +1276,9 @@ public class BuildResourceHelper
             var texturesToAdd = new List<Texture>();
             var textureHashesToAdd = new List<uint>();
 
-            foreach (var kvp in dr.Details.EmbeddedTextures)
+            foreach (var kvp in texturesToProcess)
             {
                 var embeddedDto = kvp.Value;
-
-                if (!embeddedDto.IsOptimizedDuringBuild &&
-                    !embeddedDto.HasReplacement &&
-                    embeddedDto.OriginalName == embeddedDto.Details.Name)
-                    continue;
 
                 var originalTexturePair = drawable.ShaderGroup.TextureDictionary.Dict
                     .FirstOrDefault(x => x.Value?.Name == embeddedDto.OriginalName);
