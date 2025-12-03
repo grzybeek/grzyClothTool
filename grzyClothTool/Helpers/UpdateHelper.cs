@@ -14,11 +14,18 @@ public static class UpdateHelper
 {
     private static readonly HttpClient _httpClient;
     private static readonly string _exeLocation;
+    private static readonly string _updateFolder;
 
     static UpdateHelper()
     {
         _httpClient = new HttpClient();
         _exeLocation = GetExeLocation();
+        _updateFolder = Path.Combine(Path.GetTempPath(), "grzyclothtool_update");
+        
+        if (Directory.Exists(_updateFolder))
+        {
+            Directory.Delete(_updateFolder, true);
+        }
     }
 
     private static string GetExeLocation()
@@ -109,19 +116,13 @@ public static class UpdateHelper
     {
         string url = $"https://github.com/grzybeek/grzyClothTool/releases/download/v{version}/grzyClothTool.zip";
 
-        string tempPath = Path.GetTempPath();
-        string downloadZip = Path.Combine(tempPath, "grzyClothTool.zip");
+        Directory.CreateDirectory(_updateFolder);
+        string downloadZip = Path.Combine(_updateFolder, "grzyClothTool.zip");
 
         //remove old zip and folder
         if (File.Exists(downloadZip))
         {
             File.Delete(downloadZip);
-        }
-
-        var extractFolder = Path.Combine(tempPath, "grzyClothTool");
-        if (Directory.Exists(extractFolder))
-        {
-            Directory.Delete(extractFolder, true);
         }
 
         try
@@ -150,25 +151,25 @@ public static class UpdateHelper
     {
         try
         {
-            string tempPath = Path.GetTempPath();
-            string downloadZip = Path.Combine(tempPath, "grzyClothTool.zip");
-            string extractFolder = Path.Combine(tempPath, "grzyClothTool");
+            string downloadZip = Path.Combine(_updateFolder, "grzyClothTool.zip");
 
-            if (Directory.Exists(extractFolder))
-            {
-                Directory.Delete(extractFolder, true);
-            }
-
-            System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, tempPath);
+            System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, _updateFolder);
             File.Delete(downloadZip);
 
-            var newExeLocation = Path.Combine(tempPath, "grzyClothTool", "grzyClothTool.exe");
-            //run exe with args
+            var newExeLocation = Path.Combine(_updateFolder, "grzyClothTool.exe");
+            
+            if (!File.Exists(newExeLocation))
+            {
+                throw new FileNotFoundException($"Something went wrong with the update. Download update manually.");
+            }
+
+            // Run exe with args
             ProcessStartInfo startInfo = new()
             {
                 FileName = newExeLocation,
                 ArgumentList = { "--skipUpdate", $"--removeTempFiles=\"{_exeLocation}\"" },
-                UseShellExecute = true
+                UseShellExecute = true,
+                WorkingDirectory = _updateFolder
             };
             Process.Start(startInfo);
 
@@ -206,13 +207,9 @@ public static class UpdateHelper
             File.Move(file, Path.Combine(Path.GetDirectoryName(oldExeLocation), Path.GetFileName(file)));
         }
 
-        string tempPath = Path.GetTempPath();
-        string extractFolder = Path.Combine(tempPath, "grzyClothTool");
-
-        if (Directory.Exists(extractFolder))
+        if (Directory.Exists(_updateFolder))
         {
-            Directory.Delete(extractFolder, true);
+            Directory.Delete(_updateFolder, true);
         }
     }
-
 }
