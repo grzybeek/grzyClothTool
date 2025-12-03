@@ -2816,7 +2816,51 @@ namespace CodeWalker.GameFiles
 
 
 
+        public void RebuildBounds()
+        {
+            if (Geometries == null || Geometries.Length == 0)
+            {
+                BoundsData = null;
+                return;
+            }
 
+            var aabbs = new List<AABB_s>();
+            var overallMin = new Vector4(float.MaxValue);
+            var overallMax = new Vector4(float.MinValue);
+
+            foreach (var geom in Geometries)
+            {
+                if (geom == null || geom.VertexData == null || geom.VertexData.VertexCount == 0)
+                {
+                    aabbs.Add(new AABB_s { Min = Vector4.Zero, Max = Vector4.Zero });
+                    continue;
+                }
+
+                var min = new Vector4(float.MaxValue);
+                var max = new Vector4(float.MinValue);
+                for (int v = 0; v < geom.VertexData.VertexCount; v++)
+                {
+                    var pos = geom.VertexData.GetVector3(v, 0);
+                    min = Vector4.Min(min, new Vector4(pos, 1.0f));
+                    max = Vector4.Max(max, new Vector4(pos, 1.0f));
+                }
+
+                var aabb = new AABB_s { Min = min, Max = max };
+                aabbs.Add(aabb);
+                geom.AABB = aabb;
+
+                overallMin = Vector4.Min(overallMin, min);
+                overallMax = Vector4.Max(overallMax, max);
+            }
+
+            if (aabbs.Count > 1)
+            {
+                var outerAabb = new AABB_s { Min = overallMin, Max = overallMax };
+                aabbs.Insert(0, outerAabb);
+            }
+
+            BoundsData = aabbs.ToArray();
+        }
 
 
         public long MemoryUsage
@@ -2877,6 +2921,11 @@ namespace CodeWalker.GameFiles
             this.GeometryPointers = reader.ReadUlongsAt(this.GeometriesPointer, this.GeometriesCount1, false);
             this.BoundsData = reader.ReadStructsAt<AABB_s>(this.BoundsPointer, (uint)(this.GeometriesCount1 > 1 ? this.GeometriesCount1 + 1 : this.GeometriesCount1), false);
             this.Geometries = reader.ReadBlocks<DrawableGeometry>(this.GeometryPointers);
+
+            if (BoundsData == null)
+            {
+                RebuildBounds();
+            }
 
             if (Geometries != null)
             {
@@ -2968,6 +3017,12 @@ namespace CodeWalker.GameFiles
             this.GeometriesPointer = (ulong)off;
             off += (GeometriesCount1 * 8); //Geometries pointers
             off += pad(off);
+
+            if (BoundsData == null)
+            {
+                RebuildBounds();
+            }
+
             this.BoundsPointer = (ulong)off;
             off += (BoundsData.Length) * 32; //BoundsData
             this.GeometryPointers = new ulong[GeometriesCount1];
