@@ -82,14 +82,20 @@ public class BuildResourceHelper
     public void ResetSizeTracking()
     {
         _currentResourceSize = 0;
-        _extraResourceCounter = 1;
+        _extraResourceCounter = 0;
     }
 
     public bool ShouldCreateNewExtraResource(long nextFileSize = 0)
     {
-        return _splitBySize && 
-               _buildResourceType == BuildResourceType.FiveM && 
-               (_currentResourceSize + nextFileSize) >= GlobalConstants.MAX_RESOURCE_SIZE_BYTES;
+        if (!_splitBySize || _buildResourceType != BuildResourceType.FiveM)
+            return false;
+            
+        // Use 700MB limit for main resource, 800MB for extra resources
+        long sizeLimit = _extraResourceCounter == 0 
+            ? GlobalConstants.MAX_MAIN_RESOURCE_SIZE_BYTES 
+            : GlobalConstants.MAX_RESOURCE_SIZE_BYTES;
+            
+        return (_currentResourceSize + nextFileSize) >= sizeLimit;
     }
 
     public void AddToResourceSize(long bytes)
@@ -154,8 +160,39 @@ public class BuildResourceHelper
                 var tempYddPath = yddPathsDict[d];
                 var yddFileSize = GetFileSize(tempYddPath);
                 
-                // Calculate total size including textures
-                long totalDrawableSize = yddFileSize;
+                // Pre-calculate actual texture sizes (since optimization changes file size)
+                var textureData = new List<(string buildName, byte[] data)>();
+                long texturesSizeTotal = 0;
+                foreach (var t in d.Textures)
+                {
+                    var buildName = RemoveInvalidChars(t.GetBuildName());
+                    byte[] txtBytes = null;
+                    
+                    if (t.IsOptimizedDuringBuild)
+                    {
+                        txtBytes = await ImgHelper.Optimize(t);
+                    }
+                    else
+                    {
+                        if(t.Extension != ".ytd")
+                        {
+                            txtBytes = await ImgHelper.Optimize(t, true);
+                        } 
+                        else
+                        {
+                            txtBytes = await FileHelper.ReadAllBytesAsync(t.FilePath);
+                        }
+                    }
+                    
+                    if (txtBytes != null)
+                    {
+                        textureData.Add((buildName, txtBytes));
+                        texturesSizeTotal += txtBytes.Length;
+                    }
+                }
+                
+                // Calculate total size with actual processed sizes
+                long totalDrawableSize = yddFileSize + texturesSizeTotal;
                 if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
                 {
                     totalDrawableSize += GetFileSize(d.ClothPhysicsPath);
@@ -163,13 +200,6 @@ public class BuildResourceHelper
                 if (!string.IsNullOrEmpty(d.FirstPersonPath))
                 {
                     totalDrawableSize += GetFileSize(d.FirstPersonPath);
-                }
-                foreach (var t in d.Textures)
-                {
-                    if (!string.IsNullOrEmpty(t.FilePath))
-                    {
-                        totalDrawableSize += GetFileSize(t.FilePath);
-                    }
                 }
                 
                 // Check if we need to split into a new resource (only for stream files when size splitting is enabled)
@@ -230,35 +260,12 @@ public class BuildResourceHelper
                     firstPersonFiles.Add(name);
                 }
 
-                foreach (var t in d.Textures)
+                // Write pre-processed textures
+                foreach (var (buildName, txtBytes) in textureData)
                 {
-                    var buildName = RemoveInvalidChars(t.GetBuildName());
                     var finalTexPath = Path.Combine(folderPath, $"{prefix}{buildName}.ytd");
-
-                    byte[] txtBytes = null;
-                    if (t.IsOptimizedDuringBuild)
-                    {
-                        txtBytes = await ImgHelper.Optimize(t);
-                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
-                    }
-                    else
-                    {
-                        if(t.Extension != ".ytd")
-                        {
-                            txtBytes = await ImgHelper.Optimize(t, true);
-                        } 
-                        else
-                        {
-                            txtBytes = await FileHelper.ReadAllBytesAsync(t.FilePath);
-                        }
-
-                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
-                    }
-                    
-                    if (txtBytes != null)
-                    {
-                        AddToResourceSize(txtBytes.Length);
-                    }
+                    fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
+                    AddToResourceSize(txtBytes.Length);
                 }
             }
         }
