@@ -480,10 +480,35 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
+
+    private static bool IsDrawableEncrypted(string filePath)
+    {
+        // RSC7 magic = 0x37435352 ("RSC7")
+        const uint MagicRsc7 = 0x37435352;
+        Span<byte> buffer = stackalloc byte[4];
+
+        using var fs = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.ReadWrite,
+            4096,
+            FileOptions.SequentialScan
+        );
+
+        int read = fs.Read(buffer);
+        if (read < 4)
+            return true;
+
+        uint magic = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(buffer);
+        return magic != MagicRsc7;
+    }
+
     private async Task<GDrawableDetails?> GetDrawableDetailsAsync()
     {
-        if (IsEncrypted)
+        if (IsDrawableEncrypted(FilePath))
         {
+            IsEncrypted = true;
             return null;
         }
 
