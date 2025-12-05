@@ -28,6 +28,7 @@ public class BuildResourceHelper
     private readonly bool _splitAddons;
     private readonly IProgress<int> _progress;
 
+    private static readonly string _buildTempFolderName = "grzyClothTool_buildtemp";
     private readonly bool shouldUseNumber = false;
 
     private readonly List<string> firstPersonFiles = [];
@@ -226,6 +227,7 @@ public class BuildResourceHelper
             BuildFxManifest(metaFiles);
         }
 
+        CleanupBuildTempDirectory();
     }
 
     private void BuildFxManifest(List<string> metaFiles)
@@ -331,6 +333,8 @@ public class BuildResourceHelper
             await Task.WhenAll(tasks);
             BuildAltVTomls(metaFiles);
         }
+
+        CleanupBuildTempDirectory();
     }
 
     private async Task BuildAltVFilesAsync(SexType sex, byte[] ymtBytes, int counter)
@@ -524,6 +528,7 @@ public class BuildResourceHelper
         }
 
         await Task.WhenAll(tasks);
+        CleanupBuildTempDirectory();
     }
 
     private List<RbfFile> BuildContentXml(RpfDirectoryEntry dir)
@@ -1226,7 +1231,7 @@ public class BuildResourceHelper
     {
         try
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), "grzyClothTool_buildtemp");
+            string tempDir = Path.Combine(Path.GetTempPath(), _buildTempFolderName);
             Directory.CreateDirectory(tempDir);
             string inputPath = dr.FilePath;
             string uniqueFileName = $"{dr.Id}_{Path.GetFileName(inputPath)}";
@@ -1235,11 +1240,7 @@ public class BuildResourceHelper
             // If drawable is encrypted or has no embedded textures, just copy the original file without processing
             if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0 || dr.Details.EmbeddedTextures.All(x => x.Value.Details.Width == 0))
             {
-                if (!File.Exists(outputPath))
-                {
-                    await FileHelper.CopyAsync(inputPath, outputPath);
-                }
-                return outputPath;
+                return inputPath;
             }
 
             var texturesToProcess = dr.Details.EmbeddedTextures.Where(kvp =>
@@ -1250,8 +1251,7 @@ public class BuildResourceHelper
 
             if (!texturesToProcess.Any())
             {
-                await FileHelper.CopyAsync(inputPath, outputPath);
-                return outputPath;
+                return inputPath;
             }
 
             var fileBytes = await FileHelper.ReadAllBytesAsync(inputPath);
@@ -1560,6 +1560,23 @@ public class BuildResourceHelper
         catch (Exception ex)
         {
             LogHelper.Log($"Failed to clean directory {directory}: {ex.Message}", LogType.Warning);
+        }
+    }
+
+
+    private static void CleanupBuildTempDirectory()
+    {
+        try
+        {
+            string tempDir = Path.Combine(Path.GetTempPath(), _buildTempFolderName);
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Failed to clean up temp directory: {ex.Message}", LogType.Warning);
         }
     }
 
