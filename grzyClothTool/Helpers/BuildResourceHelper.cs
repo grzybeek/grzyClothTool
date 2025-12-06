@@ -513,21 +513,31 @@ public class BuildResourceHelper
         }
 
         int counter = 1;
-        var tasks = new List<Task>();
-        var metaFiles = new List<string>();
-
+        
         foreach (var selectedAddon in MainWindow.AddonManager.Addons)
         {
             SetAddon(selectedAddon);
             SetNumber(counter);
 
-            AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter, cdimages, dataFolder);
-            AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter, cdimages, dataFolder);
+            if (selectedAddon.HasSex(SexType.male))
+            {
+                var bytes = BuildYMT(SexType.male);
+                var (name, metaBytes) = BuildMeta(SexType.male);
+                RpfFile.CreateFile(dataFolder, name, metaBytes);
+                await BuildSingleplayerFilesAsync(SexType.male, bytes, counter, cdimages);
+            }
+
+            if (selectedAddon.HasSex(SexType.female))
+            {
+                var bytes = BuildYMT(SexType.female);
+                var (name, metaBytes) = BuildMeta(SexType.female);
+                RpfFile.CreateFile(dataFolder, name, metaBytes);
+                await BuildSingleplayerFilesAsync(SexType.female, bytes, counter, cdimages);
+            }
 
             counter++;
         }
 
-        await Task.WhenAll(tasks);
         CleanupBuildTempDirectory();
     }
 
