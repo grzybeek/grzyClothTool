@@ -69,6 +69,13 @@
                 Margin="10,10,10,0"
                 IsChecked="{Binding SplitAddons, Mode=TwoWay}"/>
 
+            <c:ModernLabelCheckBox 
+                Label="Split resources over 800MB (FiveM stream only)" 
+                x:Name="split_by_size" 
+                VerticalAlignment="Top" 
+                Margin="10,10,10,0"
+                IsChecked="{Binding SplitBySize, Mode=TwoWay}"/>
+
             <Separator Margin="0, 15" />
 
             <TextBlock

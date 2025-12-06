@@ -69,6 +69,20 @@ namespace grzyClothTool.Views
             }
         }
 
+        private bool _splitBySize;
+        public bool SplitBySize
+        {
+            get => _splitBySize;
+            set
+            {
+                if (_splitBySize != value)
+                {
+                    _splitBySize = value;
+                    OnPropertyChanged(nameof(SplitBySize));
+                }
+            }
+        }
+
         private bool _isWarningVisible;
         public bool IsWarningVisible
         {
@@ -126,6 +140,7 @@ namespace grzyClothTool.Views
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
+            split_by_size.IsEnabled = true; // Enabled by default for FiveM (the default selection)
 
             CheckAddons();
         }
@@ -204,7 +219,7 @@ namespace grzyClothTool.Views
                 timer.Start();
 
                 var progress = new Progress<int>(value => ProgressValue += value);
-                var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, progress, _resourceType, SplitAddons);
+                var buildHelper = new BuildResourceHelper(ProjectName, BuildPath, progress, _resourceType, SplitAddons, SplitBySize);
 
                 await Task.Run(() => BuildResource(buildHelper)); // moved out of ui thread, so users don't think tool stopped responding
 
@@ -244,15 +259,29 @@ namespace grzyClothTool.Views
                 };
 
 
-                // Singleplayer doesn't support splitting addons
+                // Singleplayer doesn't support splitting addons or by size
                 if (_resourceType == BuildResourceType.Singleplayer)
                 {
                     SplitAddons = false;
                     split_addons.IsEnabled = false;
+                    SplitBySize = false;
+                    split_by_size.IsEnabled = false;
                 }
+                // AltV doesn't support splitting by size
+                else if (_resourceType == BuildResourceType.AltV)
+                {
+                    SplitBySize = false;
+                    split_by_size.IsEnabled = false;
+                    if (DataContext != null) // check if DataContext exist, to prevent error (happens on initialization)
+                    {
+                        split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
+                    }
+                }
+                // FiveM supports both options
                 else if (DataContext != null) // check if DataContext exist, to prevent error (happens on initialization)
                 {
                     split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
+                    split_by_size.IsEnabled = true;
                 }
             }
         }
