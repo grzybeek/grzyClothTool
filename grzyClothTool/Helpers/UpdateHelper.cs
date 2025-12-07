@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Linq;
@@ -15,16 +16,22 @@ public static class UpdateHelper
     private static readonly HttpClient _httpClient;
     private static readonly string _exeLocation;
     private static readonly string _updateFolder;
+    private static Mutex _appMutex;
+    private const int MAX_RETRIES = 5;
+    private const int INITIAL_RETRY_DELAY_MS = 100;
 
     static UpdateHelper()
     {
         _httpClient = new HttpClient();
+        _httpClient.Timeout = TimeSpan.FromSeconds(60);
         _exeLocation = GetExeLocation();
         _updateFolder = Path.Combine(Path.GetTempPath(), "grzyclothtool_update");
         
-        if (Directory.Exists(_updateFolder))
+        _appMutex = new Mutex(true, "grzyClothTool_SingleInstance", out bool createdNew);
+        
+        if (createdNew)
         {
-            Directory.Delete(_updateFolder, true);
+            SafeCleanupUpdateFolder();
         }
     }
 
@@ -36,6 +43,144 @@ public static class UpdateHelper
         return assemblyLocation;
     }
 
+    private static void SafeCleanupUpdateFolder()
+    {
+        try
+        {
+            if (Directory.Exists(_updateFolder))
+            {
+                try
+                {
+                    var extractFolders = Directory.GetDirectories(_updateFolder, "extract_*");
+                    foreach (var folder in extractFolders)
+                    {
+                        try
+                        {
+                            SafeDeleteDirectory(folder, maxAttempts: 2);
+                        }
+                        catch
+                        {
+                            
+                        }
+                    }
+                }
+                catch { }
+
+                try
+                {
+                    if (Directory.GetFileSystemEntries(_updateFolder).Length == 0)
+                    {
+                        Directory.Delete(_updateFolder);
+                    }
+                }
+                catch { }
+            }
+        }
+        catch
+        {
+
+        }
+    }
+
+    private static void SafeDeleteDirectory(string path, int maxAttempts = MAX_RETRIES)
+    {
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    var dirInfo = new DirectoryInfo(path);
+                    SetAttributesNormal(dirInfo);
+                    
+                    Directory.Delete(path, true);
+                    return;
+                }
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                if (attempt < maxAttempts - 1)
+                {
+                    Thread.Sleep(INITIAL_RETRY_DELAY_MS * (int)Math.Pow(2, attempt));
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (IOException)
+            {
+                if (attempt < maxAttempts - 1)
+                {
+                    Thread.Sleep(INITIAL_RETRY_DELAY_MS * (int)Math.Pow(2, attempt));
+                }
+                else
+                {
+                    throw;
+                }
+            }
+        }
+    }
+
+    private static void SetAttributesNormal(DirectoryInfo dir)
+    {
+        try
+        {
+            foreach (var subDir in dir.GetDirectories())
+            {
+                SetAttributesNormal(subDir);
+            }
+            foreach (var file in dir.GetFiles())
+            {
+                file.Attributes = FileAttributes.Normal;
+            }
+        }
+        catch
+        {
+        }
+    }
+
+    private static async Task<T> RetryOperation<T>(Func<Task<T>> operation, int maxAttempts = MAX_RETRIES, CancellationToken cancellationToken = default)
+    {
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                return await operation();
+            }
+            catch (Exception ex) when (attempt < maxAttempts - 1 && !cancellationToken.IsCancellationRequested)
+            {
+                int delay = INITIAL_RETRY_DELAY_MS * (int)Math.Pow(2, attempt);
+                await Task.Delay(delay, cancellationToken);
+            }
+        }
+        return await operation();
+    }
+
+    private static void SafeDeleteFile(string filePath, int maxAttempts = MAX_RETRIES)
+    {
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.SetAttributes(filePath, FileAttributes.Normal);
+                    File.Delete(filePath);
+                }
+                return;
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException || ex is IOException)
+            {
+                if (attempt < maxAttempts - 1)
+                {
+                    Thread.Sleep(INITIAL_RETRY_DELAY_MS * (int)Math.Pow(2, attempt));
+                }
+            }
+        }
+    }
+
     public static string GetCurrentVersion()
     {
         return FileVersionInfo.GetVersionInfo(_exeLocation).FileVersion;
@@ -44,48 +189,70 @@ public static class UpdateHelper
     public async static Task CheckForUpdates()
     {
         string[] args = Environment.GetCommandLineArgs();
+        
         if (args.Contains("--skipUpdate"))
         {
-            App.splashScreen.AddMessage("Skipping update.");
-
             var removeTempFilesArg = args.FirstOrDefault(arg => arg.StartsWith("--removeTempFiles"));
             if (removeTempFilesArg != null)
             {
-                var path = removeTempFilesArg.Split('=')[1].Trim('"');
-                RemoveTempFiles(path);
+                App.splashScreen.AddMessage("Completing update...");
+                
+                var oldExePath = removeTempFilesArg.Split('=')[1].Trim('"');
+                
+                RemoveTempFilesAndRestart(oldExePath);
+                
+                await Task.Delay(Timeout.Infinite);
             }
 
             return;
         }
 
+        CancellationTokenSource cts = null;
         try
         {
-            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
             
             string currentVersion = GetCurrentVersion();
-            var latestVersion = await GetLatestVersion();
+                
+            App.splashScreen.AddMessage("Checking for updates...");
+            var latestVersion = await RetryOperation(async () => await GetLatestVersion(), maxAttempts: 3, cts.Token);
 
             if (latestVersion is null)
             {
-                App.splashScreen.AddMessage("Checking for update failed.");
-                await Task.Delay(2000);
+                App.splashScreen.AddMessage("Could not check for updates.");
+                await Task.Delay(1500, cts.Token);
                 return;
             }
 
             if(latestVersion == currentVersion)
             {
-                App.splashScreen.AddMessage("No new updates found.");
+                App.splashScreen.AddMessage("You're up to date!");
+                await Task.Delay(500, cts.Token);
                 return;
             }
 
-            App.splashScreen.AddMessage("New update found. Downloading...");
-            await DownloadUpdate(latestVersion);
+            App.splashScreen.AddMessage($"Downloading v{latestVersion}...");
+            
+            await DownloadUpdate(latestVersion, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            App.splashScreen.AddMessage("Update check timed out.");
+            await Task.Delay(1500);
         }
         catch (Exception ex)
         {
             App.splashScreen.AddMessage("Update check failed.");
-            File.WriteAllText("update_check_failed.log", ex.ToString());
-            await Task.Delay(2000);
+            try
+            {
+                await File.WriteAllTextAsync("update_check_failed.log", $"[{DateTime.Now}]\n{ex}");
+            }
+            catch { }
+            await Task.Delay(1500);
+        }
+        finally
+        {
+            cts?.Dispose();
         }
     }
 
@@ -95,16 +262,17 @@ public static class UpdateHelper
         {
             string url = "https://raw.githubusercontent.com/grzybeek/grzyClothTool/master/grzyClothTool/grzyClothTool.csproj";
 
-            HttpResponseMessage response = await _httpClient.GetAsync(url);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
             response.EnsureSuccessStatusCode();
 
             string content = await response.Content.ReadAsStringAsync();
 
             // Parse the content as XML
             XDocument doc = XDocument.Parse(content);
-            XElement variableElement = doc.Root.Element("PropertyGroup").Element("FileVersion");
+            XElement variableElement = doc.Root?.Element("PropertyGroup")?.Element("FileVersion");
 
-            return variableElement.Value;
+            return variableElement?.Value;
         }
         catch
         {
@@ -112,39 +280,51 @@ public static class UpdateHelper
         }
     }
 
-    private static async Task DownloadUpdate(string version)
+    private static async Task DownloadUpdate(string version, CancellationToken cancellationToken)
     {
         string url = $"https://github.com/grzybeek/grzyClothTool/releases/download/v{version}/grzyClothTool.zip";
-
-        Directory.CreateDirectory(_updateFolder);
         string downloadZip = Path.Combine(_updateFolder, "grzyClothTool.zip");
-
-        //remove old zip and folder
-        if (File.Exists(downloadZip))
-        {
-            File.Delete(downloadZip);
-        }
 
         try
         {
-            using HttpResponseMessage response = await _httpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+            Directory.CreateDirectory(_updateFolder);
+            
+            SafeDeleteFile(downloadZip, maxAttempts: 3);
 
-            using var fileStream = new FileStream(downloadZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
-            var totalBytes = response.Content.Headers.ContentLength.Value;
-            var buffer = await response.Content.ReadAsByteArrayAsync();
-            await fileStream.WriteAsync(buffer);
+            await RetryOperation(async () =>
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                using HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                response.EnsureSuccessStatusCode();
+
+                using var fileStream = new FileStream(downloadZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                await response.Content.CopyToAsync(fileStream, cancellationToken);
+                await fileStream.FlushAsync(cancellationToken);
+                
+                return true;
+            }, maxAttempts: 3, cancellationToken);
+            
+            App.splashScreen.AddMessage("Download complete. Installing...");
+            await Task.Delay(500, cancellationToken);
+            
+            ExtractAndRunUpdatedApp();
+        }
+        catch (OperationCanceledException)
+        {
+            App.splashScreen.AddMessage("Download cancelled.");
+            await Task.Delay(1500);
         }
         catch(Exception ex)
         {
-            File.WriteAllText("download_failed.log", ex.ToString());
+            try
+            {
+                await File.WriteAllTextAsync("download_failed.log", $"[{DateTime.Now}]\n{ex}");
+            }
+            catch { }
 
-            App.splashScreen.AddMessage("Downloading failed");
+            App.splashScreen.AddMessage("Download failed. Please try again later.");
             await Task.Delay(2000);
-            return;
         }
-
-        ExtractAndRunUpdatedApp();
     }
 
     private static void ExtractAndRunUpdatedApp()
@@ -153,15 +333,45 @@ public static class UpdateHelper
         {
             string downloadZip = Path.Combine(_updateFolder, "grzyClothTool.zip");
 
-            System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, _updateFolder);
-            File.Delete(downloadZip);
+            if (!File.Exists(downloadZip))
+            {
+                throw new FileNotFoundException("Update package not found.");
+            }
 
-            var newExeLocation = Path.Combine(_updateFolder, "grzyClothTool.exe");
+            string extractFolder = Path.Combine(_updateFolder, $"extract_{DateTime.Now:yyyyMMddHHmmss}");
+            Directory.CreateDirectory(extractFolder);
+
+            bool extracted = false;
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                try
+                {
+                    System.IO.Compression.ZipFile.ExtractToDirectory(downloadZip, extractFolder, overwriteFiles: false);
+                    extracted = true;
+                    break;
+                }
+                catch (IOException) when (attempt < 2)
+                {
+                    Thread.Sleep(500);
+                }
+            }
+
+            if (!extracted)
+            {
+                throw new IOException("Failed to extract update package after multiple attempts.");
+            }
+            
+            SafeDeleteFile(downloadZip);
+
+            var newExeLocation = Path.Combine(extractFolder, "grzyClothTool.exe");
             
             if (!File.Exists(newExeLocation))
             {
-                throw new FileNotFoundException($"Something went wrong with the update. Download update manually.");
+                throw new FileNotFoundException("Updated executable not found in package.");
             }
+
+            _appMutex?.ReleaseMutex();
+            _appMutex?.Dispose();
 
             // Run exe with args
             ProcessStartInfo startInfo = new()
@@ -169,47 +379,215 @@ public static class UpdateHelper
                 FileName = newExeLocation,
                 ArgumentList = { "--skipUpdate", $"--removeTempFiles=\"{_exeLocation}\"" },
                 UseShellExecute = true,
-                WorkingDirectory = _updateFolder
+                WorkingDirectory = extractFolder
             };
+            
             Process.Start(startInfo);
 
-            App.splashScreen.Shutdown();
-            Application.Current.Shutdown();
+            Thread.Sleep(500);
+            
+            App.splashScreen?.Shutdown();
+            Application.Current.Dispatcher.Invoke(() => Application.Current.Shutdown());
         }
         catch (Exception ex)
         {
-            File.WriteAllText("extract_failed.log", ex.ToString());
-            App.splashScreen.AddMessage("Update extraction failed.");
-            Task.Delay(2000).Wait();
+            try
+            {
+                File.WriteAllText("extract_failed.log", $"[{DateTime.Now}]\n{ex}");
+            }
+            catch { }
+            
+            App.splashScreen?.AddMessage("Installation failed. Please update manually.");
+            Task.Delay(2500).Wait();
         }
     }
 
-    public static void RemoveTempFiles(string oldExeLocation)
+    private static void RemoveTempFilesAndRestart(string oldExeLocation)
     {
-        //remove .exe and .dll.config from oldExeLocation
-        string[] fileExtensions = [".exe", ".dll.config"];
-        foreach (var extension in fileExtensions)
+        try
         {
-            string[] filesToDelete = Directory.GetFiles(Path.GetDirectoryName(oldExeLocation), $"grzyClothTool{extension}");
-            foreach (var file in filesToDelete)
+            // Kill all other grzyClothTool processes to ensure no file locks
+            KillAllOtherInstances();
+            
+            Thread.Sleep(2000);
+            
+            var oldDir = Path.GetDirectoryName(oldExeLocation);
+            if (string.IsNullOrEmpty(oldDir) || !Directory.Exists(oldDir))
             {
-                if (File.Exists(file))
+                ForceShutdown();
+                return;
+            }
+
+            // Remove old .exe and .dll.config from oldExeLocation
+            string[] fileExtensions = [".exe", ".dll.config"];
+            foreach (var extension in fileExtensions)
+            {
+                var pattern = $"grzyClothTool{extension}";
+                var filesToDelete = Directory.GetFiles(oldDir, pattern);
+                foreach (var file in filesToDelete)
                 {
-                    File.Delete(file);
+                    SafeDeleteFile(file);
+                }
+            }
+
+            string[] files = Directory.GetFiles(AppContext.BaseDirectory);
+            int filesMoved = 0;
+            foreach (var file in files)
+            {
+                try
+                {
+                    var fileName = Path.GetFileName(file);
+                    var destPath = Path.Combine(oldDir, fileName);
+                    
+                    if (string.Equals(file, destPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    
+                    SafeDeleteFile(destPath);
+                    
+                    for (int attempt = 0; attempt < MAX_RETRIES; attempt++)
+                    {
+                        try
+                        {
+                            File.Move(file, destPath);
+                            filesMoved++;
+                            break;
+                        }
+                        catch (IOException) when (attempt < MAX_RETRIES - 1)
+                        {
+                            Thread.Sleep(INITIAL_RETRY_DELAY_MS * (int)Math.Pow(2, attempt));
+                        }
+                    }
+                }
+                catch
+                {
+                    // Continue with next file even if one fails
+                }
+            }
+
+            if (filesMoved > 0)
+            {
+                var finalExePath = Path.Combine(oldDir, "grzyClothTool.exe");
+                if (File.Exists(finalExePath))
+                {
+                    ProcessStartInfo startInfo = new()
+                    {
+                        FileName = finalExePath,
+                        UseShellExecute = true,
+                        WorkingDirectory = oldDir
+                    };
+                    
+                    Process.Start(startInfo);
+                    
+                    Thread.Sleep(500);
+                }
+            }
+
+            try
+            {
+                if (Directory.Exists(_updateFolder))
+                {
+                    var extractFolders = Directory.GetDirectories(_updateFolder, "extract_*");
+                    foreach (var folder in extractFolders)
+                    {
+                        try
+                        {
+                            SafeDeleteDirectory(folder, maxAttempts: 2);
+                        }
+                        catch { }
+                    }
+                    
+                    if (Directory.GetFileSystemEntries(_updateFolder).Length == 0)
+                    {
+                        Directory.Delete(_updateFolder);
+                    }
+                }
+            }
+            catch { }
+
+            ForceShutdown();
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                File.WriteAllText(Path.Combine(Path.GetTempPath(), "grzyclothtool_cleanup_error.log"), 
+                    $"[{DateTime.Now}]\n{ex}");
+            }
+            catch { }
+            
+            ForceShutdown();
+        }
+    }
+
+    private static void KillAllOtherInstances()
+    {
+        try
+        {
+            var currentProcess = Process.GetCurrentProcess();
+            var currentProcessId = currentProcess.Id;
+            
+            var processes = Process.GetProcessesByName("grzyClothTool");
+            
+            foreach (var process in processes)
+            {
+                try
+                {
+                    // Skip the current process (the temp updater instance)
+                    if (process.Id == currentProcessId)
+                    {
+                        continue;
+                    }
+                    
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                        
+                        process.WaitForExit(2000);
+                    }
+                    
+                    process.Dispose();
+                }
+                catch
+                {
+                    // Continue with other processes even if one fails
                 }
             }
         }
-
-        //get all files from current exe location and move them to oldExeLocation
-        string[] files = Directory.GetFiles(AppContext.BaseDirectory);
-        foreach (var file in files)
+        catch
         {
-            File.Move(file, Path.Combine(Path.GetDirectoryName(oldExeLocation), Path.GetFileName(file)));
+            // Continue update even if we can't kill processes
         }
+    }
 
-        if (Directory.Exists(_updateFolder))
+    private static void ForceShutdown()
+    {
+        try
         {
-            Directory.Delete(_updateFolder, true);
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                try
+                {
+                    App.splashScreen?.Shutdown();
+                }
+                catch { }
+                
+                try
+                {
+                    Application.Current?.Shutdown();
+                }
+                catch { }
+            });
+            
+            Thread.Sleep(200);
         }
+        catch { }
+        
+        try
+        {
+            Environment.Exit(0);
+        }
+        catch { }
     }
 }
