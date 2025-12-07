@@ -1,6 +1,7 @@
 ﻿using grzyClothTool.Controls;
 using grzyClothTool.Helpers;
 using Microsoft.Win32;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,25 @@ namespace grzyClothTool.Views
         public static bool IsDarkMode => Properties.Settings.Default.IsDarkMode;
 
         public int[] TextureResolutionOptions { get; } = [128, 256, 512, 1024, 2048, 4096];
+
+        private string _mainProjectsFolder;
+        public string MainProjectsFolder
+        {
+            get
+            {
+                _mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+                return _mainProjectsFolder;
+            }
+            set
+            {
+                if (_mainProjectsFolder != value)
+                {
+                    _mainProjectsFolder = value;
+                    PersistentSettingsHelper.Instance.MainProjectsFolder = value;
+                    OnPropertyChanged(nameof(MainProjectsFolder));
+                }
+            }
+        }
 
         private string _selectedGroup;
         public string SelectedGroup
@@ -42,6 +62,9 @@ namespace grzyClothTool.Views
         public SettingsWindow()
         {
             InitializeComponent();
+            
+            _mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+            
             DataContext = this;
         }
 
@@ -76,6 +99,67 @@ namespace grzyClothTool.Views
                 if (isPathValid)
                 {
                     CWHelper.SetGTAFolder(selectedGTAPath.FolderName);
+                }
+            }
+        }
+
+        private void MainProjectsFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var title = e.Source.GetType().GetProperty("Title")?.GetValue(e.Source)?.ToString() ?? "Select Main Projects Folder";
+
+            OpenFolderDialog selectedFolder = new()
+            {
+                Title = title,
+                Multiselect = false
+            };
+
+            if (!string.IsNullOrWhiteSpace(PersistentSettingsHelper.Instance.MainProjectsFolder) && 
+                Directory.Exists(PersistentSettingsHelper.Instance.MainProjectsFolder))
+            {
+                selectedFolder.FolderName = PersistentSettingsHelper.Instance.MainProjectsFolder;
+            }
+
+            if (selectedFolder.ShowDialog() == true)
+            {
+                try
+                {
+                    if (PersistentSettingsHelper.IsRootDrive(selectedFolder.FolderName))
+                    {
+                        CustomMessageBox.Show(
+                            "You cannot use a root drive (e.g., C:\\) as the main folder.\n\nPlease select or create a subfolder.",
+                            "Invalid Folder",
+                            CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                            CustomMessageBox.CustomMessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (!Directory.Exists(selectedFolder.FolderName))
+                    {
+                        Directory.CreateDirectory(selectedFolder.FolderName);
+                    }
+
+                    string testFile = Path.Combine(selectedFolder.FolderName, ".grzyClothTool_test");
+                    File.WriteAllText(testFile, "test");
+                    File.Delete(testFile);
+
+                    MainProjectsFolder = selectedFolder.FolderName;
+                    LogHelper.Log($"Main projects folder updated to: {selectedFolder.FolderName}", LogType.Info);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    CustomMessageBox.Show(
+                        "Access denied. Please select a folder where you have write permissions.",
+                        "Error",
+                        CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                        CustomMessageBox.CustomMessageBoxIcon.Error);
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show(
+                        $"Error setting main projects folder: {ex.Message}",
+                        "Error",
+                        CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                        CustomMessageBox.CustomMessageBoxIcon.Error);
                 }
             }
         }

@@ -1,0 +1,137 @@
+<Window x:Class="grzyClothTool.Views.FirstRunSetupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+        mc:Ignorable="d"
+        Title="Welcome to grzyClothTool - First Time Setup"
+        Height="350" Width="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{DynamicResource Brush50}"
+        WindowStyle="SingleBorderWindow">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Welcome to grzyClothTool!"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="{DynamicResource Brush950}"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="First Time Setup"
+                       FontSize="16"
+                       Foreground="{DynamicResource Brush700}"
+                       HorizontalAlignment="Center"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,20">
+            <TextBlock Text="Select Main Projects Folder"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource Brush950}"
+                       Margin="0,0,0,10"/>
+            
+            <TextBlock TextWrapping="Wrap"
+                       FontSize="12"
+                       Foreground="{DynamicResource Brush700}"
+                       Margin="0,0,0,5">
+                <Run Text="Choose a MAIN folder where ALL your clothing projects will be stored."/>
+                <LineBreak/>
+                <Run Text="Example: " FontWeight="SemiBold"/>
+                <Run Text="C:\grzyClothTool Projects"/>
+            </TextBlock>
+            
+            <TextBlock Text="(Do NOT select a specific project folder - select the parent folder that will contain multiple projects)"
+                       TextWrapping="Wrap"
+                       FontSize="11"
+                       FontStyle="Italic"
+                       Foreground="{DynamicResource Brush600}"
+                       Margin="0,0,0,15"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="FolderPathTextBox"
+                         Grid.Column="0"
+                         IsReadOnly="True"
+                         Padding="10"
+                         FontSize="12"
+                         VerticalContentAlignment="Center"
+                         Background="{DynamicResource Brush100}"
+                         Foreground="{DynamicResource Brush950}"
+                         BorderBrush="{DynamicResource Brush300}"
+                         BorderThickness="1"/>
+
+                <Button x:Name="BrowseButton"
+                        Grid.Column="1"
+                        Content="Browse..."
+                        Click="BrowseButton_Click"
+                        Padding="15,10"
+                        Margin="10,0,0,0"
+                        Background="{DynamicResource Brush300}"
+                        Foreground="{DynamicResource Brush950}"
+                        BorderBrush="{DynamicResource Brush400}"
+                        BorderThickness="1"
+                        Cursor="Hand"/>
+            </Grid>
+
+            <TextBlock x:Name="ValidationMessage"
+                       Text=""
+                       FontSize="11"
+                       Foreground="Red"
+                       Margin="0,5,0,0"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed"/>
+        </StackPanel>
+
+        <Border Grid.Row="2"
+                Background="{DynamicResource Brush100}"
+                BorderBrush="{DynamicResource Brush300}"
+                BorderThickness="1"
+                Padding="15"
+                CornerRadius="5"
+                Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="[i] Important Information"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource Brush950}"
+                           Margin="0,0,0,10"/>
+                
+                <TextBlock TextWrapping="Wrap"
+                           FontSize="11"
+                           Foreground="{DynamicResource Brush700}"
+                           LineHeight="18">
+                    <Run Text="* This setting is stored in your user profile and will persist across application updates."/>
+                    <LineBreak/>
+                    <Run Text="* You can change this folder later in the Settings menu."/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Row="3" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button x:Name="ContinueButton"
+                    Content="Continue"
+                    Click="ContinueButton_Click"
+                    Padding="30,10"
+                    Background="{DynamicResource Brush950}"
+                    Foreground="{DynamicResource Brush50}"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    IsEnabled="False"/>
+        </StackPanel>
+    </Grid>
+</Window>

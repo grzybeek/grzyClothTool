@@ -102,6 +102,33 @@ namespace grzyClothTool
             
             bool isDarkMode = Properties.Settings.Default.IsDarkMode;
             App.ChangeTheme(isDarkMode);
+
+            CheckFirstRun();
+        }
+
+        private void CheckFirstRun()
+        {
+            if (PersistentSettingsHelper.Instance.IsFirstRun)
+            {
+                this.Hide();
+                
+                var setupWindow = new FirstRunSetupWindow
+                {
+                    Owner = null
+                };
+                
+                bool? result = setupWindow.ShowDialog();
+                
+                if (result == true && setupWindow.SetupCompleted)
+                {
+                    this.Show();
+                    
+                    if (!string.IsNullOrEmpty(PersistentSettingsHelper.Instance.MainProjectsFolder))
+                    {
+                        LogHelper.Log($"Main projects folder set to: {PersistentSettingsHelper.Instance.MainProjectsFolder}", LogType.Info);
+                    }
+                }
+            }
         }
         
         private void PreviewAnchorable_Closing(object sender, System.ComponentModel.CancelEventArgs e)

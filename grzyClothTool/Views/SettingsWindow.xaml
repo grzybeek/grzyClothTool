@@ -148,12 +148,20 @@
                             </GroupBox>
                         </StackPanel>
                         <StackPanel Margin="5" Grid.Column="1">
-                            <GroupBox Margin="0,5" Height="330" Style="{DynamicResource FixedGroupBox}">
+                            <GroupBox Margin="0,5" Height="360" Style="{DynamicResource FixedGroupBox}">
                                 <GroupBox.Header>
                                     <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="General settings" />
                                 </GroupBox.Header>
 
                                 <StackPanel Margin="0">
+                                    <c:SettingsLabelTextBox
+                                        Margin="5"
+                                        Label="Main Projects Folder"
+                                        Text="{Binding MainProjectsFolder, Mode=TwoWay}"
+                                        Description="Main folder where all your clothing projects are stored"
+                                        Title="Select your Main Projects Folder"
+                                        ButtonClick="MainProjectsFolder_Click" />
+
                                     <c:SettingsLabelTextBox
                                         Margin="5"
                                         Label="Current GTAV Path"
