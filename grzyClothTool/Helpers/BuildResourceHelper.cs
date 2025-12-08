@@ -1,5 +1,4 @@
 ﻿using CodeWalker.GameFiles;
-using CodeWalker.GameFiles;
 using CodeWalker.Utils;
 using grzyClothTool.Constants;
 using grzyClothTool.Models;
@@ -25,7 +24,9 @@ public class BuildResourceHelper
     private readonly string _projectName;
     private string _buildPath;
     private readonly string _baseBuildPath;
+    private readonly string _parentBuildPath; // Parent directory for creating extra resources as siblings
     private readonly bool _splitAddons;
+    private readonly bool _splitBySize;
     private readonly IProgress<int> _progress;
 
     private static readonly string _buildTempFolderName = "grzyClothTool_buildtemp";
@@ -33,15 +34,21 @@ public class BuildResourceHelper
 
     private readonly List<string> firstPersonFiles = [];
     private BuildResourceType _buildResourceType;
+    
+    // Size tracking for resource splitting
+    private long _currentResourceSize = 0;
+    private int _extraResourceCounter = 0;
 
-    public BuildResourceHelper(string name, string path, IProgress<int> progress, BuildResourceType resourceType, bool splitAddons)
+    public BuildResourceHelper(string name, string path, IProgress<int> progress, BuildResourceType resourceType, bool splitAddons, bool splitBySize = false)
     {
         _projectName = name;
         _buildPath = path;
         _baseBuildPath = path; // store base build path, as we will be modyfiyng _buildPath, when splitting addons
+        _parentBuildPath = Directory.GetParent(path)?.FullName ?? path; // Store parent directory for extra resources
         _progress = progress;
         _buildResourceType = resourceType;
         _splitAddons = splitAddons;
+        _splitBySize = splitBySize;
 
         shouldUseNumber = MainWindow.AddonManager.Addons.Count > 1;
     }
@@ -66,6 +73,59 @@ public class BuildResourceHelper
         number ??= _number;
         return shouldUseNumber ? $"{_projectName}_{number:D2}" : _projectName;
     }
+
+    public string GetProjectNameWithExtra()
+    {
+        var baseName = GetProjectName();
+        return _extraResourceCounter > 0 ? $"{baseName}-EXTRA_{_extraResourceCounter}" : baseName;
+    }
+
+    public void ResetSizeTracking()
+    {
+        _currentResourceSize = 0;
+        _extraResourceCounter = 0;
+    }
+
+    public bool ShouldCreateNewExtraResource(long nextFileSize = 0)
+    {
+        if (!_splitBySize || _buildResourceType != BuildResourceType.FiveM)
+            return false;
+            
+        // Use 700MB limit for main resource, 800MB for extra resources
+        long sizeLimit = _extraResourceCounter == 0 
+            ? GlobalConstants.MAX_MAIN_RESOURCE_SIZE_BYTES 
+            : GlobalConstants.MAX_RESOURCE_SIZE_BYTES;
+            
+        return (_currentResourceSize + nextFileSize) >= sizeLimit;
+    }
+
+    public void AddToResourceSize(long bytes)
+    {
+        _currentResourceSize += bytes;
+    }
+
+    public long GetFileSize(string filePath)
+    {
+        try
+        {
+            return new FileInfo(filePath).Length;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public void IncrementExtraCounter()
+    {
+        _extraResourceCounter++;
+        _currentResourceSize = 0;
+    }
+    
+    public bool IsInExtraResource()
+    {
+        return _extraResourceCounter > 0;
+    }
     
 
     #region FiveM
@@ -75,6 +135,7 @@ public class BuildResourceHelper
     {
         var pedName = GetPedName(sex);
         var projectName = GetProjectName(counter);
+        var originalBuildPath = _buildPath; // Store original path to restore later
 
         var drawables = _addon.Drawables.Where(x => x.Sex == sex).ToList();
         var drawableGroups = drawables.Select((x, i) => new { Index = i, Value = x })
@@ -91,46 +152,26 @@ public class BuildResourceHelper
         
         var ymtPath = Path.Combine(streamDirectory, $"{pedName}_{projectName}.ymt");
         fileOperations.Add(File.WriteAllBytesAsync(ymtPath, ymtBytes));
+        AddToResourceSize(ymtBytes.Length);
 
         foreach (var group in drawableGroups)
         {
             foreach (var d in group)
             {
                 var tempYddPath = yddPathsDict[d];
-
-                var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
+                var yddFileSize = GetFileSize(tempYddPath);
                 
-                var folderPath = SimplePathBuilder.BuildPath(d, _buildPath, _buildResourceType);
-                Directory.CreateDirectory(folderPath);
-                
-                var prefix = RemoveInvalidChars($"{drawablePedName}_{projectName}^");
-                var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
-                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, finalPath));
-
-                if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
-                {
-                    fileOperations.Add(FileHelper.CopyAsync(d.ClothPhysicsPath, Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.ClothPhysicsPath)}")));
-                }
-
-                if (!string.IsNullOrEmpty(d.FirstPersonPath))
-                {
-                    //todo: this probably shouldn't be hardcoded to "_1", handle it when there is option to add more alternate drawable versions
-                    fileOperations.Add(FileHelper.CopyAsync(d.FirstPersonPath, Path.Combine(folderPath, $"{prefix}{d.Name}_1{Path.GetExtension(d.FirstPersonPath)}")));
-                    
-                    var name = $"{prefix}{d.Name}".Replace("^", "/");
-                    firstPersonFiles.Add(name);
-                }
-
+                // Pre-calculate actual texture sizes (since optimization changes file size)
+                var textureData = new List<(string buildName, byte[] data)>();
+                long texturesSizeTotal = 0;
                 foreach (var t in d.Textures)
                 {
                     var buildName = RemoveInvalidChars(t.GetBuildName());
-                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{buildName}.ytd");
-
                     byte[] txtBytes = null;
+                    
                     if (t.IsOptimizedDuringBuild)
                     {
                         txtBytes = await ImgHelper.Optimize(t);
-                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
                     }
                     else
                     {
@@ -142,9 +183,90 @@ public class BuildResourceHelper
                         {
                             txtBytes = await FileHelper.ReadAllBytesAsync(t.FilePath);
                         }
-
-                        fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
                     }
+                    
+                    if (txtBytes != null)
+                    {
+                        textureData.Add((buildName, txtBytes));
+                        texturesSizeTotal += txtBytes.Length;
+                    }
+                }
+                
+                // Calculate total size with actual processed sizes
+                long totalDrawableSize = yddFileSize + texturesSizeTotal;
+                if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
+                {
+                    totalDrawableSize += GetFileSize(d.ClothPhysicsPath);
+                }
+                if (!string.IsNullOrEmpty(d.FirstPersonPath))
+                {
+                    totalDrawableSize += GetFileSize(d.FirstPersonPath);
+                }
+                
+                // Check if we need to split into a new resource (only for stream files when size splitting is enabled)
+                if (ShouldCreateNewExtraResource(totalDrawableSize) && totalDrawableSize > 0)
+                {
+                    // Wait for pending operations to complete before creating new resource
+                    if (fileOperations.Count > 0)
+                    {
+                        await Task.WhenAll(fileOperations);
+                        fileOperations.Clear();
+                    }
+                    
+                    // Create manifest for current resource (only if we're already in an extra resource)
+                    if (IsInExtraResource())
+                    {
+                        await CreateSizeSplitFxManifest(sex, projectName);
+                    }
+                    
+                    // Move to next resource (first extra or subsequent)
+                    IncrementExtraCounter();
+                    
+                    // Update build path for new extra resource (create as sibling, not subdirectory)
+                    _buildPath = Path.Combine(_parentBuildPath, GetProjectNameWithExtra());
+                    streamDirectory = Path.Combine(_buildPath, "stream");
+                    Directory.CreateDirectory(streamDirectory);
+                    
+                    // Copy YMT to new resource and wait for it to complete
+                    ymtPath = Path.Combine(streamDirectory, $"{pedName}_{projectName}.ymt");
+                    await File.WriteAllBytesAsync(ymtPath, ymtBytes);
+                    AddToResourceSize(ymtBytes.Length);
+                }
+
+                var drawablePedName = d.IsProp ? $"{pedName}_p" : pedName;
+                
+                var folderPath = SimplePathBuilder.BuildPath(d, _buildPath, _buildResourceType);
+                Directory.CreateDirectory(folderPath);
+                
+                var prefix = RemoveInvalidChars($"{drawablePedName}_{projectName}^");
+                var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
+                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, finalPath));
+                AddToResourceSize(yddFileSize);
+
+                if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
+                {
+                    var clothSize = GetFileSize(d.ClothPhysicsPath);
+                    fileOperations.Add(FileHelper.CopyAsync(d.ClothPhysicsPath, Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.ClothPhysicsPath)}")));
+                    AddToResourceSize(clothSize);
+                }
+
+                if (!string.IsNullOrEmpty(d.FirstPersonPath))
+                {
+                    //todo: this probably shouldn't be hardcoded to "_1", handle it when there is option to add more alternate drawable versions
+                    var fpSize = GetFileSize(d.FirstPersonPath);
+                    fileOperations.Add(FileHelper.CopyAsync(d.FirstPersonPath, Path.Combine(folderPath, $"{prefix}{d.Name}_1{Path.GetExtension(d.FirstPersonPath)}")));
+                    AddToResourceSize(fpSize);
+                    
+                    var name = $"{prefix}{d.Name}".Replace("^", "/");
+                    firstPersonFiles.Add(name);
+                }
+
+                // Write pre-processed textures
+                foreach (var (buildName, txtBytes) in textureData)
+                {
+                    var finalTexPath = Path.Combine(folderPath, $"{prefix}{buildName}.ytd");
+                    fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
+                    AddToResourceSize(txtBytes.Length);
                 }
             }
         }
@@ -173,6 +295,9 @@ public class BuildResourceHelper
                 generated?.Save(streamDirectory + "/mp_creaturemetadata_" + GetGenderLetter(sex) + "_" + projectName + ".ymt");
             }
         );
+        
+        // Restore original build path after processing
+        _buildPath = originalBuildPath;
     }
 
     public async Task BuildFiveMResource()
@@ -192,11 +317,23 @@ public class BuildResourceHelper
                 SetAddon(selectedAddon);
                 SetNumber(counter);
                 UpdateBuildPath();
+                ResetSizeTracking(); // Reset size tracking for each addon when splitting by addons
 
                 AddBuildTasksForSex(selectedAddon, SexType.male, tasks, metaFiles, counter);
                 AddBuildTasksForSex(selectedAddon, SexType.female, tasks, metaFiles, counter);
 
                 await Task.WhenAll(tasks);
+                
+                // If size splitting is enabled and extra resources were created, finalize the last one
+                if (_splitBySize && _extraResourceCounter > 0)
+                {
+                    // The last extra resource needs its manifest
+                    await FinalizeSizeSplitResource(selectedAddon);
+                    
+                    // Restore the original build path for meta files
+                    _buildPath = Path.Combine(_baseBuildPath, GetProjectName());
+                }
+                
                 BuildFirstPersonAlternatesMeta();
                 BuildPedAlternativeVariationsMeta();
                 BuildFxManifest(metaFiles);
@@ -210,6 +347,8 @@ public class BuildResourceHelper
         } 
         else
         {
+            ResetSizeTracking(); // Reset size tracking when not splitting by addons
+            
             foreach (var selectedAddon in MainWindow.AddonManager.Addons)
             {
                 SetAddon(selectedAddon);
@@ -222,12 +361,67 @@ public class BuildResourceHelper
             }
 
             await Task.WhenAll(tasks);
+            
+            // If size splitting is enabled and extra resources were created, finalize the last one
+            if (_splitBySize && _extraResourceCounter > 0)
+            {
+                await FinalizeSizeSplitResource(null);
+                
+                // Restore the original build path for meta files
+                _buildPath = _baseBuildPath;
+            }
+            
             BuildFirstPersonAlternatesMeta();
             BuildPedAlternativeVariationsMeta();
             BuildFxManifest(metaFiles);
         }
 
         CleanupBuildTempDirectory();
+    }
+    
+    private async Task FinalizeSizeSplitResource(Addon addon)
+    {
+        // Create the final fxmanifest for the last extra resource
+        if (_extraResourceCounter > 0)
+        {
+            var currentPath = _buildPath;
+            _buildPath = Path.Combine(_parentBuildPath, GetProjectNameWithExtra());
+            
+            StringBuilder contentBuilder = new();
+            contentBuilder.AppendLine("-- This resource was generated by grzyClothTool :)");
+            contentBuilder.AppendLine($"-- {GlobalConstants.DISCORD_INVITE_URL}");
+            contentBuilder.AppendLine($"-- EXTRA resource {_extraResourceCounter} for size splitting (stream files only)");
+            contentBuilder.AppendLine();
+            contentBuilder.AppendLine("fx_version 'cerulean'");
+            contentBuilder.AppendLine("game 'gta5'");
+            contentBuilder.AppendLine("author 'grzyClothTool'");
+            
+            var finalPath = Path.Combine(_buildPath, "fxmanifest.lua");
+            await File.WriteAllTextAsync(finalPath, contentBuilder.ToString());
+            
+            _buildPath = currentPath;
+        }
+    }
+
+    private async Task CreateSizeSplitFxManifest(SexType sex, string projectName)
+    {
+        var pedName = GetPedName(sex);
+        var metaFileName = $"{pedName}_{projectName}.meta";
+        
+        StringBuilder contentBuilder = new();
+        contentBuilder.AppendLine("-- This resource was generated by grzyClothTool :)");
+        contentBuilder.AppendLine($"-- {GlobalConstants.DISCORD_INVITE_URL}");
+        contentBuilder.AppendLine($"-- EXTRA resource {_extraResourceCounter} for size splitting");
+        contentBuilder.AppendLine();
+        contentBuilder.AppendLine("fx_version 'cerulean'");
+        contentBuilder.AppendLine("game 'gta5'");
+        contentBuilder.AppendLine("author 'grzyClothTool'");
+        contentBuilder.AppendLine();
+        
+        // Only include stream files, no meta files in extra resources
+        
+        var finalPath = Path.Combine(_buildPath, "fxmanifest.lua");
+        await File.WriteAllTextAsync(finalPath, contentBuilder.ToString());
     }
 
     private void BuildFxManifest(List<string> metaFiles)
@@ -1246,6 +1440,12 @@ public class BuildResourceHelper
             string inputPath = dr.FilePath;
             string uniqueFileName = $"{dr.Id}_{Path.GetFileName(inputPath)}";
             string outputPath = Path.Combine(tempDir, uniqueFileName);
+
+            // If temp file already exists, return it (happens when building multiple resources with same drawables)
+            if (File.Exists(outputPath))
+            {
+                return outputPath;
+            }
 
             // If drawable is encrypted or has no embedded textures, just copy the original file without processing
             if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0 || dr.Details.EmbeddedTextures.All(x => x.Value.Details.Width == 0))
