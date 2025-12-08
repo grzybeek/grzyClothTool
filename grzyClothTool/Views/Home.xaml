@@ -88,6 +88,7 @@
                                                         BorderBrush="{DynamicResource Brush300}" 
                                                         BorderThickness="1" 
                                                         CornerRadius="6" 
+                                                        Margin="6,0"
                                                         Padding="12,10">
                                                     <Grid>
                                                         <Grid.RowDefinitions>
@@ -126,25 +127,9 @@
                                                                    Grid.Row="0"/>
 
                                                         <StackPanel Orientation="Horizontal" 
-                                                                    Grid.Column="1" 
-                                                                    Grid.Row="1"
-                                                                    Margin="0,3,0,0">
-                                                            <icons:MaterialIcon Kind="ClockOutline" 
-                                                                                Width="11" 
-                                                                                Height="11" 
-                                                                                Foreground="{DynamicResource Brush600}"
-                                                                                VerticalAlignment="Center"
-                                                                                Margin="0,0,4,0"/>
-                                                            <TextBlock FontSize="10" 
-                                                                       Foreground="{DynamicResource Brush600}">
-                                                                <Run Text="{Binding LastModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
-                                                            </TextBlock>
-                                                        </StackPanel>
-
-                                                        <StackPanel Orientation="Horizontal" 
-                                                                    Grid.Column="1" 
-                                                                    Grid.Row="2"
-                                                                    Margin="0,3,0,0">
+                                                                Grid.Column="1" 
+                                                                Grid.Row="1"
+                                                                Margin="0,4,4,0">
                                                             <Border Background="{DynamicResource Brush200}"
                                                                     CornerRadius="3"
                                                                     Padding="6,2">
@@ -157,13 +142,29 @@
                                                             <Border Background="{DynamicResource Brush200}"
                                                                     CornerRadius="3"
                                                                     Padding="6,2"
-                                                                    Margin="0,0,4,0">
+                                                                    Margin="4,0,4,0">
                                                                 <TextBlock FontSize="10" 
-                                                                           Foreground="{DynamicResource Brush800}">
+                                                                    Foreground="{DynamicResource Brush800}">
                                                                     <Run Text="{Binding DrawableCount, Mode=OneWay}"/>
                                                                     <Run Text=" drawables"/>
                                                                 </TextBlock>
                                                             </Border>
+                                                        </StackPanel>
+
+                                                        <StackPanel Orientation="Horizontal" 
+                                                                    Grid.Column="1" 
+                                                                    Grid.Row="2"
+                                                                    Margin="0,3,0,0">
+                                                            <icons:MaterialIcon Kind="ClockOutline" 
+                                                                                Width="11" 
+                                                                                Height="11" 
+                                                                                Foreground="{DynamicResource Brush600}"
+                                                                                VerticalAlignment="Center"
+                                                                                Margin="0,0,4,0"/>
+                                                            <TextBlock FontSize="10" 
+                                                                       Foreground="{DynamicResource Brush600}">
+                                                                <Run Text="{Binding LastModified, StringFormat='{}Last modified: {0:yyyy-MM-dd HH:mm}'}"/>
+                                                            </TextBlock>
                                                         </StackPanel>
 
                                                         <Button Background="Transparent"
@@ -206,8 +207,7 @@
                                                     <Trigger Property="IsMouseOver" Value="True">
                                                         <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource Brush100}"/>
                                                         <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource Brush400}"/>
-                                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="2"/>
-                                                        <Setter TargetName="CardBorder" Property="Padding" Value="11,9"/>
+                                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="1"/>
                                                     </Trigger>
                                                     <Trigger Property="IsPressed" Value="True">
                                                         <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource Brush150}"/>

@@ -24,6 +24,12 @@ public static class SaveHelper
     public static string SavesPath { get; private set; }
     private static Timer _timer;
     public static event Action SaveCreated;
+
+    public static event Action<double> AutoSaveProgress;
+    public static event Action<int> RemainingSecondsChanged;
+    private static int _autoSaveInterval = 60000; // 60 seconds
+    private static int _elapsedTime = 0;
+
     private static SemaphoreSlim _semaphore = new(1);
 
     public static bool HasUnsavedChanges { get; set; }
@@ -45,9 +51,34 @@ public static class SaveHelper
 
     public static void Init()
     {
-        _timer = new Timer(60000);
-        _timer.Elapsed += async (sender, e) => await SaveAsync();
+        _timer = new Timer(100);
+        _timer.Elapsed += OnAutoSaveTick;
         _timer.Start();
+    }
+
+    private static async void OnAutoSaveTick(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        if (SavingPaused || !HasUnsavedChanges)
+        {
+            _elapsedTime = 0;
+            AutoSaveProgress?.Invoke(0);
+            RemainingSecondsChanged?.Invoke(0);
+            return;
+        }
+
+        _elapsedTime += (int)_timer.Interval;
+        double percentage = ((double)_elapsedTime / _autoSaveInterval) * 75.0;
+        int remainingSeconds = Math.Max(0, (_autoSaveInterval - _elapsedTime) / 1000);
+        
+        if (_elapsedTime >= _autoSaveInterval)
+        {
+            await SaveAsync();
+            _elapsedTime = 0;
+            RemainingSecondsChanged?.Invoke(0);
+            return;
+        }
+        AutoSaveProgress?.Invoke(percentage);
+        RemainingSecondsChanged?.Invoke(remainingSeconds);
     }
 
     public static async Task SaveAsync()

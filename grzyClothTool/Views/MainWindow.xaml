@@ -65,7 +65,8 @@
             </StatusBar.ItemsPanel>
             <StatusBarItem Grid.Column="0" MouseDoubleClick="StatusBarItem_MouseDoubleClick">
                 <StackPanel Orientation="Horizontal">
-                    <icons:MaterialIcon x:Name="logBarIcon" Visibility="Hidden" Width="20" HorizontalAlignment="Left" Foreground="{DynamicResource Brush900}" />
+                    <controls:AutoSaveIndicator x:Name="AutoSaveIndicator" Visibility="Collapsed" Margin="0,0,5,0" />
+                    <icons:MaterialIcon x:Name="logBarIcon" Visibility="Hidden" Width="24" HorizontalAlignment="Left" Foreground="{DynamicResource Brush900}" />
                     <TextBlock Name="logBar" Foreground="{DynamicResource Brush900}" FontSize="12" Height="18" VerticalAlignment="Center" Padding="8,0,0,0"></TextBlock>
                 </StackPanel>
             </StatusBarItem>

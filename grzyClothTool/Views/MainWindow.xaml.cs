@@ -49,6 +49,8 @@ namespace grzyClothTool
 
             _instance = this;
             _addonManager = new AddonManager();
+            SaveHelper.AutoSaveProgress += OnAutoSaveProgress;
+            SaveHelper.RemainingSecondsChanged += OnRemainingSecondsChanged;
 
             _navigationHelper = new NavigationHelper();
             _navigationHelper.RegisterPage("Home", () => new Home());
@@ -104,6 +106,30 @@ namespace grzyClothTool
             App.ChangeTheme(isDarkMode);
 
             CheckFirstRun();
+        }
+
+        private void OnAutoSaveProgress(double percentage)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (percentage > 0 && SaveHelper.HasUnsavedChanges)
+                {
+                    AutoSaveIndicator.Visibility = Visibility.Visible;
+                    AutoSaveIndicator.UpdateProgress(percentage);
+                }
+                else
+                {
+                    AutoSaveIndicator.Visibility = Visibility.Collapsed;
+                }
+            });
+        }
+
+        private void OnRemainingSecondsChanged(int seconds)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                AutoSaveIndicator.RemainingSeconds = seconds;
+            });
         }
 
         private void CheckFirstRun()
