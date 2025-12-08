@@ -887,7 +887,7 @@ namespace grzyClothTool.Controls
             }
         }
 
-        private void ReplaceTexture_Click(object sender, RoutedEventArgs e)
+        private async void ReplaceTexture_Click(object sender, RoutedEventArgs e)
         {
 
             if (SelectedTextures == null || SelectedTextures.Count > 1) // TODO support multiple textures
@@ -908,21 +908,33 @@ namespace grzyClothTool.Controls
                 return;
             }
 
-            // create new  texture
-            var newTexture = new GTexture(Guid.Empty, file.FileName, SelectedDraw.TypeNumeric, SelectedDraw.Number, SelectedTextures[0].TxtNumber, SelectedDraw.HasSkin, SelectedDraw.IsProp);
-            int index = SelectedDraw.Textures.IndexOf(selectedTexture);
+            try
+            {
+                // Copy new texture file to project assets with the texture's existing GUID
+                var newRelativePath = await FileHelper.CopyToProjectAssetsAsync(file.FileName, selectedTexture.Id.ToString());
+                
+                // create new texture with relative path
+                var newTexture = new GTexture(selectedTexture.Id, newRelativePath, SelectedDraw.TypeNumeric, SelectedDraw.Number, selectedTexture.TxtNumber, SelectedDraw.HasSkin, SelectedDraw.IsProp);
+                int index = SelectedDraw.Textures.IndexOf(selectedTexture);
 
-            MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Textures[index] = newTexture;
-            MainWindow.AddonManager.SelectedAddon.SelectedTexture = newTexture;
+                MainWindow.AddonManager.SelectedAddon.SelectedDrawable.Textures[index] = newTexture;
+                MainWindow.AddonManager.SelectedAddon.SelectedTexture = newTexture;
 
-            SelectedTxt = newTexture;
-            SelectedTextures = new List<GTexture>([newTexture]);
+                SelectedTxt = newTexture;
+                SelectedTextures = new List<GTexture>([newTexture]);
 
-            var textureListBox = FindTextureListBox(this);
-            textureListBox.SelectedItem = newTexture;
+                var textureListBox = FindTextureListBox(this);
+                textureListBox.SelectedItem = newTexture;
 
-            SaveHelper.SetUnsavedChanges(true);
-            CWHelper.SendDrawableUpdateToPreview(e);
+                SaveHelper.SetUnsavedChanges(true);
+                CWHelper.SendDrawableUpdateToPreview(e);
+                LogHelper.Log($"Replaced texture '{selectedTexture.DisplayName}' with new file", Views.LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to replace texture: {ex.Message}", Views.LogType.Error);
+                Show($"Failed to replace texture: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+            }
         }
 
         private void AllowOverride_Click(object sender, RoutedEventArgs e)

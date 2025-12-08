@@ -31,6 +31,9 @@ public class GTexture : INotifyPropertyChanged
     public string FilePath { get; set; }
     public string Extension { get; set; }
 
+    [JsonIgnore]
+    public string FullFilePath => FileHelper.ResolveFilePath(FilePath);
+
     private string _displayName = string.Empty;
     public string DisplayName
     {
@@ -161,17 +164,19 @@ public class GTexture : INotifyPropertyChanged
 
         if (filePath != null)
         {
-            Task<GTextureDetails?> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(filePath).ContinueWith(t =>
+            try
             {
-                if (t.IsFaulted)
+                var fullPath = FileHelper.ResolveFilePath(filePath);
+                Task<GTextureDetails?> _textureDetailsTask = LoadTextureDetailsWithConcurrencyControl(fullPath).ContinueWith(t =>
                 {
-                    Console.WriteLine(t.Exception);
-                    //todo: add some warning that it couldn't load
-                    IsLoading = true;
-                    return null;
-                }
+                    if (t.IsFaulted)
+                    {
+                        LogHelper.Log($"Failed to load texture details for '{DisplayName}': {t.Exception?.InnerException?.Message ?? t.Exception?.Message}", Views.LogType.Warning);
+                        IsLoading = false;
+                        return null;
+                    }
 
-                IsLoading = false; // Loading finished
+                    IsLoading = false; // Loading finished
                 if (t.Status == TaskStatus.RanToCompletion)
                 {
                     if (t.Result == null)
@@ -188,6 +193,13 @@ public class GTexture : INotifyPropertyChanged
 
                 return t.Result;
             });
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Could not load texture '{DisplayName}': {ex.Message}", Views.LogType.Warning);
+                IsLoading = false;
+                IsPreviewDisabled = true;
+            }
         }
     }
 
@@ -196,15 +208,23 @@ public class GTexture : INotifyPropertyChanged
         if (ImageThumbnail != null)
             return;
 
-        if (FilePath == null || !File.Exists(FilePath))
+        try
+        {
+            if (FilePath == null || !File.Exists(FullFilePath))
+                return;
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Could not find texture '{DisplayName}': {ex.Message}", Views.LogType.Warning);
             return;
+        }
 
         await Task.Delay(Random.Shared.Next(25, 100));
         await Task.Run(() =>
         {
             try
             {
-                using MagickImage img = ImgHelper.GetImage(FilePath);
+                using MagickImage img = ImgHelper.GetImage(FullFilePath);
                 if (img == null)
                     return;
 
@@ -260,9 +280,9 @@ public class GTexture : INotifyPropertyChanged
 
     public async Task LoadDetails()
     {
-        if (File.Exists(FilePath))
+        if (File.Exists(FullFilePath))
         {
-            var result = await LoadTextureDetailsWithConcurrencyControl(FilePath);
+            var result = await LoadTextureDetailsWithConcurrencyControl(FullFilePath);
             if (result != null)
             {
                 TxtDetails = result;

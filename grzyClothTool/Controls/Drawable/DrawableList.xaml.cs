@@ -2,6 +2,7 @@
 using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Texture;
+using grzyClothTool.Views;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -386,7 +387,8 @@ namespace grzyClothTool.Controls
             }
         }
 
-        private void ReplaceDrawable_Click(object sender, RoutedEventArgs e)
+
+        private async void ReplaceDrawable_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
 
@@ -399,12 +401,24 @@ namespace grzyClothTool.Controls
 
             if (files.ShowDialog() == true)
             {
-                drawable.FilePath = files.FileName; // changing just path - might need to be updated to CreateDrawableAsync
-                SaveHelper.SetUnsavedChanges(true);
+                try
+                {
+                    // Copy new file to project assets with the drawable's existing GUID
+                    var newRelativePath = await FileHelper.CopyToProjectAssetsAsync(files.FileName, drawable.Id.ToString());
+                    drawable.FilePath = newRelativePath;
+                    SaveHelper.SetUnsavedChanges(true);
 
-                CWHelper.SendDrawableUpdateToPreview(e);
+                    CWHelper.SendDrawableUpdateToPreview(e);
+                    LogHelper.Log($"Replaced drawable '{drawable.Name}' with new file", Views.LogType.Info);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Failed to replace drawable: {ex.Message}", Views.LogType.Error);
+                    Show($"Failed to replace drawable: {ex.Message}", "Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+                }
             }
         }
+
 
         private async void ExportDrawable_Click(object sender, RoutedEventArgs e)
         {

@@ -1,7 +1,5 @@
-﻿using grzyClothTool.Extensions;
-using grzyClothTool.Models;
+﻿using grzyClothTool.Models;
 using System;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,7 +23,6 @@ public static class SaveHelper
 
     public static string SavesPath { get; private set; }
     private static Timer _timer;
-    private static int _saveCounter = 0;
     public static event Action SaveCreated;
     private static SemaphoreSlim _semaphore = new(1);
 
@@ -51,21 +48,6 @@ public static class SaveHelper
         _timer = new Timer(60000);
         _timer.Elapsed += async (sender, e) => await SaveAsync();
         _timer.Start();
-
-        var latestSaveFile = Directory.EnumerateFiles(SavesPath, "save_*.json")
-            .Select(file => new { File = file, WriteTime = File.GetLastWriteTime(file) })
-            .OrderBy(fileInfo => fileInfo.WriteTime)
-            .FirstOrDefault();
-
-        if (latestSaveFile != null)
-        {
-            var fileName = Path.GetFileNameWithoutExtension(latestSaveFile.File);
-            var numberPart = fileName.Split('_').Last();
-            if (int.TryParse(numberPart, out var number))
-            {
-                _saveCounter = number;
-            }
-        }
     }
 
     public static async Task SaveAsync()
@@ -92,13 +74,32 @@ public static class SaveHelper
                 json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             }
 
-            var filename = $"save_{_saveCounter}.json";
-            var path = Path.Combine(SavesPath, filename);
+            try
+            {
+                var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+                var projectName = MainWindow.AddonManager.ProjectName;
 
-            await File.WriteAllTextAsync(path, json);
+                if (!string.IsNullOrEmpty(mainProjectsFolder) && 
+                    !string.IsNullOrEmpty(projectName) && 
+                    Directory.Exists(mainProjectsFolder))
+                {
+                    var projectFolder = Path.Combine(mainProjectsFolder, projectName);
+                    Directory.CreateDirectory(projectFolder);
 
-            LogHelper.Log($"Saved in {timer.ElapsedMilliseconds}ms");
-            _saveCounter = (_saveCounter + 1) % 10;
+                    var autoSavePath = Path.Combine(projectFolder, "autosave.json");
+                    await File.WriteAllTextAsync(autoSavePath, json);
+
+                    LogHelper.Log($"Auto-saved to {autoSavePath} in {timer.ElapsedMilliseconds}ms");
+                }
+                else
+                {
+                    LogHelper.Log("Could not auto-save: Project folder not configured or project name not set", Views.LogType.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Auto-save failed: {ex.Message}", Views.LogType.Error);
+            }
 
             SaveCreated?.Invoke();
             SetUnsavedChanges(false);
@@ -145,41 +146,45 @@ public static class SaveHelper
         return result;
     }
 
-    public static async Task LoadAsync(SaveFile save)
+
+    public static async Task LoadSaveFileAsync(string filePath)
     {
-        var path = Path.Combine(SavesPath, $"{save.FileName}.json");
-
-        var json = await File.ReadAllTextAsync(path);
-        var addonManager = JsonSerializer.Deserialize<AddonManager>(json);
-
-        MainWindow.AddonManager.Addons.Clear();
-        foreach (var addon in addonManager.Addons)
+        try
         {
-            MainWindow.AddonManager.Addons.Add(addon);
-        }
+            FileHelper.SetLoadContext(filePath);
 
-        GroupManager.Instance.Groups.Clear();
-        foreach (var group in addonManager.Groups)
-        {
-            GroupManager.Instance.Groups.Add(group);
-        }
+            var json = await File.ReadAllTextAsync(filePath);
+            var addonManager = JsonSerializer.Deserialize<AddonManager>(json) ?? throw new InvalidOperationException("Failed to deserialize save file.");
 
-        MainWindow.AddonManager.ProjectName = addonManager.ProjectName;
-
-        LogHelper.Log($"Loaded save: {save.SaveDate}");
-    }
-
-    public static ObservableCollection<SaveFile> GetSaveFiles()
-    {
-        var files = Directory.EnumerateFiles(SavesPath, "*.json")
-            .Select(file => new SaveFile
+            MainWindow.AddonManager.Addons.Clear();
+            foreach (var addon in addonManager.Addons)
             {
-                FileName = Path.GetFileNameWithoutExtension(file),
-                SaveDate = File.GetLastWriteTime(file)
-            })
-            .ToObservableCollection();
+                MainWindow.AddonManager.Addons.Add(addon);
+            }
 
-        return files;
+            GroupManager.Instance.Groups.Clear();
+            foreach (var group in addonManager.Groups)
+            {
+                GroupManager.Instance.Groups.Add(group);
+            }
+
+            MainWindow.AddonManager.ProjectName = addonManager.ProjectName;
+
+            int drawableCount = addonManager.Addons.Sum(a => a.Drawables.Count);
+            int addonCount = addonManager.Addons.Count;
+
+            PersistentSettingsHelper.Instance.AddRecentProject(
+                filePath,
+                addonManager.ProjectName ?? Path.GetFileNameWithoutExtension(filePath),
+                drawableCount,
+                addonCount
+            );
+
+            LogHelper.Log($"Loaded save from: {filePath}");
+        }
+        finally
+        {
+            FileHelper.ClearLoadContext();
+        }
     }
-
 }

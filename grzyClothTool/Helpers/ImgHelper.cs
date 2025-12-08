@@ -70,7 +70,7 @@ public static class ImgHelper
             TextureDict = new TextureDictionary()
         };
 
-        using var img = GetImage(gtxt.FilePath);
+        using var img = GetImage(gtxt.FullFilePath);
         img.Format = MagickFormat.Dds;
 
         // Skip optimization (I think this is best way to not duplicate code, and reuse this for jpg/png textures that don't need optimization)

@@ -1,8 +1,13 @@
 ﻿using grzyClothTool.Constants;
+using grzyClothTool.Helpers;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
@@ -62,6 +67,20 @@ namespace grzyClothTool.Views
             }
         }
 
+        private ObservableCollection<RecentProject> _recentlyOpened;
+        public ObservableCollection<RecentProject> RecentlyOpened
+        {
+            get => _recentlyOpened;
+            set
+            {
+                _recentlyOpened = value;
+                OnPropertyChanged(nameof(RecentlyOpened));
+                OnPropertyChanged(nameof(ShowNoRecentProjects));
+            }
+        }
+
+        public bool ShowNoRecentProjects => RecentlyOpened == null || RecentlyOpened.Count == 0;
+
         private readonly List<string> didYouKnowStrings = [
             "You can open any existing addon and it will load all properties such as heels or hats.",
             "You can export an existing project when you are not finished and later import it to continue working on it.",
@@ -96,7 +115,22 @@ namespace grzyClothTool.Views
                 }
             ];
 
+            LoadRecentProjects();
+
             Loaded += Home_Loaded;
+        }
+
+        private void LoadRecentProjects()
+        {
+            var recentProjects = PersistentSettingsHelper.Instance.RecentlyOpenedProjects;
+            var validProjects = recentProjects.Where(p => File.Exists(p.FilePath)).ToList();
+            
+            if (validProjects.Count != recentProjects.Count)
+            {
+                PersistentSettingsHelper.Instance.RecentlyOpenedProjects = validProjects;
+            }
+            
+            RecentlyOpened = new ObservableCollection<RecentProject>(validProjects);
         }
 
         private async void Home_Loaded(object sender, RoutedEventArgs e)
@@ -258,16 +292,134 @@ namespace grzyClothTool.Views
             }
         }
 
-        private void CreateNew_Click(object sender, RoutedEventArgs e)
+        private async void CreateNew_Click(object sender, RoutedEventArgs e)
         {
-            var (result, textBoxValue) = Show("Choose a name for your project", "Project Name", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.None, true);
-            if (result == CustomMessageBoxResult.OK)
+            try
             {
-                MainWindow.AddonManager.ProjectName = textBoxValue;
-            }
+                var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+                if (string.IsNullOrEmpty(mainProjectsFolder))
+                {
+                    Show("Please configure the main projects folder in settings first.", 
+                         "Configuration Required", 
+                         CustomMessageBoxButtons.OKOnly, 
+                         CustomMessageBoxIcon.Warning);
+                    return;
+                }
 
-            MainWindow.AddonManager.CreateAddon();
-            MainWindow.NavigationHelper.Navigate("Project");
+                if (!Directory.Exists(mainProjectsFolder))
+                {
+                    Show($"Main projects folder does not exist: {mainProjectsFolder}\n\nPlease update it in settings.", 
+                         "Folder Not Found", 
+                         CustomMessageBoxButtons.OKOnly, 
+                         CustomMessageBoxIcon.Warning);
+                    return;
+                }
+
+                bool nameAccepted = false;
+                string projectName = string.Empty;
+
+                while (!nameAccepted)
+                {
+                    var (result, textBoxValue) = Show("Choose a name for your project", 
+                                                       "Project Name", 
+                                                       CustomMessageBoxButtons.OKCancel, 
+                                                       CustomMessageBoxIcon.None, 
+                                                       true);
+
+                    if (result != CustomMessageBoxResult.OK || string.IsNullOrWhiteSpace(textBoxValue))
+                    {
+                        return;
+                    }
+
+                    projectName = textBoxValue.Trim();
+
+                    if (projectName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                    {
+                        Show("Project name contains invalid characters. Please choose a different name.", 
+                             "Invalid Name", 
+                             CustomMessageBoxButtons.OKOnly, 
+                             CustomMessageBoxIcon.Warning);
+                        continue;
+                    }
+
+                    var projectFolder = Path.Combine(mainProjectsFolder, projectName);
+                    if (Directory.Exists(projectFolder))
+                    {
+                        var autoSavePath = Path.Combine(projectFolder, "autosave.json");
+                        if (File.Exists(autoSavePath))
+                        {
+                            var openExisting = Show(
+                                $"A project with the name '{projectName}' already exists.\n\nDo you want to open it instead?",
+                                "Project Exists",
+                                CustomMessageBoxButtons.YesNo,
+                                CustomMessageBoxIcon.Question);
+
+                            if (openExisting == CustomMessageBoxResult.Yes)
+                            {
+                                await SaveHelper.LoadSaveFileAsync(autoSavePath);
+                                LoadRecentProjects();
+                                MainWindow.NavigationHelper.Navigate("Project");
+                                return;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            var useFolder = Show(
+                                $"A folder named '{projectName}' already exists but contains no save file.\n\nDo you want to create a new project in this folder?",
+                                "Folder Exists",
+                                CustomMessageBoxButtons.YesNo,
+                                CustomMessageBoxIcon.Question);
+
+                            if (useFolder == CustomMessageBoxResult.Yes)
+                            {
+                                nameAccepted = true;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        nameAccepted = true;
+                    }
+                }
+
+                var finalProjectFolder = Path.Combine(mainProjectsFolder, projectName);
+                Directory.CreateDirectory(finalProjectFolder);
+
+                var assetsFolder = Path.Combine(finalProjectFolder, GlobalConstants.ASSETS_FOLDER_NAME);
+                Directory.CreateDirectory(assetsFolder);
+
+                MainWindow.AddonManager.ProjectName = projectName;
+                MainWindow.AddonManager.CreateAddon();
+
+                var newProjectAutoSavePath = Path.Combine(finalProjectFolder, "autosave.json");
+                PersistentSettingsHelper.Instance.AddRecentProject(
+                    newProjectAutoSavePath,
+                    projectName,
+                    drawableCount: 0,
+                    addonCount: 1
+                );
+                
+                LoadRecentProjects();
+
+                LogHelper.Log($"Created new project: {projectName} at {finalProjectFolder}");
+                MainWindow.NavigationHelper.Navigate("Project");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to create new project: {ex.Message}", Views.LogType.Error);
+                Show($"Failed to create new project: {ex.Message}", 
+                     "Error", 
+                     CustomMessageBoxButtons.OKOnly, 
+                     CustomMessageBoxIcon.Error);
+            }
         }
 
         private async void OpenAddon_Click(object sender, RoutedEventArgs e)
@@ -280,6 +432,105 @@ namespace grzyClothTool.Views
         {
             await MainWindow.Instance.ImportProjectAsync(true);
             MainWindow.NavigationHelper.Navigate("Project");
+        }
+
+        private async void OpenSave_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new()
+                {
+                    Title = "Open Save File",
+                    Filter = "Save files (*.json)|*.json|All files (*.*)|*.*",
+                    Multiselect = false
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    if (!SaveHelper.CheckUnsavedChangesMessage())
+                    {
+                        return;
+                    }
+
+                    await SaveHelper.LoadSaveFileAsync(openFileDialog.FileName);
+                    LoadRecentProjects();
+                    MainWindow.NavigationHelper.Navigate("Project");
+                }
+            }
+            catch (Exception ex)
+            {
+                Show($"Failed to load save: {ex.Message}", 
+                     "Error", 
+                     CustomMessageBoxButtons.OKOnly, 
+                     CustomMessageBoxIcon.Error);
+            }
+        }
+
+        private async void RecentProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string filePath)
+            {
+                try
+                {
+                    if (!File.Exists(filePath))
+                    {
+                        Show("This save file no longer exists.", 
+                             "File Not Found", 
+                             CustomMessageBoxButtons.OKOnly, 
+                             CustomMessageBoxIcon.Warning);
+                        
+                        var recentProjects = PersistentSettingsHelper.Instance.RecentlyOpenedProjects;
+                        recentProjects.RemoveAll(p => p.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+                        PersistentSettingsHelper.Instance.RecentlyOpenedProjects = recentProjects;
+                        LoadRecentProjects();
+                        return;
+                    }
+
+                    if (!SaveHelper.CheckUnsavedChangesMessage())
+                    {
+                        return;
+                    }
+
+                    await SaveHelper.LoadSaveFileAsync(filePath);
+                    LoadRecentProjects();
+                    MainWindow.NavigationHelper.Navigate("Project");
+                }
+                catch (Exception ex)
+                {
+                    Show($"Failed to load save: {ex.Message}", 
+                         "Error", 
+                         CustomMessageBoxButtons.OKOnly, 
+                         CustomMessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void RemoveRecentProject_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            
+            if (sender is Button button && button.Tag is string filePath)
+            {
+                try
+                {
+                    var project = PersistentSettingsHelper.Instance.RecentlyOpenedProjects
+                        .FirstOrDefault(p => p.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+                    
+                    var projectName = project?.ProjectName ?? "";
+                    
+                    var recentProjects = PersistentSettingsHelper.Instance.RecentlyOpenedProjects;
+                    recentProjects.RemoveAll(p => p.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+                    PersistentSettingsHelper.Instance.RecentlyOpenedProjects = recentProjects;
+                    
+                    LoadRecentProjects();
+                    
+                    LogHelper.Log($"Removed project from recent list: {projectName}");
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Failed to remove recent project: {ex.Message}", Views.LogType.Error);
+                }
+            }
         }
 
         private void Close_Click(object sender, RoutedEventArgs e)

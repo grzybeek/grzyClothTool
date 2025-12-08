@@ -241,20 +241,6 @@ namespace grzyClothTool
             }
         }
 
-        private async void OpenSave_Click(object sender, MouseButtonEventArgs e)
-        {
-            if (sender is TextBlock textBlock && textBlock.Tag is SaveFile saveFile)
-            {
-                if(!SaveHelper.CheckUnsavedChangesMessage())
-                {
-                    return;
-                }
-
-                await SaveHelper.LoadAsync(saveFile);
-                NavigationHelper.Navigate("Project");
-            }
-        }
-
         private void ImportProject_Click(object sender, RoutedEventArgs e)
         {
             _ = ImportProjectAsync();

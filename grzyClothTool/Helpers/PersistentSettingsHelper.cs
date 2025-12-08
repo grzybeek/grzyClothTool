@@ -1,5 +1,8 @@
 using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace grzyClothTool.Helpers;
@@ -96,6 +99,39 @@ public class PersistentSettingsHelper
 
     public string SettingsFilePath => _settingsFilePath;
 
+    public List<RecentProject> RecentlyOpenedProjects
+    {
+        get => _settings.RecentlyOpenedProjects ?? new List<RecentProject>();
+        set
+        {
+            _settings.RecentlyOpenedProjects = value;
+            SaveSettings();
+        }
+    }
+
+    public void AddRecentProject(string filePath, string projectName, int drawableCount, int addonCount)
+    {
+        var recentProjects = RecentlyOpenedProjects;
+        
+        recentProjects.RemoveAll(p => p.FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase));
+        
+        recentProjects.Insert(0, new RecentProject
+        {
+            FilePath = filePath,
+            ProjectName = projectName,
+            LastModified = DateTime.Now,
+            DrawableCount = drawableCount,
+            AddonCount = addonCount
+        });
+        
+        if (recentProjects.Count > 3)
+        {
+            recentProjects = [.. recentProjects.Take(3)];
+        }
+        
+        RecentlyOpenedProjects = recentProjects;
+    }
+
     public static bool IsRootDrive(string path)
     {
         try
@@ -119,4 +155,14 @@ public class PersistentSettings
 {
     public bool IsFirstRun { get; set; } = true;
     public string MainProjectsFolder { get; set; } = string.Empty;
+    public List<RecentProject> RecentlyOpenedProjects { get; set; } = [];
+}
+
+public class RecentProject
+{
+    public string FilePath { get; set; }
+    public string ProjectName { get; set; }
+    public DateTime LastModified { get; set; }
+    public int DrawableCount { get; set; }
+    public int AddonCount { get; set; }
 }

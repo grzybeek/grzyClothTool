@@ -19,14 +19,6 @@
         Closing="Window_Closing"
     >
 
-    <Window.Resources>
-        <CollectionViewSource x:Key="SortedSaveFiles" Source="{Binding SaveFiles}">
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription PropertyName="SaveDate" Direction="Descending"/>
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
-    </Window.Resources>
-
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <Menu.ItemsPanel>
@@ -38,22 +30,6 @@
 
             <MenuItem Header="_Project">
                 <MenuItem Header="_Open Addon" Click="OpenAddon_Click" />
-                <MenuItem Header="_Open Saves" ItemsSource="{Binding Source={StaticResource SortedSaveFiles}}">
-                    <MenuItem.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock MouseUp="OpenSave_Click">
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="{}Auto-save ({0:dd.MM.yyyy HH:mm:ss})">
-                                        <Binding Path="SaveDate" />
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                                <TextBlock.Tag>
-                                    <Binding />
-                                </TextBlock.Tag>
-                            </TextBlock>
-                        </DataTemplate>
-                    </MenuItem.ItemTemplate>
-                </MenuItem>
                 <Separator />
                 <MenuItem Header="_Import Project" Click="ImportProject_Click" />
                 <MenuItem Header="_Export Project" Click="ExportProject_Click" />

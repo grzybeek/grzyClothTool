@@ -57,11 +57,186 @@
             <DockPanel>
                 <c:CustomButton Label="Close" Height="60" DockPanel.Dock="Bottom" Padding="5" CornerRadius="5" MyBtnClickEvent="Close_Click" />
 
-                <StackPanel>
-                    <c:CustomButton Label="Create new project" Height="100" FontSize="20" Padding="5" CornerRadius="5" MyBtnClickEvent="CreateNew_Click" />
-                    <c:CustomButton Label="Import project" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="ImportProject_Click" />
-                    <c:CustomButton Label="Open addon" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenAddon_Click" />
-                </StackPanel>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <c:CustomButton Label="Create new project" Height="100" FontSize="20" Padding="5" CornerRadius="5" MyBtnClickEvent="CreateNew_Click" />
+                        <c:CustomButton Label="Import project" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="ImportProject_Click" />
+                        <c:CustomButton Label="Open addon" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenAddon_Click" />
+                        <c:CustomButton Label="Open save" Height="60" Padding="5" CornerRadius="5" MyBtnClickEvent="OpenSave_Click" />
+
+                        <TextBlock Text="Recently opened" 
+                                   FontSize="14" 
+                                   FontWeight="SemiBold" 
+                                   Margin="5,20,5,8" 
+                                   Foreground="{DynamicResource Brush950}" />
+                        
+                        <ItemsControl ItemsSource="{Binding RecentlyOpened}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Background="Transparent" 
+                                            BorderThickness="0" 
+                                            Cursor="Hand" 
+                                            Padding="0" 
+                                            Margin="0,0,0,8"
+                                            HorizontalContentAlignment="Stretch"
+                                            Click="RecentProject_Click" 
+                                            Tag="{Binding FilePath}">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="CardBorder"
+                                                        Background="{DynamicResource Brush50}" 
+                                                        BorderBrush="{DynamicResource Brush300}" 
+                                                        BorderThickness="1" 
+                                                        CornerRadius="6" 
+                                                        Padding="12,10">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <Border Background="{DynamicResource Brush200}" 
+                                                                CornerRadius="4" 
+                                                                Width="32" 
+                                                                Height="32" 
+                                                                Margin="0,0,10,0"
+                                                                VerticalAlignment="Center"
+                                                                Grid.Column="0"
+                                                                Grid.RowSpan="3">
+                                                            <icons:MaterialIcon Kind="FolderOpen" 
+                                                                                Width="18" 
+                                                                                Height="18" 
+                                                                                Foreground="{DynamicResource Brush700}"
+                                                                                HorizontalAlignment="Center"
+                                                                                VerticalAlignment="Center"/>
+                                                        </Border>
+
+                                                        <TextBlock Text="{Binding ProjectName}" 
+                                                                   FontSize="13" 
+                                                                   FontWeight="SemiBold" 
+                                                                   Foreground="{DynamicResource Brush950}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Grid.Column="1"
+                                                                   Grid.Row="0"/>
+
+                                                        <StackPanel Orientation="Horizontal" 
+                                                                    Grid.Column="1" 
+                                                                    Grid.Row="1"
+                                                                    Margin="0,3,0,0">
+                                                            <icons:MaterialIcon Kind="ClockOutline" 
+                                                                                Width="11" 
+                                                                                Height="11" 
+                                                                                Foreground="{DynamicResource Brush600}"
+                                                                                VerticalAlignment="Center"
+                                                                                Margin="0,0,4,0"/>
+                                                            <TextBlock FontSize="10" 
+                                                                       Foreground="{DynamicResource Brush600}">
+                                                                <Run Text="{Binding LastModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+
+                                                        <StackPanel Orientation="Horizontal" 
+                                                                    Grid.Column="1" 
+                                                                    Grid.Row="2"
+                                                                    Margin="0,3,0,0">
+                                                            <Border Background="{DynamicResource Brush200}"
+                                                                    CornerRadius="3"
+                                                                    Padding="6,2">
+                                                                <TextBlock FontSize="10" 
+                                                                    Foreground="{DynamicResource Brush800}">
+                                                                    <Run Text="{Binding AddonCount, Mode=OneWay}"/>
+                                                                    <Run Text=" addons"/>
+                                                                </TextBlock>
+                                                            </Border>
+                                                            <Border Background="{DynamicResource Brush200}"
+                                                                    CornerRadius="3"
+                                                                    Padding="6,2"
+                                                                    Margin="0,0,4,0">
+                                                                <TextBlock FontSize="10" 
+                                                                           Foreground="{DynamicResource Brush800}">
+                                                                    <Run Text="{Binding DrawableCount, Mode=OneWay}"/>
+                                                                    <Run Text=" drawables"/>
+                                                                </TextBlock>
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <Button Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Cursor="Hand"
+                                                                VerticalAlignment="Center"
+                                                                Grid.Column="2"
+                                                                Grid.RowSpan="3"
+                                                                Margin="8,0,0,0"
+                                                                Padding="4"
+                                                                Click="RemoveRecentProject_Click"
+                                                                Tag="{Binding FilePath}">
+                                                            <Button.Style>
+                                                                <Style TargetType="Button">
+                                                                    <Setter Property="Template">
+                                                                        <Setter.Value>
+                                                                            <ControlTemplate TargetType="Button">
+                                                                                <Border Background="{TemplateBinding Background}"
+                                                                                        Padding="{TemplateBinding Padding}">
+                                                                                    <icons:MaterialIcon x:Name="CloseIcon"
+                                                                                                        Kind="Close" 
+                                                                                                        Width="16" 
+                                                                                                        Height="16" 
+                                                                                                        Foreground="{DynamicResource Brush600}"/>
+                                                                                </Border>
+                                                                                <ControlTemplate.Triggers>
+                                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                                        <Setter TargetName="CloseIcon" Property="Foreground" Value="#D32F2F"/>
+                                                                                    </Trigger>
+                                                                                </ControlTemplate.Triggers>
+                                                                            </ControlTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Style>
+                                                            </Button.Style>
+                                                        </Button>
+                                                    </Grid>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource Brush100}"/>
+                                                        <Setter TargetName="CardBorder" Property="BorderBrush" Value="{DynamicResource Brush400}"/>
+                                                        <Setter TargetName="CardBorder" Property="BorderThickness" Value="2"/>
+                                                        <Setter TargetName="CardBorder" Property="Padding" Value="11,9"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter TargetName="CardBorder" Property="Background" Value="{DynamicResource Brush150}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel HorizontalAlignment="Center" 
+                                    Margin="20"
+                                    Visibility="{Binding ShowNoRecentProjects, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <icons:MaterialIcon Kind="FolderOpenOutline" 
+                                                Width="48" 
+                                                Height="48" 
+                                                Foreground="{DynamicResource Brush400}"
+                                                HorizontalAlignment="Center"
+                                                Margin="0,0,0,10"/>
+                            <TextBlock Text="No recent projects" 
+                                       FontSize="12" 
+                                       FontStyle="Italic" 
+                                       Foreground="{DynamicResource Brush600}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </DockPanel>
         </GroupBox>
 

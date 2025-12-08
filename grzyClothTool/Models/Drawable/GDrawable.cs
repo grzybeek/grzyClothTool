@@ -51,6 +51,9 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
+    [JsonIgnore]
+    public string FullFilePath => FileHelper.ResolveFilePath(_filePath);
+
     private bool _isNew;
     public bool IsNew
     {
@@ -164,7 +167,15 @@ public class GDrawable : INotifyPropertyChanged
     }
 
     public string? FirstPersonPath { get; set; } = null;
+    
+
+    [JsonIgnore]
+    public string? FullFirstPersonPath => string.IsNullOrEmpty(FirstPersonPath) ? null : FileHelper.ResolveFilePath(FirstPersonPath);
+    
     public string? ClothPhysicsPath { get; set; } = null;
+    
+    [JsonIgnore]
+    public string? FullClothPhysicsPath => string.IsNullOrEmpty(ClothPhysicsPath) ? null : FileHelper.ResolveFilePath(ClothPhysicsPath);
 
     private string? _group;
     public string? Group
@@ -333,19 +344,27 @@ public class GDrawable : INotifyPropertyChanged
         Audio = "none";
         SetDrawableName();
 
-        if (FilePath != null && !IsEncrypted && File.Exists(FilePath))
+        try
         {
-            _loadQueue.Add(this);
+            if (FilePath != null && !IsEncrypted && File.Exists(FullFilePath))
+            {
+                _loadQueue.Add(this);
+            }
+            else
+            {
+                IsLoading = false;
+            }
         }
-        else
+        catch (Exception ex)
         {
+            LogHelper.Log($"Could not find drawable file '{Name}': {ex.Message}", Views.LogType.Warning);
             IsLoading = false;
         }
     }
 
     public async Task LoadDetails()
     {
-        if (File.Exists(FilePath))
+        if (File.Exists(FullFilePath))
         {
             var result = await LoadDrawableDetailsWithConcurrencyControl();
             if (result != null)
@@ -506,13 +525,13 @@ public class GDrawable : INotifyPropertyChanged
 
     private async Task<GDrawableDetails?> GetDrawableDetailsAsync()
     {
-        if (IsDrawableEncrypted(FilePath))
+        if (IsDrawableEncrypted(FullFilePath))
         {
             IsEncrypted = true;
             return null;
         }
 
-        var bytes = await File.ReadAllBytesAsync(FilePath);
+        var bytes = await File.ReadAllBytesAsync(FullFilePath);
 
         var yddFile = new YddFile();
         await yddFile.LoadAsync(bytes);

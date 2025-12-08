@@ -99,6 +99,13 @@ public class GTextureEmbedded : INotifyPropertyChanged
     [JsonIgnore]
     public string PreviewDisabledTooltip => IsPreviewDisabled ? "Encrypted drawable" : string.Empty;
 
+    // Parameterless constructor for JSON deserialization
+    public GTextureEmbedded()
+    {
+        OriginalName = string.Empty;
+        Details = new GTextureDetails();
+    }
+
     public GTextureEmbedded(CodeWalker.GameFiles.Texture? textureData, string type)
     {
         TextureData = textureData;

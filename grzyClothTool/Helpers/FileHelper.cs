@@ -20,7 +20,175 @@ namespace grzyClothTool.Helpers;
 
 public static class FileHelper
 {
+    /// <summary>
+    /// Temporary context for resolving file paths during save file loading
+    /// This helps resolve relative paths when ProjectName isn't set yet
+    /// </summary>
+    private static string? _loadContextProjectFolder = null;
+
+    /// <summary>
+    /// Sets the project folder context for file path resolution during loading
+    /// </summary>
+    public static void SetLoadContext(string saveFilePath)
+    {
+        try
+        {
+            // Extract project folder from save file path
+            // Expected: MainProjectsFolder\ProjectName\autosave.json
+            var saveFileDir = Path.GetDirectoryName(saveFilePath);
+            if (!string.IsNullOrEmpty(saveFileDir) && Directory.Exists(saveFileDir))
+            {
+                _loadContextProjectFolder = saveFileDir;
+            }
+        }
+        catch
+        {
+            _loadContextProjectFolder = null;
+        }
+    }
+
+    /// <summary>
+    /// Clears the load context after loading is complete
+    /// </summary>
+    public static void ClearLoadContext()
+    {
+        _loadContextProjectFolder = null;
+    }
     public static string ReservedAssetsPath { get; private set; }
+
+    /// <summary>
+    /// Gets the full path to the project assets directory for the current project
+    /// </summary>
+    public static string GetProjectAssetsPath()
+    {
+        var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+        var projectName = MainWindow.AddonManager.ProjectName;
+
+        if (string.IsNullOrEmpty(mainProjectsFolder) || string.IsNullOrEmpty(projectName))
+        {
+            throw new InvalidOperationException("Main projects folder or project name is not set.");
+        }
+
+        var assetsPath = Path.Combine(mainProjectsFolder, projectName, GlobalConstants.ASSETS_FOLDER_NAME);
+        Directory.CreateDirectory(assetsPath);
+        return assetsPath;
+    }
+
+    /// <summary>
+    /// Resolves a relative path (stored in drawable/texture) to an absolute path
+    /// </summary>
+    public static string ResolveFilePath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return path;
+
+        // If it's already an absolute path, check if it exists first (backward compatibility)
+        if (Path.IsPathRooted(path))
+        {
+            // Old save format: absolute paths - check if file exists
+            if (File.Exists(path))
+            {
+                return path;
+            }
+            
+            // If absolute path doesn't exist, it might be from an old save that needs migration
+            // Try to extract just the filename and look in project assets
+            try
+            {
+                var fileName = Path.GetFileName(path);
+                var assetsPath = GetProjectAssetsPath();
+                var newPath = Path.Combine(assetsPath, fileName);
+                
+                if (File.Exists(newPath))
+                {
+                    return newPath;
+                }
+            }
+            catch
+            {
+                // Fall through to return original path
+            }
+            
+            return path;
+        }
+
+        // It's a relative path, resolve it from project assets
+        try
+        {
+            // First, check if we have a load context (during save file loading)
+            if (_loadContextProjectFolder != null)
+            {
+                var contextAssetsPath = Path.Combine(_loadContextProjectFolder, GlobalConstants.ASSETS_FOLDER_NAME);
+                if (Directory.Exists(contextAssetsPath))
+                {
+                    var contextResolvedPath = Path.Combine(contextAssetsPath, path);
+                    if (File.Exists(contextResolvedPath))
+                    {
+                        return contextResolvedPath;
+                    }
+                }
+            }
+
+            // Second, try to get the project assets path from the project structure
+            var assetsPath = GetProjectAssetsPath();
+            var resolvedPath = Path.Combine(assetsPath, path);
+            
+            // Verify the file exists
+            if (File.Exists(resolvedPath))
+            {
+                return resolvedPath;
+            }
+            
+            // If not found and path looks like a GUID-based filename, search in all project folders
+            if (Guid.TryParse(Path.GetFileNameWithoutExtension(path), out _))
+            {
+                var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+                if (!string.IsNullOrEmpty(mainProjectsFolder) && Directory.Exists(mainProjectsFolder))
+                {
+                    // Search all project subfolders for the file
+                    foreach (var projectDir in Directory.GetDirectories(mainProjectsFolder))
+                    {
+                        var projectAssetsPath = Path.Combine(projectDir, GlobalConstants.ASSETS_FOLDER_NAME);
+                        if (Directory.Exists(projectAssetsPath))
+                        {
+                            var searchPath = Path.Combine(projectAssetsPath, path);
+                            if (File.Exists(searchPath))
+                            {
+                                return searchPath;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // If still not found, return the original path (might be relative to current directory)
+            return path;
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Error resolving file path '{path}': {ex.Message}", Views.LogType.Warning);
+            return path;
+        }
+    }
+
+    /// <summary>
+    /// Copies a file to the project assets folder and returns the relative path
+    /// </summary>
+    public static async Task<string> CopyToProjectAssetsAsync(string sourceFilePath, string guid)
+    {
+        var assetsPath = GetProjectAssetsPath();
+        var extension = Path.GetExtension(sourceFilePath);
+        var fileName = $"{guid}{extension}";
+        var destinationPath = Path.Combine(assetsPath, fileName);
+
+        // Only copy if destination doesn't exist
+        if (!File.Exists(destinationPath))
+        {
+            await CopyAsync(sourceFilePath, destinationPath);
+        }
+
+        return fileName; // Return relative path
+    }
 
     public static void GenerateReservedAssets()
     {
@@ -88,14 +256,47 @@ public static class FileHelper
 
         var matchingTextures = FindMatchingTextures(filePath, name, isProp);
 
-        var drawableName = Guid.NewGuid().ToString();
+        var drawableGuid = Guid.NewGuid();
         var drawableRaceSuffix = Path.GetFileNameWithoutExtension(filePath)[^1..];
         var drawableHasSkin = drawableRaceSuffix == "r";
 
-        // Should we inform user, that they tried to add too many textures?
-        var textures = new ObservableCollection<GTexture>(matchingTextures.Select((path, txtNumber) => new GTexture(Guid.Empty, path, typeNumber, countOfType, txtNumber, drawableHasSkin, isProp)).Take(GlobalConstants.MAX_DRAWABLE_TEXTURES));
+        // Copy drawable file to project assets and get relative path
+        string drawableRelativePath;
+        try
+        {
+            drawableRelativePath = await CopyToProjectAssetsAsync(filePath, drawableGuid.ToString());
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Failed to copy drawable to project assets: {ex.Message}. Using original path.", LogType.Warning);
+            drawableRelativePath = filePath; // Fallback to original path
+        }
 
-        return new GDrawable(Guid.Empty, filePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures);
+        // Copy texture files to project assets
+        var texturesList = new List<(string relativePath, int txtNumber)>();
+        for (int txtNumber = 0; txtNumber < Math.Min(matchingTextures.Count, GlobalConstants.MAX_DRAWABLE_TEXTURES); txtNumber++)
+        {
+            var texturePath = matchingTextures[txtNumber];
+            var textureGuid = Guid.NewGuid();
+            
+            try
+            {
+                var textureRelativePath = await CopyToProjectAssetsAsync(texturePath, textureGuid.ToString());
+                texturesList.Add((textureRelativePath, txtNumber));
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to copy texture to project assets: {ex.Message}. Using original path.", LogType.Warning);
+                texturesList.Add((texturePath, txtNumber)); // Fallback to original path
+            }
+        }
+
+        // Create texture objects with relative paths
+        var textures = new ObservableCollection<GTexture>(
+            texturesList.Select(t => new GTexture(Guid.Empty, t.relativePath, typeNumber, countOfType, t.txtNumber, drawableHasSkin, isProp))
+        );
+
+        return new GDrawable(drawableGuid, drawableRelativePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures);
     }
 
     public static async Task CopyAsync(string sourcePath, string destinationPath)
@@ -255,7 +456,7 @@ public static class FileHelper
                 // For YTD, simply copy the file
                 try
                 {
-                    await CopyAsync(texture.FilePath, filePath);
+                    await CopyAsync(texture.FullFilePath, filePath);
                     successfulExports++;
                 } 
                 catch (Exception ex)
@@ -266,7 +467,7 @@ public static class FileHelper
             }
             else
             {
-                using var image = ImgHelper.GetImage(texture.FilePath);
+                using var image = ImgHelper.GetImage(texture.FullFilePath);
                 image.Format = format.ToUpper() switch
                 {
                     "DDS" => MagickFormat.Dds,
@@ -313,7 +514,7 @@ public static class FileHelper
 
             try
             {
-                await CopyAsync(drawable.FilePath, filePath);
+                await CopyAsync(drawable.FullFilePath, filePath);
                 successfulExports++;
             }
             catch (Exception ex)

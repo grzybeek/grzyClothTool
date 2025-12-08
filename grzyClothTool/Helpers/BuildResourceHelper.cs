@@ -109,13 +109,13 @@ public class BuildResourceHelper
 
                 if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
                 {
-                    fileOperations.Add(FileHelper.CopyAsync(d.ClothPhysicsPath, Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.ClothPhysicsPath)}")));
+                    fileOperations.Add(FileHelper.CopyAsync(d.FullClothPhysicsPath, Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.ClothPhysicsPath)}")));
                 }
 
                 if (!string.IsNullOrEmpty(d.FirstPersonPath))
                 {
                     //todo: this probably shouldn't be hardcoded to "_1", handle it when there is option to add more alternate drawable versions
-                    fileOperations.Add(FileHelper.CopyAsync(d.FirstPersonPath, Path.Combine(folderPath, $"{prefix}{d.Name}_1{Path.GetExtension(d.FirstPersonPath)}")));
+                    fileOperations.Add(FileHelper.CopyAsync(d.FullFirstPersonPath, Path.Combine(folderPath, $"{prefix}{d.Name}_1{Path.GetExtension(d.FirstPersonPath)}")));
                     
                     var name = $"{prefix}{d.Name}".Replace("^", "/");
                     firstPersonFiles.Add(name);
@@ -140,7 +140,7 @@ public class BuildResourceHelper
                         } 
                         else
                         {
-                            txtBytes = await FileHelper.ReadAllBytesAsync(t.FilePath);
+                            txtBytes = await FileHelper.ReadAllBytesAsync(t.FullFilePath);
                         }
 
                         fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));

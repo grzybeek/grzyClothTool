@@ -333,7 +333,17 @@ namespace grzyClothTool.Models
                         var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
                         if (foundDrawable != null)
                         {
-                            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.FirstPersonPath = filePath);
+                            try
+                            {
+                                var firstPersonGuid = Guid.NewGuid();
+                                var firstPersonRelativePath = await FileHelper.CopyToProjectAssetsAsync(filePath, firstPersonGuid.ToString());
+                                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.FirstPersonPath = firstPersonRelativePath);
+                            }
+                            catch (Exception ex)
+                            {
+                                LogHelper.Log($"Failed to copy first person file to project assets: {ex.Message}. Using original path.", Views.LogType.Warning);
+                                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.FirstPersonPath = filePath);
+                            }
                         }
                     }
                     continue;
@@ -351,7 +361,17 @@ namespace grzyClothTool.Models
                     var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
                     if (foundDrawable != null)
                     {
-                        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.ClothPhysicsPath = filePath);
+                        try
+                        {
+                            var physicsGuid = Guid.NewGuid();
+                            var physicsRelativePath = await FileHelper.CopyToProjectAssetsAsync(filePath, physicsGuid.ToString());
+                            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.ClothPhysicsPath = physicsRelativePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogHelper.Log($"Failed to copy cloth physics file to project assets: {ex.Message}. Using original path.", Views.LogType.Warning);
+                            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.ClothPhysicsPath = filePath);
+                        }
                     }
                     continue;
                 }
@@ -548,11 +568,27 @@ namespace grzyClothTool.Models
 
                 if (SettingsHelper.Instance.AutoDeleteFiles)
                 {
-                    foreach (var texture in drawable.Textures)
+                    try
                     {
-                        File.Delete(texture.FilePath);
+                        foreach (var texture in drawable.Textures)
+                        {
+                            var fullPath = texture.FullFilePath;
+                            if (File.Exists(fullPath))
+                            {
+                                File.Delete(fullPath);
+                            }
+                        }
+                        
+                        var drawableFullPath = drawable.FullFilePath;
+                        if (File.Exists(drawableFullPath))
+                        {
+                            File.Delete(drawableFullPath);
+                        }
                     }
-                    File.Delete(drawable.FilePath);
+                    catch (Exception ex)
+                    {
+                        LogHelper.Log($"Failed to delete files for drawable '{drawable.Name}': {ex.Message}", Views.LogType.Warning);
+                    }
                 }
             }
 
