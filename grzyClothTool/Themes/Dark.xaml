@@ -11,17 +11,25 @@
     <Color x:Key="Color700">#b0b0b0</Color>
     <Color x:Key="Color600">#888888</Color>
     <Color x:Key="Color500">#787878</Color>
+    <Color x:Key="Color450">#6a6a6a</Color>
     <Color x:Key="Color400">#5d5d5d</Color>
+    <Color x:Key="Color350">#565656</Color>
     <Color x:Key="Color300">#4f4f4f</Color>
+    <Color x:Key="Color250">#4a4a4a</Color>
     <Color x:Key="Color200">#454545</Color>
+    <Color x:Key="Color150">#414141</Color>
     <Color x:Key="Color100">#3d3d3d</Color>
     <Color x:Key="Color50">#262626</Color>
 
     <SolidColorBrush x:Key="Brush50" Color="{StaticResource Color50}" />
     <SolidColorBrush x:Key="Brush100" Color="{StaticResource Color100}" />
+    <SolidColorBrush x:Key="Brush150" Color="{StaticResource Color150}" />
     <SolidColorBrush x:Key="Brush200" Color="{StaticResource Color200}" />
+    <SolidColorBrush x:Key="Brush250" Color="{StaticResource Color250}" />
     <SolidColorBrush x:Key="Brush300" Color="{StaticResource Color300}" />
+    <SolidColorBrush x:Key="Brush350" Color="{StaticResource Color350}" />
     <SolidColorBrush x:Key="Brush400" Color="{StaticResource Color400}" />
+    <SolidColorBrush x:Key="Brush450" Color="{StaticResource Color450}" />
     <SolidColorBrush x:Key="Brush500" Color="{StaticResource Color500}" />
     <SolidColorBrush x:Key="Brush600" Color="{StaticResource Color600}" />
     <SolidColorBrush x:Key="Brush700" Color="{StaticResource Color700}" />

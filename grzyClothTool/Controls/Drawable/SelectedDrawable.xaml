@@ -48,6 +48,66 @@
             </Setter>
         </Style>
 
+        <Style TargetType="Border" x:Key="ModernCard">
+            <Setter Property="Background" Value="{DynamicResource Brush50}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush200}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="8" />
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="SectionTitle">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush950}" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="LabelText">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush700}" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="ValueText">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush950}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+    
+        <Style x:Key="RoundedButton" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush400}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource Brush500}"/>
+                            </Trigger>
+
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <DataTemplate x:Key="DrawableOptionsTemplate">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -182,6 +242,893 @@
                 </Grid>
             </Grid>
         </DataTemplate>
+
+        <DataTemplate x:Key="ModernDrawableTemplate">
+            <Grid Background="{DynamicResource Brush100}">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
+                
+                <Grid Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="250" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Style="{StaticResource ModernCard}" Margin="0,0,4,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="150" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0"
+                                       Text="{Binding SelectedAddon.SelectedDrawable.FilePath}"
+                                       FontSize="11"
+                                       FontFamily="Consolas"
+                                       Foreground="{DynamicResource Brush500}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,4">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <Grid Grid.Row="1" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <c:ModernLabelTextBox Grid.Column="0"
+                                                     Tag="Name" 
+                                                     Label="Name" 
+                                                     Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Margin="0,0,8,0" 
+                                                     IsUpdated="SelectedDrawable_Updated"/>
+
+                                <c:ModernLabelComboBox Grid.Column="1"
+                                                      Width="150"
+                                                      Label="Drawable Type" 
+                                                      SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" 
+                                                      IsUpdated="DrawableType_Changed"
+                                                      Margin="0,0,8,0" />
+
+                                <c:ModernLabelComboBox Grid.Column="2"
+                                                      Width="120"
+                                                      Label="Sex" 
+                                                      SelectedItem="{Binding SelectedAddon.SelectedDrawable.SexName, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableSex}" 
+                                                      IsUpdated="DrawableSex_Changed" />
+                            </Grid>
+
+                            <Grid Grid.Row="2" Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <c:ModernLabelTextBox Tag="FirstPersonPath"
+                                                     Grid.Column="0"
+                                                     Label="First person file" 
+                                                     IsFileSelection="True" 
+                                                     FileExtension=".ydd" 
+                                                     FontSize="12" 
+                                                     Text="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath, Converter={StaticResource FilePathToShortVersionConverter}}" 
+                                                     ToolTip="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath}" 
+                                                     ToolTipService.InitialShowDelay="200" 
+                                                     IsUpdated="SelectedDrawable_Updated"
+                                                     Margin="0,0,8,0" />
+                                
+                                <c:ModernLabelTextBox Tag="ClothPhysicsPath"
+                                                     Grid.Column="1"
+                                                     Label="Cloth physics file (.yld)" 
+                                                     IsFileSelection="True" 
+                                                     FileExtension=".yld" 
+                                                     FontSize="12" 
+                                                     Text="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath, Converter={StaticResource FilePathToShortVersionConverter}}" 
+                                                     ToolTip="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath}" 
+                                                     ToolTipService.InitialShowDelay="400" 
+                                                     Margin="8,0,4,0"
+                                                      IsUpdated="SelectedDrawable_Updated" />
+                            </Grid>
+
+                            <Grid Grid.Row="3" Margin="0,0,0,16">
+                                <c:ModernLabelComboBox Label="Group" 
+                                                      Tag="Group" 
+                                                      SelectedItem="{Binding SelectedAddon.SelectedDrawable.Group, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" 
+                                                      IsUpdated="SelectedDrawable_Updated" />
+                            </Grid>
+
+                            <Border Grid.Row="5" 
+                                    VerticalAlignment="Stretch"
+                                    Background="{DynamicResource Brush100}"
+                                    BorderBrush="{DynamicResource Brush300}"
+                                    BorderThickness="1"
+                                    CornerRadius="8"
+                                    Padding="0">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="*" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Border Grid.Row="0" 
+                                            Background="{DynamicResource Brush100}"
+                                            BorderBrush="{DynamicResource Brush300}"
+                                            BorderThickness="0,0,0,1"
+                                            CornerRadius="8,8,0,0">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                            <Border x:Name="TexturesTab"
+                                                    Background="Transparent"
+                                                    BorderBrush="{DynamicResource Brush500}"
+                                                    BorderThickness="0,0,0,2"
+                                                    Padding="16,8"
+                                                    Cursor="Hand"
+                                                    MouseLeftButtonDown="TexturesTab_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Textures" 
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource Brush950}"
+                                                               VerticalAlignment="Center" />
+                                                    <TextBlock FontSize="11"
+                                                               Foreground="{DynamicResource Brush600}"
+                                                               Margin="6,0,0,0"
+                                                               VerticalAlignment="Center">
+                                                        <TextBlock.Text>
+                                                            <MultiBinding StringFormat="({0})">
+                                                                <Binding Path="SelectedAddon.SelectedDrawable.Textures.Count" />
+                                                            </MultiBinding>
+                                                        </TextBlock.Text>
+                                                    </TextBlock>
+                                                    
+                                                    <icons:MaterialIcon Kind="AlertCircle" 
+                                                                       Width="14" 
+                                                                       Height="14" 
+                                                                       Foreground="#f59e0b"
+                                                                       Margin="6,0,0,0"
+                                                                       ToolTip="At least one texture has warning"
+                                                                       ToolTipService.InitialShowDelay="0">
+                                                        <icons:MaterialIcon.Style>
+                                                            <Style TargetType="icons:MaterialIcon">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.HasTexturesNeedingOptimization}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </icons:MaterialIcon.Style>
+                                                    </icons:MaterialIcon>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <Border x:Name="EmbeddedTexturesTab"
+                                                    Background="Transparent"
+                                                    BorderBrush="Transparent"
+                                                    BorderThickness="0,0,0,2"
+                                                    Padding="16,8"
+                                                    Cursor="Hand"
+                                                    MouseLeftButtonDown="EmbeddedTexturesTab_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Embedded" 
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource Brush950}"
+                                                               VerticalAlignment="Center" />
+                                                    
+                                                    <icons:MaterialIcon Kind="AlertCircle" 
+                                                                       Width="14" 
+                                                                       Height="14" 
+                                                                       Foreground="#f59e0b"
+                                                                       Margin="6,0,0,0"
+                                                                       ToolTip="At least one embedded texture has warning"
+                                                                       ToolTipService.InitialShowDelay="0">
+                                                        <icons:MaterialIcon.Style>
+                                                            <Style TargetType="icons:MaterialIcon">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.HasEmbeddedTexturesNeedingOptimization}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </icons:MaterialIcon.Style>
+                                                    </icons:MaterialIcon>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Grid Grid.Row="1">
+                                        <ScrollViewer x:Name="TexturesContent" 
+                                                     Visibility="Visible"
+                                                     VerticalScrollBarVisibility="Auto" 
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     Background="{DynamicResource Brush100}"
+                                                     Padding="4">
+                                            <ListBox
+                                                x:Name="ModernTextureListBox"
+                                                SelectionChanged="TextureListBox_SelectionChanged"
+                                                ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
+                                                Background="{x:Null}"
+                                                BorderThickness="0"
+                                                SelectionMode="Extended"
+                                                HorizontalContentAlignment="Stretch"
+                                                MouseDoubleClick="TextureListBox_MouseDoubleClick"
+                                                AllowDrop="True"
+                                                PreviewMouseWheel="ListBox_PreviewMouseWheel"
+                                                PreviewMouseLeftButtonDown="TextureListBox_PreviewMouseLeftButtonDown"
+                                                PreviewMouseMove="TextureListBox_PreviewMouseMove"
+                                                Drop="TextureListBox_Drop"
+                                                DragEnter="TextureListBox_DragEnter"
+                                                DragOver="TextureListBox_DragOver"
+                                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                AlternationCount="2">
+                                                <ListBox.ItemContainerStyle>
+                                                    <Style TargetType="ListBoxItem">
+                                                        <Setter Property="Padding" Value="0"/>
+                                                        <Setter Property="Margin" Value="0"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ListBoxItem">
+                                                                    <Border x:Name="ItemBorder"
+                                                                            Background="{DynamicResource Brush100}"
+                                                                            SnapsToDevicePixels="True"
+                                                                            IsHitTestVisible="True">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush200}" />
+                                                                        </Trigger>
+                                                                        <Trigger SourceName="ItemBorder" Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush300}" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="IsSelected" Value="True">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush400}" />
+                                                                        </Trigger>
+                                                                        <MultiTrigger>
+                                                                            <MultiTrigger.Conditions>
+                                                                                <Condition Property="IsSelected" Value="True"/>
+                                                                                <Condition SourceName="ItemBorder" Property="IsMouseOver" Value="True"/>
+                                                                            </MultiTrigger.Conditions>
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush450}" />
+                                                                        </MultiTrigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </ListBox.ItemContainerStyle>
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Height="36" Margin="10,0" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="32" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="56" />
+                                                                <ColumnDefinition Width="64" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
+                                                                <icons:MaterialIcon Kind="ProgressHelper" Width="16" Height="16" Margin="0,0,2,0">
+                                                                    <icons:MaterialIcon.Style>
+                                                                        <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </icons:MaterialIcon.Style>
+                                                                </icons:MaterialIcon>
+
+                                                                <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="CheckCircle" Width="16" Height="16" Foreground="#22c55e" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+
+                                                                <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="AlertCircle" Width="16" Height="16" Foreground="#f59e0b" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <MultiDataTrigger>
+                                                                                        <MultiDataTrigger.Conditions>
+                                                                                            <Condition Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True" />
+                                                                                            <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
+                                                                                        </MultiDataTrigger.Conditions>
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </MultiDataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+
+                                                                <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="CloseCircle" Width="16" Height="16" Foreground="#ef4444" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+                                                            </StackPanel>
+
+                                                            <TextBlock Text="{Binding TxtLetter}"
+                                                                        Grid.Column="1"
+                                                                        FontSize="13"
+                                                                        FontWeight="Medium"
+                                                                        Foreground="{DynamicResource Brush900}"
+                                                                        HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center" />
+
+                                                            <TextBlock Grid.Column="2"
+                                                                       Text="{Binding DisplayName}"
+                                                                       VerticalAlignment="Center"
+                                                                       FontSize="13"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       Margin="6,0" />
+
+                                                            <TextBlock Grid.Column="3"
+                                                                       Text="{Binding TxtDetails.Compression, Converter={StaticResource CompressionFormatConverter}}"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       Margin="8,0">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
+                                                                                <Setter Property="Text" Value="N/A" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+
+                                                            <TextBlock Grid.Column="4"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       Margin="0,0,8,0">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="{}{0}x{1}">
+                                                                        <Binding Path="TxtDetails.Width" />
+                                                                        <Binding Path="TxtDetails.Height" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
+                                                                                <Setter Property="Text" Value="N/A" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+
+                                                            <Border Grid.Column="5"
+                                                                    Width="28"
+                                                                    Height="28"
+                                                                    BorderBrush="{DynamicResource Brush300}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="4"
+                                                                    Margin="0,0,6,0">
+                                                                <Image Source="{Binding ImageThumbnail}"
+                                                                       Stretch="UniformToFill">
+                                                                    <Image.Clip>
+                                                                        <RectangleGeometry RadiusX="3" RadiusY="3" Rect="0 0 28 28"/>
+                                                                    </Image.Clip>
+                                                                </Image>
+                                                            </Border>
+
+                                                            <Button Grid.Column="6"
+                                                                    Content="Preview"
+                                                                    FontSize="11"
+                                                                    Margin="0"
+                                                                    Padding="8,4"
+                                                                    Width="60"
+                                                                    Height="22"
+                                                                    BorderThickness="0"
+                                                                    Style="{StaticResource RoundedButton}"
+                                                                    Background="{DynamicResource Brush300}"
+                                                                    BorderBrush="{DynamicResource Brush300}"
+                                                                    Foreground="{DynamicResource Brush950}"
+                                                                    Click="TexturePreview_Click"
+                                                                    IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" />
+                                                            
+                                                            <Grid.ContextMenu>
+                                                                <ContextMenu>
+                                                                    <MenuItem Click="HandleTextureOptimization_Click">
+                                                                        <MenuItem.Style>
+                                                                            <Style TargetType="MenuItem">
+                                                                                <Setter Property="Header" Value="Optimize texture" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                        <Setter Property="Header" Value="Undo optimize" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </MenuItem.Style>
+                                                                    </MenuItem>
+                                                                    <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
+                                                                    <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
+                                                                    <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
+                                                                    <MenuItem Header="Export as YTD" Click="ExportTexture_Click" Tag="YTD" />
+                                                                    <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
+                                                                    <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
+                                                                </ContextMenu>
+                                                            </Grid.ContextMenu>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </ScrollViewer>
+
+                                        <ScrollViewer x:Name="EmbeddedTexturesContent" 
+                                                     Visibility="Collapsed"
+                                                     VerticalScrollBarVisibility="Auto" 
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     Background="{DynamicResource Brush100}"
+                                                     Padding="4">
+                                            <ListBox x:Name="EmbeddedTexturesListBox"
+                                                     ItemsSource="{Binding SelectedAddon.SelectedDrawable.Details.EmbeddedTextures.Values}"
+                                                     Background="{x:Null}"
+                                                     BorderThickness="0"
+                                                     SelectionMode="Single"
+                                                     HorizontalContentAlignment="Stretch"
+                                                     PreviewMouseWheel="ListBox_PreviewMouseWheel"
+                                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                     ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                                     AlternationCount="2">
+                                                <ListBox.ItemContainerStyle>
+                                                    <Style TargetType="ListBoxItem">
+                                                        <Setter Property="Padding" Value="0"/>
+                                                        <Setter Property="Margin" Value="0"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ListBoxItem">
+                                                                    <Border x:Name="ItemBorder"
+                                                                            Background="{DynamicResource Brush100}"
+                                                                            SnapsToDevicePixels="True"
+                                                                            IsHitTestVisible="True">
+                                                                        <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                                                                    </Border>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush200}" />
+                                                                        </Trigger>
+                                                                        <Trigger SourceName="ItemBorder" Property="IsMouseOver" Value="True">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush300}" />
+                                                                        </Trigger>
+                                                                        <Trigger Property="IsSelected" Value="True">
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush400}" />
+                                                                        </Trigger>
+                                                                        <MultiTrigger>
+                                                                            <MultiTrigger.Conditions>
+                                                                                <Condition Property="IsSelected" Value="True"/>
+                                                                                <Condition SourceName="ItemBorder" Property="IsMouseOver" Value="True"/>
+                                                                            </MultiTrigger.Conditions>
+                                                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush450}" />
+                                                                        </MultiTrigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </Style>
+                                                </ListBox.ItemContainerStyle>
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Height="36" Margin="10,0" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="56" />
+                                                                <ColumnDefinition Width="64" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,4,0">
+                                                                <icons:MaterialIcon Kind="ProgressHelper" Width="16" Height="16" Margin="0,0,2,0">
+                                                                    <icons:MaterialIcon.Style>
+                                                                        <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </icons:MaterialIcon.Style>
+                                                                </icons:MaterialIcon>
+
+                                                                <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="CheckCircle" Width="16" Height="16" Foreground="#22c55e" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+
+                                                                <ContentControl ToolTip="{Binding Details.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="AlertCircle" Width="16" Height="16" Foreground="#f59e0b" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <MultiDataTrigger>
+                                                                                        <MultiDataTrigger.Conditions>
+                                                                                            <Condition Binding="{Binding Details.IsOptimizeNeeded}" Value="True" />
+                                                                                            <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
+                                                                                        </MultiDataTrigger.Conditions>
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </MultiDataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+
+                                                                <ContentControl ToolTip="This is a replacement texture" ToolTipService.InitialShowDelay="0">
+                                                                    <icons:MaterialIcon Kind="SwapHorizontal" Width="16" Height="16" Foreground="#3b82f6" Margin="0,0,2,0">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="{x:Type icons:MaterialIcon}">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding HasReplacement}" Value="True">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </ContentControl>
+                                                            </StackPanel>
+
+                                                            <TextBlock Grid.Column="1"
+                                                                       VerticalAlignment="Center"
+                                                                       FontSize="10"
+                                                                       FontFamily="Consolas"
+                                                                       FontWeight="Medium"
+                                                                       Foreground="{DynamicResource Brush600}"
+                                                                       HorizontalAlignment="Left">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="[{0}]">
+                                                                        <Binding Path="Details.Type" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+
+                                                            <TextBlock Grid.Column="2"
+                                                                       VerticalAlignment="Center"
+                                                                       FontSize="13"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       Margin="6,0"
+                                                                       Text="{Binding Details.Name}" />
+
+                                                            <TextBlock Grid.Column="3"
+                                                                       Text="{Binding Details.Compression, Converter={StaticResource CompressionFormatConverter}}"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       Margin="8,0" />
+
+                                                            <TextBlock Grid.Column="4"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource Brush900}"
+                                                                       Margin="0,0,8,0">
+                                                                <TextBlock.Text>
+                                                                    <MultiBinding StringFormat="{}{0}x{1}">
+                                                                        <Binding Path="Details.Width" />
+                                                                        <Binding Path="Details.Height" />
+                                                                    </MultiBinding>
+                                                                </TextBlock.Text>
+                                                            </TextBlock>
+
+                                                            <Border Grid.Column="5"
+                                                                    Width="28"
+                                                                    Height="28"
+                                                                    BorderBrush="{DynamicResource Brush300}"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="4"
+                                                                    Background="{DynamicResource Brush200}"
+                                                                    Margin="0,0,6,0">
+                                                                <Grid>
+                                                                    <Image Source="{Binding ImageThumbnail}"
+                                                                           Stretch="UniformToFill">
+                                                                        <Image.Clip>
+                                                                            <RectangleGeometry RadiusX="3" RadiusY="3" Rect="0 0 28 28"/>
+                                                                        </Image.Clip>
+                                                                        <Image.Style>
+                                                                            <Style TargetType="Image">
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding ImageThumbnail}" Value="{x:Null}">
+                                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </Image.Style>
+                                                                    </Image>
+                                                                    
+                                                                    <icons:MaterialIcon Kind="Image" 
+                                                                                       Width="16" 
+                                                                                       Height="16"
+                                                                                       Foreground="{DynamicResource Brush500}">
+                                                                        <icons:MaterialIcon.Style>
+                                                                            <Style TargetType="icons:MaterialIcon">
+                                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding ImageThumbnail}" Value="{x:Null}">
+                                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </icons:MaterialIcon.Style>
+                                                                    </icons:MaterialIcon>
+                                                                </Grid>
+                                                            </Border>
+
+                                                            <Button Grid.Column="6"
+                                                                    Content="Preview"
+                                                                    FontSize="11"
+                                                                    Margin="0"
+                                                                    Padding="8,4"
+                                                                    Width="60"
+                                                                    Height="22"
+                                                                    BorderThickness="0"
+                                                                    Style="{StaticResource RoundedButton}"
+                                                                    Background="{DynamicResource Brush300}"
+                                                                    BorderBrush="{DynamicResource Brush300}"
+                                                                    Foreground="{DynamicResource Brush950}"
+                                                                    Click="EmbeddedTexturePreview_Click" />
+                                                            
+                                                            <Grid.ContextMenu>
+                                                                <ContextMenu>
+                                                                    <MenuItem Click="HandleEmbeddedTextureOptimization_Click">
+                                                                        <MenuItem.Style>
+                                                                            <Style TargetType="MenuItem">
+                                                                                <Setter Property="Header" Value="Optimize texture" />
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
+                                                                                        <Setter Property="Header" Value="Undo optimize" />
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </MenuItem.Style>
+                                                                    </MenuItem>
+                                                                    <MenuItem Header="Rename" Click="RenameEmbeddedTexture_Click"/>
+                                                                    <MenuItem Header="Replace" Click="ReplaceEmbeddedTexture_Click"/>
+                                                                </ContextMenu>
+                                                            </Grid.ContextMenu>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </ScrollViewer>
+                                    </Grid>
+
+                                    <Border x:Name="ActionBarBorder"
+                                            Grid.Row="2"
+                                            Background="{DynamicResource Brush100}"
+                                            BorderBrush="{DynamicResource Brush300}"
+                                            BorderThickness="0,1,0,0"
+                                            CornerRadius="0,0,8,8"
+                                            Padding="12,8">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Button x:Name="AddTexturesButton"
+                                                    Content="ADD TEXTURES"
+                                                    FontSize="11"
+                                                    FontWeight="SemiBold"
+                                                    Padding="12,6"
+                                                    Background="{DynamicResource Brush200}"
+                                                    BorderBrush="{DynamicResource Brush300}"
+                                                    Foreground="{DynamicResource Brush900}"
+                                                    Margin="0,0,6,0"
+                                                    Click="AddTexture_Click" />
+                                            
+                                            <Button x:Name="DeleteTextureButton"
+                                                    Width="28" 
+                                                    Height="28"
+                                                    Background="{DynamicResource Brush200}"
+                                                    BorderBrush="{DynamicResource Brush300}"
+                                                    Padding="0"
+                                                    ToolTip="Delete Selected"
+                                                    Click="DeleteTexture_Click">
+                                                <icons:MaterialIcon Kind="Delete" 
+                                                                   Width="14" 
+                                                                   Height="14"
+                                                                   Foreground="{DynamicResource Brush900}" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Column="1" Style="{StaticResource ModernCard}" Margin="4,0,0,0">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <TextBlock Text="Drawable Options" Style="{StaticResource SectionTitle}" />
+
+                                <c:ModernLabelComboBox Label="Audio" 
+                                                      Tag="Audio" 
+                                                      SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+
+                                <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                      Tag="HasSkin" 
+                                                      Label="Has Skin" 
+                                                      IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+
+                                <c:ModernLabelComboBox IsMultiSelect="True" 
+                                                      Label="Flags" 
+                                                      Tag="SelectedFlags" 
+                                                      Text="{Binding SelectedAddon.SelectedDrawable.FlagsText}" 
+                                                      SelectedItems="{Binding SelectedAddon.SelectedDrawable.SelectedFlags, Mode=TwoWay}" 
+                                                      ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,16" />
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding SelectedAddon.SelectedDrawable.IsProp}" Value="True" />
+                                                        <Condition Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="0" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox x:Name="EnableHairScale" 
+                                                          Tag="EnableHairScale" 
+                                                          Label="Enable Hair scale" 
+                                                          IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableHairScale}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,8" />
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" 
+                                                               Tag="HairScaleValue" 
+                                                               Label="Hair scale" 
+                                                               Value="{Binding SelectedAddon.SelectedDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                               Increment="0.05" 
+                                                               Maximum="1.0" 
+                                                               Minimum="0.0" 
+                                                               IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="6">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox x:Name="EnableHighHeels" 
+                                                          Tag="EnableHighHeels" 
+                                                          Label="Enable High heels" 
+                                                          IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableHighHeels}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,8" />
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" 
+                                                               Tag="HighHeelsValue" 
+                                                               Label="High heels amount" 
+                                                               Value="{Binding SelectedAddon.SelectedDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                               Increment="0.1" 
+                                                               Maximum="3.0" 
+                                                               Minimum="0.0" 
+                                                               IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
+
+                                <Border Height="1" Background="{DynamicResource Brush200}" Margin="0,8,0,16" />
+
+                                <TextBlock Text="Preview Options" Style="{StaticResource SectionTitle}" />
+
+                                <TextBlock Text="Run 3D Preview to enable options"
+                                           HorizontalAlignment="Center"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource Brush500}"
+                                           Margin="0,0,0,8">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+
+                                <c:ModernLabelCheckBox Tag="EnableKeepPreview" 
+                                                      Label="Keep preview" 
+                                                      IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableKeepPreview}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      IsEnabled="{Binding IsPreviewEnabled}" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+            </Grid>
+        </DataTemplate>
     </UserControl.Resources>
 
     <ContentControl Content="{Binding SelectedAddon.SelectedDrawable}">
@@ -190,544 +1137,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ContentControl">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="225" />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="3*" />
-                                        <RowDefinition Height="4*" />
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Style="{StaticResource DisableWhenReserved}" Orientation="Vertical" Margin="0" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top" >
-                                        <TextBox FontStyle="Italic" Text="{Binding SelectedAddon.SelectedDrawable.FilePath}" 
-                                             TextWrapping="Wrap" Foreground="{DynamicResource Brush500}"
-                                             Background="Transparent" BorderThickness="0" IsReadOnly="True"
-                                             Cursor="Arrow"
-                                             IsReadOnlyCaretVisible="False">
-                                            <TextBox.Style>
-                                                <Style TargetType="TextBox">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                    <Setter Property="Height" Value="20" />
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" Value="True">
-                                                            <Setter Property="Visibility" Value="Visible" />
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBox.Style>
-                                        </TextBox>
-                                        <StackPanel Orientation="Horizontal" Margin="2">
-                                            <!--<c:ModernLabelTextBox Width="75" Label="Position" Text="{Binding SelectedAddon.SelectedDrawable.Number}" Margin="2" FontSize="18" HorizontalAlignment="Center" />-->
-                                            <c:ModernLabelTextBox Width="150" Tag="Name" Label="Name" Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" Margin="2" IsUpdated="SelectedDrawable_Updated"/>
-                                            <c:ModernLabelComboBox Width="125" Label="Drawable type" SelectedItem="{Binding SelectedAddon.SelectedDrawable.TypeName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableTypes}" IsUpdated="DrawableType_Changed" />
-                                            <c:ModernLabelComboBox Width="75" Label="Sex" SelectedItem="{Binding SelectedAddon.SelectedDrawable.SexName, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableSex}" IsUpdated="DrawableSex_Changed" />
-                                            
-                                        </StackPanel>
-                                        <StackPanel Orientation="Vertical" Margin="2">
-                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Tag="FirstPersonPath" Width="300" Label="First person file" IsFileSelection="True" FileExtension=".ydd" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.FirstPersonPath}" ToolTipService.InitialShowDelay="400" IsUpdated="SelectedDrawable_Updated" />
-                                            <c:ModernLabelTextBox HorizontalAlignment="Left" Tag="ClothPhysicsPath" Width="300" Label="Cloth physics file (.yld)" IsFileSelection="True" FileExtension=".yld" Margin="2" FontSize="12" Text="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath, Converter={StaticResource FilePathToShortVersionConverter}}" ToolTip="{Binding SelectedAddon.SelectedDrawable.ClothPhysicsPath}" ToolTipService.InitialShowDelay="400" IsUpdated="SelectedDrawable_Updated" />
-                                        </StackPanel>
-
-                                    </StackPanel>
-                                    <StackPanel Visibility="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="-60" Grid.Row="2">
-                                        <c:CustomButton FontWeight="Medium" Width="300" Height="50" Label="REPLACE RESERVED DRAWABLE" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="ReplaceReserved_Click" />
-                                    </StackPanel>
-
-                                    <TabControl Grid.Row="1" Background="Transparent" BorderBrush="{DynamicResource Brush200}">
-                                        <TabItem>
-                                            <TabItem.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Foreground="{DynamicResource Brush950}" Text="Textures" VerticalAlignment="Center" />
-                                                    <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0" 
-                                                                       Foreground="{DynamicResource Brush950}"
-                                                                       ToolTip="Some textures have warnings"
-                                                                       ToolTipService.InitialShowDelay="0">
-                                                        <icons:MaterialIcon.Style>
-                                                            <Style TargetType="icons:MaterialIcon">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.Details.HasTextureWarnings}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </icons:MaterialIcon.Style>
-                                                    </icons:MaterialIcon>
-                                                </StackPanel>
-                                            </TabItem.Header>
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="20" />
-                                                    <RowDefinition Height="*" />
-                                                    <RowDefinition Height="30" />
-                                                </Grid.RowDefinitions>
-                                                
-                                                <TextBox 
-                                                     Text="{Binding SelectedAddon.SelectedDrawable.Textures.Count,
-                                                           Mode=OneWay,
-                                                           StringFormat='Textures:  {0} / 26'}"
-                                                     Grid.Row="0"
-                                                     TextWrapping="Wrap" 
-                                                     Foreground="{DynamicResource Brush950}"
-                                                     Background="Transparent" BorderThickness="0"
-                                                     IsReadOnly="True"
-                                                     Cursor="Arrow"
-                                                     IsReadOnlyCaretVisible="False">
-                                                </TextBox>
-                                                
-                                                <ListBox 
-                                                    Grid.Row="1"
-                                                    Style="{StaticResource FixedListBox}"
-                                                    x:Name="TextureListBox"
-                                                    SelectionChanged="TextureListBox_SelectionChanged"
-                                                    BorderBrush="{DynamicResource Brush200}"
-                                                    Background="Transparent"
-                                                    Foreground="{DynamicResource Brush950}"
-                                                    SelectionMode="Extended"
-                                                    SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, ElementName=Control}"
-                                                    ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}"
-                                                    HorizontalContentAlignment="Stretch"
-                                                    IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}"
-                                                    AllowDrop="True"
-                                                    MouseDoubleClick="TextureListBox_MouseDoubleClick"
-                                                    PreviewMouseLeftButtonDown="TextureListBox_PreviewMouseLeftButtonDown"
-                                                    PreviewMouseMove="TextureListBox_PreviewMouseMove"
-                                                    Drop="TextureListBox_Drop"
-                                                    DragEnter="TextureListBox_DragEnter"
-                                                    DragOver="TextureListBox_DragOver"
-                                                    d:ItemsSource="{Binding SelectedAddon.SelectedDrawable.Textures}">
-                                                    <ListBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid Height="30" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}" Background="Transparent">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="25" />
-                                                                    <ColumnDefinition Width="75" />
-                                                                    <ColumnDefinition Width="75" />
-                                                                    <ColumnDefinition Width="70" />
-                                                                    <ColumnDefinition Width="60" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" >
-                                                                    <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
-                                                                        <icons:MaterialIcon.Style>
-                                                                            <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="False">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </icons:MaterialIcon.Style>
-                                                                    </icons:MaterialIcon>
-                                                                    <ContentControl ToolTip="This texture will be optimized on resource build" ToolTipService.InitialShowDelay="0">
-                                                                        <icons:MaterialIcon Kind="Success" Width="22" Margin="0,0,2,2">
-                                                                            <icons:MaterialIcon.Style>
-                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
-                                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </icons:MaterialIcon.Style>
-                                                                        </icons:MaterialIcon>
-                                                                    </ContentControl>
-                                                                    <ContentControl ToolTip="{Binding TxtDetails.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
-                                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
-                                                                            <icons:MaterialIcon.Style>
-                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    <Style.Triggers>
-                                                                                        <MultiDataTrigger>
-                                                                                            <MultiDataTrigger.Conditions>
-                                                                                                <Condition Binding="{Binding TxtDetails.IsOptimizeNeeded}" Value="True" />
-                                                                                                <Condition Binding="{Binding IsOptimizedDuringBuild}" Value="False" />
-                                                                                            </MultiDataTrigger.Conditions>
-                                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                                        </MultiDataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </icons:MaterialIcon.Style>
-                                                                        </icons:MaterialIcon>
-                                                                    </ContentControl>
-                                                                    <ContentControl ToolTip="Texture not found. Most likely this .ytd is empty" ToolTipService.InitialShowDelay="0">
-                                                                        <icons:MaterialIcon Kind="CloseThick" Width="22" Margin="0,0,2,2">
-                                                                            <icons:MaterialIcon.Style>
-                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding IsPreviewDisabled}" Value="True">
-                                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </icons:MaterialIcon.Style>
-                                                                        </icons:MaterialIcon>
-                                                                    </ContentControl>
-                                                                
-
-                                                                    <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="{x:Type TextBlock}">
-                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                        <TextBlock.Text>
-                                                                            <MultiBinding StringFormat="{}{0}        {1}">
-                                                                                <Binding Path="TxtLetter" />
-                                                                                <Binding Path="DisplayName" />
-                                                                            </MultiBinding>
-                                                                        </TextBlock.Text>
-                                                                    </TextBlock>
-                                                                </StackPanel>
-                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0" 
-                                                                           Text="{Binding TxtDetails.Compression, Converter={StaticResource CompressionFormatConverter}}">
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
-                                                                                    <Setter Property="Text" Value="N/A" />
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </TextBlock.Style>
-                                                                </TextBlock>
-                                                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="5,-1,0,0">
-                                                                    <TextBlock.Text>
-                                                                        <MultiBinding StringFormat="{}{0}x{1}">
-                                                                            <Binding Path="TxtDetails.Width" />
-                                                                            <Binding Path="TxtDetails.Height" />
-                                                                        </MultiBinding>
-                                                                    </TextBlock.Text>
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding TxtDetails}" Value="{x:Null}">
-                                                                                    <Setter Property="Text" Value="N/A" />
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </TextBlock.Style>
-                                                                </TextBlock>
-                                                                <Image Grid.Column="4" Width="60" Source="{Binding ImageThumbnail}" />
-                                                                <Button Grid.Column="5" Width="60" Click="TexturePreview_Click" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
-                                                                <Grid.ContextMenu>
-                                                                    <ContextMenu>
-                                                                        <MenuItem Click="HandleTextureOptimization_Click">
-                                                                            <MenuItem.Style>
-                                                                                <Style TargetType="MenuItem">
-                                                                                    <Setter Property="Header" Value="Optimize texture" />
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="True">
-                                                                                            <Setter Property="Header" Value="Undo optimize" />
-                                                                                        </DataTrigger>
-                                                                                        <DataTrigger Binding="{Binding IsOptimizedDuringBuild}" Value="False">
-                                                                                            <Setter Property="Header" Value="Optimize texture" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </MenuItem.Style>
-                                                                        </MenuItem>
-                                                                        <MenuItem Header="Remove" Click="DeleteTexture_Click"/>
-                                                                        <MenuItem Header="Replace" Click="ReplaceTexture_Click"/>
-                                                                        <MenuItem Header="Open file location" Click="OpenFileLocation_Click" />
-                                                                        <MenuItem Header="Export as YTD" Click="ExportTexture_Click" Tag="YTD" />
-                                                                        <MenuItem Header="Export texture as DDS" Click="ExportTexture_Click" Tag="DDS"/>
-                                                                        <MenuItem Header="Export texture as PNG" Click="ExportTexture_Click" Tag="PNG"/>
-                                                                    </ContextMenu>
-                                                                </Grid.ContextMenu>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ListBox.ItemTemplate>
-                                                </ListBox>
-                                                
-                                                <StackPanel Style="{StaticResource DisableWhenReserved}" Grid.Row="2" Margin="0" VerticalAlignment="Stretch" Orientation="Horizontal">
-                                                    <c:CustomButton Width="150" Label="ADD TEXTURES" Padding="2" CornerRadius="5" DropdownEnabled="False" MyBtnClickEvent="AddTexture_Click" />
-                                                    <c:CustomButton Image="TrashCanOutline" Width="25" Tooltip="Delete selected drawable" ToolTipService.InitialShowDelay="0" Padding="2" CornerRadius="5" MyBtnClickEvent="DeleteTexture_Click" />
-                                                </StackPanel>
-                                            </Grid>
-                                        </TabItem>
-                                        
-                                        <TabItem>
-                                            <TabItem.Header>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Foreground="{DynamicResource Brush950}" Text="Embedded Textures" VerticalAlignment="Center" />
-                                                    <icons:MaterialIcon Kind="AlertCircleOutline" Width="14" Margin="5,0,0,0"
-                                                                       Foreground="{DynamicResource Brush950}"
-                                                                       ToolTip="Some embedded textures have warnings"
-                                                                       ToolTipService.InitialShowDelay="0">
-                                                        <icons:MaterialIcon.Style>
-                                                            <Style TargetType="icons:MaterialIcon">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Setter Property="Margin" Value="0,0,0,0" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.Details.HasEmbeddedTextureWarnings}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </icons:MaterialIcon.Style>
-                                                    </icons:MaterialIcon>
-                                                </StackPanel>
-                                            </TabItem.Header>
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="20" />
-                                                    <RowDefinition Height="*" />
-                                                </Grid.RowDefinitions>
-                                                
-                                                <TextBox 
-                                                     Text="Embedded Textures"
-                                                     Grid.Row="0"
-                                                     TextWrapping="Wrap" 
-                                                     Foreground="{DynamicResource Brush950}"
-                                                     Background="Transparent" BorderThickness="0"
-                                                     IsReadOnly="True"
-                                                     Cursor="Arrow"
-                                                     IsReadOnlyCaretVisible="False">
-                                                </TextBox>
-                                                
-                                                <ListBox 
-                                                    Grid.Row="1"
-                                                    Style="{StaticResource FixedListBox}"
-                                                    BorderBrush="{DynamicResource Brush200}"
-                                                    Background="Transparent"
-                                                    Foreground="{DynamicResource Brush950}"
-                                                    ItemsSource="{Binding SelectedAddon.SelectedDrawable.Details.EmbeddedTextures}"
-                                                    HorizontalContentAlignment="Stretch"
-                                                    IsEnabled="{Binding SelectedAddon.SelectedDrawable.IsReserved, Converter={StaticResource InverseBooleanConverter}}">
-                                                    <ListBox.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid Height="30" IsEnabled="{Binding Value.IsLoading, Converter={StaticResource InverseBooleanConverter}}" Background="Transparent">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="25" />
-                                                                    <ColumnDefinition Width="75" />
-                                                                    <ColumnDefinition Width="75" />
-                                                                    <ColumnDefinition Width="70" />
-                                                                    <ColumnDefinition Width="60" />
-                                                                </Grid.ColumnDefinitions>
-                                                                
-                                                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                                                    <icons:MaterialIcon Kind="ProgressHelper" Width="22" Margin="0,0,2,2">
-                                                                        <icons:MaterialIcon.Style>
-                                                                            <Style TargetType="{x:Type icons:MaterialIcon}" BasedOn="{StaticResource Spin}">
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                                    </DataTrigger>
-                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="False">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </icons:MaterialIcon.Style>
-                                                                    </icons:MaterialIcon>
-                                                                    <ContentControl ToolTip="{Binding Value.Details.IsOptimizeNeededTooltip}" ToolTipService.InitialShowDelay="0">
-                                                                        <icons:MaterialIcon Kind="AlertCircleOutline" Width="22" Margin="0,0,2,2">
-                                                                            <icons:MaterialIcon.Style>
-                                                                                <Style TargetType="{x:Type icons:MaterialIcon}">
-                                                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding Value.Details.IsOptimizeNeeded}" Value="True">
-                                                                                            <Setter Property="Visibility" Value="Visible" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </icons:MaterialIcon.Style>
-                                                                        </icons:MaterialIcon>
-                                                                    </ContentControl>
-                                                                    
-                                                                    <TextBlock VerticalAlignment="Center" Margin="5,-1,0,0">
-                                                                        <TextBlock.Style>
-                                                                            <Style TargetType="{x:Type TextBlock}">
-                                                                                <Setter Property="Visibility" Value="Visible" />
-                                                                                <Style.Triggers>
-                                                                                    <DataTrigger Binding="{Binding Value.IsLoading}" Value="True">
-                                                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                                                    </DataTrigger>
-                                                                                </Style.Triggers>
-                                                                            </Style>
-                                                                        </TextBlock.Style>
-                                                                        <TextBlock.Text>
-                                                                            <MultiBinding StringFormat="{}({0}) {1}">
-                                                                                <Binding Path="Key" />
-                                                                                <Binding Path="Value.Details.Name" />
-                                                                            </MultiBinding>
-                                                                        </TextBlock.Text>
-                                                                    </TextBlock>
-                                                                </StackPanel>
-                                                                
-                                                                <TextBlock Grid.Column="2" VerticalAlignment="Center" Margin="5,-1,0,0" 
-                                                                           Text="{Binding Value.Details.Compression, Converter={StaticResource CompressionFormatConverter}}">
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
-                                                                                    <Setter Property="Text" Value="N/A" />
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </TextBlock.Style>
-                                                                </TextBlock>
-                                                                <TextBlock Grid.Column="3" VerticalAlignment="Center" Margin="5,-1,0,0">
-                                                                    <TextBlock.Text>
-                                                                        <MultiBinding StringFormat="{}{0}x{1}">
-                                                                            <Binding Path="Value.Details.Width" />
-                                                                            <Binding Path="Value.Details.Height" />
-                                                                        </MultiBinding>
-                                                                    </TextBlock.Text>
-                                                                    <TextBlock.Style>
-                                                                        <Style TargetType="TextBlock">
-                                                                            <Style.Triggers>
-                                                                                <DataTrigger Binding="{Binding Value}" Value="{x:Null}">
-                                                                                    <Setter Property="Text" Value="N/A" />
-                                                                                </DataTrigger>
-                                                                            </Style.Triggers>
-                                                                        </Style>
-                                                                    </TextBlock.Style>
-                                                                </TextBlock>
-                                                                
-                                                                <Image Grid.Column="4" Width="60" Source="{Binding Value.ImageThumbnail}" />
-                                                                <Button Grid.Column="5" Width="60" Click="EmbeddedTexturePreview_Click" DataContext="{Binding Value}" IsEnabled="{Binding IsPreviewDisabled, Converter={StaticResource InverseBooleanConverter}}" Content="Preview" />
-                                                                <Grid.ContextMenu>
-                                                                    <ContextMenu>
-                                                                        <MenuItem Click="HandleEmbeddedTextureOptimization_Click">
-                                                                            <MenuItem.Style>
-                                                                                <Style TargetType="MenuItem">
-                                                                                    <Setter Property="Header" Value="Optimize texture" />
-                                                                                    <Style.Triggers>
-                                                                                        <DataTrigger Binding="{Binding Value.IsOptimizedDuringBuild}" Value="True">
-                                                                                            <Setter Property="Header" Value="Undo optimize" />
-                                                                                        </DataTrigger>
-                                                                                        <DataTrigger Binding="{Binding Value.IsOptimizedDuringBuild}" Value="False">
-                                                                                            <Setter Property="Header" Value="Optimize texture" />
-                                                                                        </DataTrigger>
-                                                                                    </Style.Triggers>
-                                                                                </Style>
-                                                                            </MenuItem.Style>
-                                                                        </MenuItem>
-                                                                        <MenuItem Header="Rename" Click="RenameEmbeddedTexture_Click"/>
-                                                                        <MenuItem Header="Replace" Click="ReplaceEmbeddedTexture_Click"/>
-                                                                    </ContextMenu>
-                                                                </Grid.ContextMenu>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ListBox.ItemTemplate>
-                                                </ListBox>
-                                            </Grid>
-                                        </TabItem>
-                                    </TabControl>
-                                </Grid>
-                                <Grid Style="{StaticResource DisableWhenReserved}" Grid.Column="1">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="2*" />
-                                        <RowDefinition Height="*" />
-                                    </Grid.RowDefinitions>
-                                    
-                                    <!-- Drawable Options GroupBox - one drawable selected -->
-                                    <GroupBox Header="Drawable Options" Grid.Row="0" Style="{DynamicResource FixedGroupBox}" Margin="2">
-                                        <StackPanel Orientation="Vertical">
-                                            <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableAudioList}" IsUpdated="SelectedDrawable_Updated" />
-                                            <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
-                                            <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.SelectedDrawable.HasSkin}" IsUpdated="SelectedDrawable_Updated" />
-                                            <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.SelectedDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.SelectedDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
-
-                                            <c:ModernLabelComboBox x:Name="GroupComboBox" Label="Group" Tag="Group" SelectedItem="{Binding SelectedAddon.SelectedDrawable.Group, Mode=TwoWay}" ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" IsUpdated="SelectedDrawable_Updated" />
-
-                                            <StackPanel Orientation="Vertical" Margin="0">
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Setter Property="Margin" Value="0,5,0,0" />
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Value="True" />
-                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="1" />
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
-
-                                                <c:ModernLabelCheckBox Tag="HidesHair" Label="Hides Hair" IsChecked="{Binding SelectedAddon.SelectedDrawable.HidesHair}" IsUpdated="SelectedDrawable_Updated" />
-                                            </StackPanel>
-
-                                            <StackPanel Orientation="Vertical" Margin="0">
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Setter Property="Margin" Value="0,5,0,0" />
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.IsProp}" Value="True" />
-                                                                    <Condition Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="0" />
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
-
-                                                <c:ModernLabelCheckBox x:Name="EnableHairScale" Tag="EnableHairScale" Label="Enable Hair scale" IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableHairScale}" IsUpdated="SelectedDrawable_Updated" />
-                                                <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" Tag="HairScaleValue" Label="Hair scale" Value="{Binding SelectedAddon.SelectedDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.05" Maximum="1.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
-                                            </StackPanel>
-
-                                            <StackPanel Orientation="Vertical" Margin="0">
-                                                <StackPanel.Style>
-                                                    <Style TargetType="StackPanel">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Setter Property="Margin" Value="0,5,0,0" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="6">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </StackPanel.Style>
-
-                                                <c:ModernLabelCheckBox x:Name="EnableHighHeels" Tag="EnableHighHeels" Label="Enable High heels" IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableHighHeels}" IsUpdated="SelectedDrawable_Updated" />
-                                                <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" Tag="HighHeelsValue" Label="High heels amount" Value="{Binding SelectedAddon.SelectedDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.1" Maximum="3.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </GroupBox>
-                                    
-                                    <!-- Preview Options GroupBox - one drawable selected -->
-                                    <GroupBox Grid.Row="1" Header="Preview Options" IsEnabled="{Binding IsPreviewEnabled}" Style="{DynamicResource FixedGroupBox}" Margin="2">
-                                        <StackPanel Orientation="Vertical" Margin="0">
-                                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="True">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <c:ModernLabelCheckBox Tag="EnableKeepPreview" Label="Keep preview" IsChecked="{Binding SelectedAddon.SelectedDrawable.EnableKeepPreview}" IsUpdated="SelectedDrawable_Updated" />
-                                        </StackPanel>
-                                    </GroupBox>
-                                </Grid>
-                            </Grid>
+                            <ContentControl ContentTemplate="{StaticResource ModernDrawableTemplate}" Content="{Binding }" />
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

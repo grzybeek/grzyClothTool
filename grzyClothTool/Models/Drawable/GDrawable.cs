@@ -160,8 +160,32 @@ public class GDrawable : INotifyPropertyChanged
         {
             if (_details != value)
             {
+                if (_details?.EmbeddedTextures != null)
+                {
+                    foreach (var kvp in _details.EmbeddedTextures)
+                    {
+                        if (kvp.Value != null)
+                        {
+                            kvp.Value.PropertyChanged -= OnEmbeddedTexturePropertyChanged;
+                        }
+                    }
+                }
+                
                 _details = value;
+                
+                if (_details?.EmbeddedTextures != null)
+                {
+                    foreach (var kvp in _details.EmbeddedTextures)
+                    {
+                        if (kvp.Value != null)
+                        {
+                            kvp.Value.PropertyChanged += OnEmbeddedTexturePropertyChanged;
+                        }
+                    }
+                }
+                
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(HasEmbeddedTexturesNeedingOptimization));
             }
         }
     }
@@ -313,6 +337,12 @@ public class GDrawable : INotifyPropertyChanged
     public static List<string> AvailableRenderFlagList => ["", "PRF_ALPHA", "PRF_DECAL", "PRF_CUTOUT"];
 
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
+
+    [JsonIgnore]
+    public bool HasTexturesNeedingOptimization => Textures?.Any(t => t.TxtDetails?.IsOptimizeNeeded == true && !t.IsOptimizedDuringBuild) ?? false;
+
+    [JsonIgnore]
+    public bool HasEmbeddedTexturesNeedingOptimization => Details?.EmbeddedTextures?.Values.Any(t => t.Details?.IsOptimizeNeeded == true && !t.IsOptimizedDuringBuild) ?? false;
 
     public GDrawable(Guid id, string filePath, Enums.SexType sex, bool isProp, int typeNumeric, int number, bool hasSkin, ObservableCollection<GTexture> textures)
     {
@@ -471,6 +501,8 @@ public class GDrawable : INotifyPropertyChanged
 
         Details.TexturesCount = Textures.Count;
         Details.Validate(Textures);
+        
+        OnPropertyChanged(nameof(HasTexturesNeedingOptimization));
     }
 
     private void OnTexturePropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -478,6 +510,21 @@ public class GDrawable : INotifyPropertyChanged
         if (e.PropertyName == nameof(GTexture.TxtDetails) && Details != null)
         {
             Details.Validate(Textures);
+            OnPropertyChanged(nameof(HasTexturesNeedingOptimization));
+        }
+        
+        if (e.PropertyName == nameof(GTexture.IsOptimizedDuringBuild))
+        {
+            OnPropertyChanged(nameof(HasTexturesNeedingOptimization));
+        }
+    }
+
+    private void OnEmbeddedTexturePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GTextureEmbedded.IsOptimizedDuringBuild) || 
+            e.PropertyName == nameof(GTextureEmbedded.Details))
+        {
+            OnPropertyChanged(nameof(HasEmbeddedTexturesNeedingOptimization));
         }
     }
 

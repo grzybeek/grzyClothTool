@@ -153,42 +153,44 @@
                                     <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="General settings" />
                                 </GroupBox.Header>
 
-                                <StackPanel Margin="0">
-                                    <c:SettingsLabelTextBox
-                                        Margin="5"
-                                        Label="Main Projects Folder"
-                                        Text="{Binding MainProjectsFolder, Mode=TwoWay}"
-                                        Description="Main folder where all your clothing projects are stored"
-                                        Title="Select your Main Projects Folder"
-                                        ButtonClick="MainProjectsFolder_Click" />
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                    <StackPanel Margin="0">
+                                        <c:SettingsLabelTextBox
+                                            Margin="5"
+                                            Label="Main Projects Folder"
+                                            Text="{Binding MainProjectsFolder, Mode=TwoWay}"
+                                            Description="Main folder where all your clothing projects are stored"
+                                            Title="Select your Main Projects Folder"
+                                            ButtonClick="MainProjectsFolder_Click" />
 
-                                    <c:SettingsLabelTextBox
-                                        Margin="5"
-                                        Label="Current GTAV Path"
-                                        Text="{Binding GTAVPath, Mode=OneWay}"
-                                        Description="GTAV path is required for 3D preview to work"
-                                        Title="Select your GTA V Path"
-                                        ButtonClick="GTAVPath_Click" />
+                                        <c:SettingsLabelTextBox
+                                            Margin="5"
+                                            Label="Current GTAV Path"
+                                            Text="{Binding GTAVPath, Mode=OneWay}"
+                                            Description="GTAV path is required for 3D preview to work"
+                                            Title="Select your GTA V Path"
+                                            ButtonClick="GTAVPath_Click" />
 
-                                    <c:SettingsLabelCheckBox
-                                        Margin="5"
-                                        Label="Display drawable path"
-                                        Text="Enabled will display used path for selected drawable"
-                                        IsChecked="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                        <c:SettingsLabelCheckBox
+                                            Margin="5"
+                                            Label="Display drawable path"
+                                            Text="Enabled will display used path for selected drawable"
+                                            IsChecked="{Binding Path=Instance.DisplaySelectedDrawablePath, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
 
-                                    <c:SettingsLabelCheckBox
-                                        Margin="5"
-                                        Label="Delete drawable files automatically"
-                                        Text="When enabled, it will automatically remove the associated files from your system when you delete a drawable from the addon"
-                                        DisplayWarning="WARNING: This function will modify and remove files from your PC. Any removed files cannot be recovered.&#x0a;&#x0a;Are you sure you want to enable it?"
-                                        IsChecked="{Binding Path=Instance.AutoDeleteFiles, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                        <c:SettingsLabelCheckBox
+                                            Margin="5"
+                                            Label="Delete drawable files automatically"
+                                            Text="When enabled, it will automatically remove the associated files from your system when you delete a drawable from the addon"
+                                            DisplayWarning="WARNING: This function will modify and remove files from your PC. Any removed files cannot be recovered.&#x0a;&#x0a;Are you sure you want to enable it?"
+                                            IsChecked="{Binding Path=Instance.AutoDeleteFiles, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
 
-                                    <c:SettingsLabelCheckBox
-                                        Margin="5"
-                                        Label="Mark new drawables"
-                                        Text="When enabled, new drawables will be marked with a yellow dot"
-                                        IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
-                                </StackPanel>
+                                        <c:SettingsLabelCheckBox
+                                            Margin="5"
+                                            Label="Mark new drawables"
+                                            Text="When enabled, new drawables will be marked with a yellow dot"
+                                            IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+                                    </StackPanel>
+                                </ScrollViewer>
                             </GroupBox>
 
                             <GroupBox Margin="0,5" Height="200" Style="{DynamicResource FixedGroupBox}">

@@ -229,7 +229,9 @@ namespace grzyClothTool.Controls
             try
             {
                 Button btn = sender as Button;
-                GTextureEmbedded embeddedTexture = (GTextureEmbedded)btn.DataContext;
+
+                if (btn.DataContext is not GTextureEmbedded embeddedTexture)
+                    return;
 
                 var textureData = embeddedTexture.DisplayTextureData;
                 if (textureData?.Data?.FullData == null || textureData.Data.FullData.Length == 0)
@@ -360,7 +362,7 @@ namespace grzyClothTool.Controls
             {
                 DependencyObject child = VisualTreeHelper.GetChild(parent, i);
 
-                if (child is ListBox listBox && listBox.Name == "TextureListBox")
+                if (child is ListBox listBox && (listBox.Name == "TextureListBox" || listBox.Name == "ModernTextureListBox"))
                 {
                     return listBox;
                 }
@@ -945,20 +947,39 @@ namespace grzyClothTool.Controls
         private void HandleEmbeddedTextureOptimization_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = sender as MenuItem;
+            
+            if (menuItem.DataContext is GTextureEmbedded embeddedTexture)
+            {
+                if (embeddedTexture?.TextureData == null)
+                    return;
+
+                if (embeddedTexture.IsOptimizedDuringBuild)
+                {
+                    UndoEmbeddedTextureOptimization(embeddedTexture);
+                }
+                else
+                {
+                    OptimizeEmbeddedTexture(embeddedTexture);
+                }
+
+                SaveHelper.SetUnsavedChanges(true);
+                return;
+            }
+
             var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
             
             if (!embeddedTextureEntry.HasValue || embeddedTextureEntry.Value.Value?.TextureData == null)
                 return;
 
-            var embeddedTexture = embeddedTextureEntry.Value.Value;
+            var texture = embeddedTextureEntry.Value.Value;
 
-            if (embeddedTexture.IsOptimizedDuringBuild)
+            if (texture.IsOptimizedDuringBuild)
             {
-                UndoEmbeddedTextureOptimization(embeddedTexture);
+                UndoEmbeddedTextureOptimization(texture);
             }
             else
             {
-                OptimizeEmbeddedTexture(embeddedTexture);
+                OptimizeEmbeddedTexture(texture);
             }
 
             SaveHelper.SetUnsavedChanges(true);
@@ -995,29 +1016,64 @@ namespace grzyClothTool.Controls
         private void RenameEmbeddedTexture_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = sender as MenuItem;
+            
+            if (menuItem.DataContext is GTextureEmbedded embeddedTexture)
+            {
+                if (embeddedTexture?.TextureData == null)
+                    return;
+
+                var (result, textBoxValue) = Show("Rename Embedded Texture", "Enter new name:", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.None, true);
+                if (result == CustomMessageBoxResult.OK)
+                {
+                    embeddedTexture.RenameTexture(textBoxValue);
+                }
+                return;
+            }
+
             var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
             
             if (!embeddedTextureEntry.HasValue || embeddedTextureEntry.Value.Value?.TextureData == null)
                 return;
 
-            var embeddedTexture = embeddedTextureEntry.Value.Value;
-            var (result, textBoxValue) = Show("Rename Embedded Texture", "Enter new name:", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.None, true);
-            if (result == CustomMessageBoxResult.OK)
+            var texture = embeddedTextureEntry.Value.Value;
+            var (res, txtValue) = Show("Rename Embedded Texture", "Enter new name:", CustomMessageBoxButtons.OKCancel, CustomMessageBoxIcon.None, true);
+            if (res == CustomMessageBoxResult.OK)
             {
-                embeddedTexture.RenameTexture(textBoxValue);
+                texture.RenameTexture(txtValue);
             }
         }
 
         private void ReplaceEmbeddedTexture_Click(object sender, RoutedEventArgs e)
         {
             MenuItem menuItem = sender as MenuItem;
-            var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
             
-            if (!embeddedTextureEntry.HasValue)
-                return;
+            GTextureEmbedded embeddedTexture = null;
+            GDrawableDetails.EmbeddedTextureType textureType = GDrawableDetails.EmbeddedTextureType.Normal;
 
-            var textureType = embeddedTextureEntry.Value.Key;
-            var embeddedTexture = embeddedTextureEntry.Value.Value;
+            if (menuItem.DataContext is GTextureEmbedded texture)
+            {
+                if (texture?.TextureData == null)
+                    return;
+                    
+                embeddedTexture = texture;
+                if (Enum.TryParse<GDrawableDetails.EmbeddedTextureType>(texture.Details.Type, out var parsedType))
+                {
+                    textureType = parsedType;
+                }
+            }
+            else
+            {
+                var embeddedTextureEntry = menuItem.DataContext as KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded>?;
+                
+                if (!embeddedTextureEntry.HasValue)
+                    return;
+
+                textureType = embeddedTextureEntry.Value.Key;
+                embeddedTexture = embeddedTextureEntry.Value.Value;
+            }
+
+            if (embeddedTexture == null)
+                return;
             
             OpenFileDialog file = new()
             {
@@ -1137,6 +1193,97 @@ namespace grzyClothTool.Controls
                 }
                 current = VisualTreeHelper.GetParent(current);
             }
+            return null;
+        }
+
+
+        private void ListBox_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (!e.Handled)
+            {
+                e.Handled = true;
+                var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+                {
+                    RoutedEvent = UIElement.MouseWheelEvent,
+                    Source = sender
+                };
+                var parent = ((Control)sender).Parent as UIElement;
+                parent?.RaiseEvent(eventArg);
+            }
+        }
+
+        private void TexturesTab_Click(object sender, MouseButtonEventArgs e)
+        {
+            SwitchToTab(isTextures: true, sender);
+        }
+
+        private void EmbeddedTexturesTab_Click(object sender, MouseButtonEventArgs e)
+        {
+            SwitchToTab(isTextures: false, sender);
+        }
+
+        private void SwitchToTab(bool isTextures, object sender)
+        {
+            if (sender is not Border clickedTab) return;
+
+            DependencyObject parent = VisualTreeHelper.GetParent(clickedTab);
+            while (parent != null && !(parent is Grid))
+            {
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+
+            if (parent == null) return;
+
+
+            if (FindChildByName(parent, "TexturesTab") is not Border texturesTab || FindChildByName(parent, "EmbeddedTexturesTab") is not Border embeddedTexturesTab ||
+                FindChildByName(parent, "TexturesContent") is not ScrollViewer texturesContent || FindChildByName(parent, "EmbeddedTexturesContent") is not ScrollViewer embeddedTexturesContent)
+                return;
+
+            Border actionBarBorder = FindChildByName(parent, "ActionBarBorder") as Border;
+
+            if (isTextures)
+            {
+                texturesTab.BorderBrush = (System.Windows.Media.Brush)FindResource("Brush500");
+                embeddedTexturesTab.BorderBrush = System.Windows.Media.Brushes.Transparent;
+
+                texturesContent.Visibility = Visibility.Visible;
+                embeddedTexturesContent.Visibility = Visibility.Collapsed;
+                
+                if (actionBarBorder != null) actionBarBorder.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                embeddedTexturesTab.BorderBrush = (System.Windows.Media.Brush)FindResource("Brush500");
+                texturesTab.BorderBrush = System.Windows.Media.Brushes.Transparent;
+
+                texturesContent.Visibility = Visibility.Collapsed;
+                embeddedTexturesContent.Visibility = Visibility.Visible;
+                
+                if (actionBarBorder != null) actionBarBorder.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private DependencyObject FindChildByName(DependencyObject parent, string name)
+        {
+            if (parent == null) return null;
+
+            int childCount = VisualTreeHelper.GetChildrenCount(parent);
+            for (int i = 0; i < childCount; i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                
+                if (child is FrameworkElement element && element.Name == name)
+                {
+                    return child;
+                }
+
+                var result = FindChildByName(child, name);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
             return null;
         }
 
