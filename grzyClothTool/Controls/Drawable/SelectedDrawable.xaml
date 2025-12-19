@@ -108,138 +108,408 @@
             </Setter>
         </Style>
 
-        <DataTemplate x:Key="DrawableOptionsTemplate">
-            <Grid>
+        <DataTemplate x:Key="NoDrawableTemplate">
+            <Grid Background="{DynamicResource Brush50}" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+                    <icons:MaterialIcon Kind="FileDocumentOutline" 
+                                       Width="64" 
+                                       Height="64"
+                                       Foreground="{DynamicResource Brush400}"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,0,0,16" />
+                    <TextBlock Text="No drawable selected"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource Brush700}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,8" />
+                    <TextBlock Text="Select a drawable from the list to view and edit its properties"
+                               FontSize="12"
+                               Foreground="{DynamicResource Brush500}"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               MaxWidth="300"
+                               TextAlignment="Center" />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="ReservedDrawableTemplate">
+            <Grid Background="{DynamicResource Brush50}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="225" />
                 </Grid.ColumnDefinitions>
+                
                 <Grid Grid.Column="0">
-                    <StackPanel Orientation="Vertical" Margin="10">
-                        <TextBlock Padding="10" FontSize="16">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="40">
+                        <icons:MaterialIcon Kind="Lock" 
+                                           Width="64" 
+                                           Height="64"
+                                           Foreground="#f59e0b"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,16" />
+                        <TextBlock Text="Reserved Drawable"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="#f59e0b"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,12" />
+                        <TextBlock Text="This is a reserved drawable slot and cannot be edited."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource Brush700}"
+                                   HorizontalAlignment="Center"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="350"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,24" />
+                        
+                        <c:CustomButton FontWeight="Medium" 
+                                       Width="300" 
+                                       Height="50" 
+                                       Label="REPLACE RESERVED DRAWABLE" 
+                                       Padding="2" 
+                                       CornerRadius="5" 
+                                       DropdownEnabled="False" 
+                                       MyBtnClickEvent="ReplaceReserved_Click" />
+                    </StackPanel>
+                </Grid>
+                
+                <Border Grid.Column="1" 
+                        Style="{StaticResource ModernCard}" 
+                        Margin="4,8,8,8"
+                        Opacity="0.5">
+                    <StackPanel VerticalAlignment="Center">
+                        <icons:MaterialIcon Kind="LockOutline" 
+                                           Width="48" 
+                                           Height="48"
+                                           Foreground="{DynamicResource Brush400}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,12" />
+                        <TextBlock Text="Options Disabled"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush600}"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="DrawableOptionsTemplate">
+            <Grid Background="{DynamicResource Brush100}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="225" />
+                </Grid.ColumnDefinitions>
+                
+                <Border Grid.Column="0" Style="{StaticResource ModernCard}" Margin="8,8,4,8">
+                    <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                        <icons:MaterialIcon Kind="CheckboxMultipleMarked" 
+                                           Width="64" 
+                                           Height="64"
+                                           Foreground="{DynamicResource Brush500}"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,16" />
+                        
+                        <TextBlock FontSize="18" 
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource Brush900}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,8">
                             <TextBlock.Text>
                                 <MultiBinding StringFormat="Selected {0} drawable(s)">
                                     <Binding Path="SelectedAddon.SelectedDrawables.Count" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
-                        <TextBlock Text="WARNING: The selected drawables are not exactly the same. To edit drawable options, select the same or click button below to force override." 
-                            Foreground="Red"
-                            TextWrapping="WrapWithOverflow"
-                            Visibility="{Binding SelectedAddon.IsMultipleDrawablesExactlyTheSame, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
-                        <Button Content="Force Override" 
-                            Margin="5"
-                            Width="300"
-                            Height="30"
-                            Visibility="{Binding SelectedAddon.IsMultipleDrawablesExactlyTheSame, Converter={StaticResource InverseBooleanToVisibilityConverter}}" 
-                            Click="AllowOverride_Click"
-                            IsEnabled="{Binding SelectedAddon.IsMultipleDrawablesSameType}" />
-                        <TextBlock Text="OVERRIDE ENABLED"
-                            HorizontalAlignment="Center"
-                            Foreground="Green" 
-                            Visibility="{Binding SelectedAddon.AllowOverrideDrawables, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <TextBlock Text="Override cannot be enabled for drawables of different type. Select only one type of drawables"
-                            HorizontalAlignment="Center"
-                            Foreground="Orange" 
-                            Visibility="{Binding SelectedAddon.IsMultipleDrawablesSameType, Converter={StaticResource InverseBooleanToVisibilityConverter}}" />
-                    </StackPanel>
-                </Grid>
-                <Grid IsEnabled="{Binding SelectedAddon.CanEditMultipleDrawables}" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="2*" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-
-                    <!-- Drawable Options GroupBox - multiple drawables selected -->
-                    <GroupBox Header="Drawable Options" Grid.Row="0" Style="{DynamicResource FixedGroupBox}" Margin="2">
                         
-                        <StackPanel Orientation="Vertical">
-                            <c:ModernLabelComboBox Label="Audio" Tag="Audio" SelectedItem="{Binding SelectedAddon.FirstDrawable.Audio, Mode=TwoWay}" ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableAudioList}" IsUpdated="SelectedDrawable_Updated" />
-                            <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.FirstDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" Label="RenderFlag" Tag="RenderFlag" SelectedItem="{Binding SelectedAddon.FirstDrawable.RenderFlag}" ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableRenderFlagList}" IsUpdated="SelectedDrawable_Updated" />
-                            <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.FirstDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" Tag="HasSkin" Label="Has Skin" IsChecked="{Binding SelectedAddon.FirstDrawable.HasSkin}" IsUpdated="SelectedDrawable_Updated" />
-                            <c:ModernLabelComboBox IsMultiSelect="True" Label="Flags" Tag="SelectedFlags" Text="{Binding SelectedAddon.FirstDrawable.FlagsText}" SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" IsUpdated="SelectedDrawable_Updated" />
-
-                            <c:ModernLabelComboBox Label="Group" Tag="Group" SelectedItem="{Binding SelectedAddon.FirstDrawable.Group, Mode=TwoWay}" ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" IsUpdated="SelectedDrawable_Updated">
-                            </c:ModernLabelComboBox>
-
-                            <StackPanel Orientation="Vertical" Margin="0">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsComponent}" Value="True" />
-                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="1" />
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </MultiDataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
-
-                                <c:ModernLabelCheckBox Tag="HidesHair" Label="Hides Hair" IsChecked="{Binding SelectedAddon.FirstDrawable.HidesHair}" IsUpdated="SelectedDrawable_Updated" />
+                        <Border Background="#fef2f2"
+                                BorderBrush="#fca5a5"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="16,12"
+                                Margin="0,16,0,12"
+                                Visibility="{Binding SelectedAddon.IsMultipleDrawablesExactlyTheSame, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <icons:MaterialIcon Kind="AlertCircle" 
+                                                       Width="20" 
+                                                       Height="20"
+                                                       Foreground="#dc2626"
+                                                       Margin="0,0,8,0"
+                                                       VerticalAlignment="Top" />
+                                    <TextBlock Text="WARNING"
+                                               FontSize="13"
+                                               FontWeight="Bold"
+                                               Foreground="#dc2626"
+                                               VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="The selected drawables are not exactly the same. To edit drawable options, select the same or click button below to force override." 
+                                           Foreground="#7f1d1d"
+                                           TextWrapping="Wrap"
+                                           FontSize="12"
+                                           LineHeight="18" />
                             </StackPanel>
-
-                            <StackPanel Orientation="Vertical" Margin="0">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsProp}" Value="True" />
-                                                    <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="0" />
-                                                </MultiDataTrigger.Conditions>
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </MultiDataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
-
-                                <c:ModernLabelCheckBox x:Name="EnableHairScale" Tag="EnableHairScale" Label="Enable Hair scale" IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHairScale}" IsUpdated="SelectedDrawable_Updated" />
-                                <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" Tag="HairScaleValue" Label="Hair scale" Value="{Binding SelectedAddon.FirstDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.05" Maximum="1.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
+                        </Border>
+                        
+                        <Button Margin="0,0,0,12"
+                                Width="300"
+                                Height="40"
+                                FontSize="13"
+                                FontWeight="SemiBold"
+                                BorderThickness="0"
+                                Visibility="{Binding SelectedAddon.IsMultipleDrawablesExactlyTheSame, Converter={StaticResource InverseBooleanToVisibilityConverter}}" 
+                                Click="AllowOverride_Click"
+                                IsEnabled="{Binding SelectedAddon.IsMultipleDrawablesSameType}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Content" Value="Force Override" />
+                                    <Setter Property="Background" Value="#3b82f6" />
+                                    <Setter Property="Foreground" Value="White" />
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}"
+                                                        CornerRadius="6"
+                                                        BorderThickness="0">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#2563eb"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter Property="Background" Value="#1d4ed8"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedAddon.IsMultipleDrawablesSameType}" Value="False">
+                                            <Setter Property="Content" Value="Override Disabled" />
+                                            <Setter Property="Background" Value="{DynamicResource Brush200}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource Brush500}" />
+                                            <Setter Property="Cursor" Value="No" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        
+                        <Border Background="#d1fae5"
+                                BorderBrush="#6ee7b7"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12,8"
+                                Visibility="{Binding SelectedAddon.AllowOverrideDrawables, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <icons:MaterialIcon Kind="CheckCircle" 
+                                                   Width="18" 
+                                                   Height="18"
+                                                   Foreground="#059669"
+                                                   Margin="0,0,6,0" />
+                                <TextBlock Text="OVERRIDE ENABLED"
+                                           FontSize="12"
+                                           FontWeight="Bold"
+                                           Foreground="#059669" />
                             </StackPanel>
-
-                            <StackPanel Orientation="Vertical" Margin="0">
-                                <StackPanel.Style>
-                                    <Style TargetType="StackPanel">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="6">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </StackPanel.Style>
-
-                                <c:ModernLabelCheckBox x:Name="EnableHighHeels" Tag="EnableHighHeels" Label="Enable High heels" IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHighHeels}" IsUpdated="SelectedDrawable_Updated" />
-                                <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" Tag="HighHeelsValue" Label="High heels amount" Value="{Binding SelectedAddon.FirstDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Increment="0.1" Maximum="3.0" Minimum="0.0" IsUpdated="SelectedDrawable_Updated" />
+                        </Border>
+                        
+                        <Border Background="#fff7ed"
+                                BorderBrush="#fed7aa"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="12,8"
+                                Margin="0,8,0,0"
+                                Visibility="{Binding SelectedAddon.IsMultipleDrawablesSameType, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <icons:MaterialIcon Kind="Information" 
+                                                   Width="18" 
+                                                   Height="18"
+                                                   Foreground="#ea580c"
+                                                   Margin="0,0,8,0"
+                                                   VerticalAlignment="Top" />
+                                <TextBlock Text="Override cannot be enabled for drawables of different type. Select only one type of drawables"
+                                           Foreground="#7c2d12"
+                                           TextWrapping="Wrap"
+                                           FontSize="11"
+                                           LineHeight="16" />
                             </StackPanel>
-                        </StackPanel>
-                    </GroupBox>
+                        </Border>
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Column="1" Style="{StaticResource ModernCard}" Margin="4,8,8,8">
+                    <Grid IsEnabled="{Binding SelectedAddon.CanEditMultipleDrawables}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                    <!-- Preview Options GroupBox - multiple drawables selected -->
-                    <GroupBox Grid.Row="1" Header="Preview Options" IsEnabled="{Binding IsPreviewEnabled}" Style="{DynamicResource FixedGroupBox}" Margin="2">
-                        <StackPanel Orientation="Vertical" Margin="0">
-                            <TextBlock HorizontalAlignment="center" Text="Run 3D Preview to enable options">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <c:ModernLabelCheckBox Tag="EnableKeepPreview" Label="Keep preview" IsChecked="{Binding SelectedAddon.FirstDrawable.EnableKeepPreview}" IsUpdated="SelectedDrawable_Updated" />
-                        </StackPanel>
-                    </GroupBox>
-                </Grid>
+                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <TextBlock Text="Drawable Options" Style="{StaticResource SectionTitle}" />
+                                
+                                <c:ModernLabelComboBox Label="Audio" 
+                                                      Tag="Audio" 
+                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.Audio, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableAudioList}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+                                
+                                <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.FirstDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                      Label="RenderFlag" 
+                                                      Tag="RenderFlag" 
+                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.RenderFlag}" 
+                                                      ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableRenderFlagList}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+                                
+                                <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.FirstDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                      Tag="HasSkin" 
+                                                      Label="Has Skin" 
+                                                      IsChecked="{Binding SelectedAddon.FirstDrawable.HasSkin}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+                                
+                                <c:ModernLabelComboBox IsMultiSelect="True" 
+                                                      Label="Flags" 
+                                                      Tag="SelectedFlags" 
+                                                      Text="{Binding SelectedAddon.FirstDrawable.FlagsText}" 
+                                                      SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" 
+                                                      ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+
+                                <c:ModernLabelComboBox Label="Group" 
+                                                      Tag="Group" 
+                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.Group, Mode=TwoWay}" 
+                                                      ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,16" />
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsComponent}" Value="True" />
+                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="1" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox Tag="HidesHair" 
+                                                          Label="Hides Hair" 
+                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.HidesHair}" 
+                                                          IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsProp}" Value="True" />
+                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="0" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox x:Name="EnableHairScale" 
+                                                          Tag="EnableHairScale" 
+                                                          Label="Enable Hair scale" 
+                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHairScale}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,8" />
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" 
+                                                               Tag="HairScaleValue" 
+                                                               Label="Hair scale" 
+                                                               Value="{Binding SelectedAddon.FirstDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                               Increment="0.05" 
+                                                               Maximum="1.0" 
+                                                               Minimum="0.0" 
+                                                               IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="6">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox x:Name="EnableHighHeels" 
+                                                          Tag="EnableHighHeels" 
+                                                          Label="Enable High heels" 
+                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHighHeels}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,8" />
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" 
+                                                               Tag="HighHeelsValue" 
+                                                               Label="High heels amount" 
+                                                               Value="{Binding SelectedAddon.FirstDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                               Increment="0.1" 
+                                                               Maximum="3.0" 
+                                                               Minimum="0.0" 
+                                                               IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <Border Grid.Row="1" 
+                                BorderBrush="{DynamicResource Brush200}" 
+                                BorderThickness="0,1,0,0" 
+                                Padding="0,16,0,0"
+                                Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Preview Options" Style="{StaticResource SectionTitle}" />
+                                
+                                <TextBlock Text="Run 3D Preview to enable options"
+                                           HorizontalAlignment="Center"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource Brush500}"
+                                           Margin="0,0,0,8">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                
+                                <c:ModernLabelCheckBox Tag="EnableKeepPreview" 
+                                                      Label="Keep preview" 
+                                                      IsChecked="{Binding SelectedAddon.FirstDrawable.EnableKeepPreview}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      IsEnabled="{Binding IsPreviewEnabled}" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
             </Grid>
         </DataTemplate>
 
@@ -1143,15 +1413,29 @@
                 </Setter>
 
                 <Style.Triggers>
+                    <!-- No drawable selected -->
                     <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable}" Value="{x:Null}">
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ContentControl">
-                                    <TextBlock Text="" />
+                                    <ContentControl ContentTemplate="{StaticResource NoDrawableTemplate}" Content="{Binding }" />
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
                     </DataTrigger>
+                    
+                    <!-- Reserved drawable -->
+                    <DataTrigger Binding="{Binding SelectedAddon.SelectedDrawable.IsReserved}" Value="True">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ContentControl">
+                                    <ContentControl ContentTemplate="{StaticResource ReservedDrawableTemplate}" Content="{Binding }" />
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </DataTrigger>
+                    
+                    <!-- Multiple drawables selected -->
                     <DataTrigger Binding="{Binding SelectedAddon.IsMultipleDrawablesSelected}" Value="True">
                         <Setter Property="Template">
                             <Setter.Value>

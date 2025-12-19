@@ -973,6 +973,23 @@ namespace grzyClothTool.Controls
         }
     }
 
+    public class GroupItemToBooleanConverter : IValueConverter
+    {
+        private static GroupItemToBooleanConverter _instance;
+        public static GroupItemToBooleanConverter Instance => _instance ??= new GroupItemToBooleanConverter();
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // If the value is a GroupItem, then this item is inside a group
+            return value is GroupItem groupItem && groupItem.DataContext is CollectionViewGroup group && group.Name != null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class GhostLineAdorner : Adorner
     {
         private readonly Rectangle _ghostLine;

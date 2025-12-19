@@ -6,72 +6,273 @@
              xmlns:local="clr-namespace:grzyClothTool.Views" 
              xmlns:c="clr-namespace:grzyClothTool.Controls"
              xmlns:m="clr-namespace:grzyClothTool.Models"
+             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
              d:DataContext="{d:DesignInstance Type=m:AddonManagerDesign, IsDesignTimeCreatable=True}"
              Background="{DynamicResource Brush50}"
              d:Width="1200"
              d:Height="600"
              d:Background="white"
              mc:Ignorable="d">
+    
+    <UserControl.Resources>
+        <Style x:Key="ModernTabItem" TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder"
+                                Background="{DynamicResource Brush100}"
+                                BorderBrush="{DynamicResource Brush300}"
+                                BorderThickness="0,0,0,2"
+                                Padding="8,5"
+                                Margin="0,0,2,0"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="1"
+                                          x:Name="TabText"
+                                          Text="{Binding Name}"
+                                          FontSize="10.5"
+                                          FontWeight="Medium"
+                                          Foreground="{DynamicResource Brush900}"
+                                          VerticalAlignment="Center"
+                                          TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </Border>
+                        
+                        <ControlTemplate.Triggers>
+                            <!-- Selected Tab -->
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Brush50}" />
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#3b82f6" />
+                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="0,0,0,2" />
+                                <Setter TargetName="TabText" Property="Foreground" Value="#3b82f6" />
+                                <Setter TargetName="TabText" Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                            
+                            <!-- Hover Tab -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Brush125}" />
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#60a5fa" />
+                            </Trigger>
+                            
+                            <!-- Hover + Selected -->
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Brush75}" />
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#60a5fa" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="15*"/>
-            <RowDefinition Height="35"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="320"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
-        <TabControl Grid.Column="0" Grid.Row="0" ItemsSource="{Binding Addons}" SelectedIndex="0" SelectedItem="{Binding SelectedAddon}" SelectionChanged="TabControl_SelectionChanged" Background="{DynamicResource Brush50}" BorderBrush="{DynamicResource Brush300}">
-            <TabControl.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Name}" />
-                </DataTemplate>
-            </TabControl.ItemTemplate>
-            <TabControl.ContentTemplate>
-                <DataTemplate>
-                    <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="0" Grid.Row="0" x:Name="DrawablesGroupBox" Header="Drawables" 
-                              AllowDrop="True" 
-                              Drop="DrawablesGroupBox_Drop"
-                              DragEnter="DrawablesGroupBox_DragEnter"
-                              DragOver="DrawablesGroupBox_DragOver"
-                              DragLeave="DrawablesGroupBox_DragLeave">
-                        <c:DrawableList ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DrawableListKeyDown="SelectedDrawable_KeyDown" DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
-                    </GroupBox>
-                </DataTemplate>
-            </TabControl.ContentTemplate>
-        </TabControl>
+        <Grid Grid.Column="0" Grid.Row="0" Grid.RowSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            
+            <Border Grid.Row="0"
+                    Background="{DynamicResource Brush75}"
+                    BorderBrush="{DynamicResource Brush250}"
+                    BorderThickness="0,0,1,0">
+                <TabControl x:Name="AddonTabControl"
+                           ItemsSource="{Binding Addons}" 
+                           SelectedIndex="0" 
+                           SelectedItem="{Binding SelectedAddon}" 
+                           SelectionChanged="TabControl_SelectionChanged"
+                           Background="Transparent"
+                           BorderThickness="0"
+                           Padding="6,6,6,0">
+                    <TabControl.ItemContainerStyle>
+                        <Style TargetType="TabItem" BasedOn="{StaticResource ModernTabItem}" />
+                    </TabControl.ItemContainerStyle>
+                    <TabControl.Template>
+                        <ControlTemplate TargetType="TabControl">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <ScrollViewer Grid.Row="0"
+                                            HorizontalScrollBarVisibility="Disabled"
+                                            VerticalScrollBarVisibility="Disabled">
+                                    <WrapPanel IsItemsHost="True" 
+                                             Background="Transparent"
+                                             Orientation="Horizontal" />
+                                </ScrollViewer>
+                                
+                                <Border Grid.Row="1"
+                                       Background="{DynamicResource Brush50}"
+                                       BorderBrush="{DynamicResource Brush300}"
+                                       BorderThickness="0"
+                                       Padding="0">
+                                    <ContentPresenter ContentSource="SelectedContent" />
+                                </Border>
+                            </Grid>
+                        </ControlTemplate>
+                    </TabControl.Template>
+                    <TabControl.ContentTemplate>
+                        <DataTemplate>
+                            <Grid AllowDrop="True" 
+                                  Drop="DrawablesGroupBox_Drop"
+                                  DragEnter="DrawablesGroupBox_DragEnter"
+                                  DragOver="DrawablesGroupBox_DragOver"
+                                  DragLeave="DrawablesGroupBox_DragLeave"
+                                  Background="Transparent">
+                                
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Border Grid.Row="0"
+                                       Background="{DynamicResource Brush100}"
+                                       BorderBrush="{DynamicResource Brush250}"
+                                       BorderThickness="0,1,0,1"
+                                       Height="30"
+                                       Padding="6,0">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <icons:MaterialIcon Kind="ViewList" 
+                                                               Width="16" 
+                                                               Height="16"
+                                                               Foreground="{DynamicResource Brush700}"
+                                                               Margin="0,0,6,0" />
+                                            <TextBlock Text="Drawables"
+                                                      FontSize="12"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="{DynamicResource Brush900}"
+                                                      VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        
+                                        <Border Grid.Column="2"
+                                               Background="#e0f2fe"
+                                               CornerRadius="10"
+                                               Padding="8,3"
+                                               VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Drawables.Count}"
+                                                      FontSize="10"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="#0284c7" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                
+                                <Border Grid.Row="1" Padding="8">
+                                    <c:DrawableList ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                   DrawableListKeyDown="SelectedDrawable_KeyDown" 
+                                                   DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </TabControl.ContentTemplate>
+                </TabControl>
+            </Border>
+            
+            <Border Grid.Row="1"
+                   Background="{DynamicResource Brush100}"
+                   BorderBrush="{DynamicResource Brush250}"
+                   BorderThickness="0,1,1,0"
+                   Padding="2,2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-        <GroupBox Style="{StaticResource FixedGroupBox}" Grid.Column="1" Grid.Row="0" Margin="2" Header="Selected drawable options">
-            <c:SelectedDrawable x:Name="SelDrawable" TextureListSelectedValueChanged="SelectedDrawable_TextureChanged" SelectedDrawableUpdated="SelectedDrawable_Updated" SelectedDraw="{Binding SelectedAddon.SelectedDrawable}" SelectedTxt="{Binding SelectedAddon.SelectedTexture}" />
-        </GroupBox>
-
-        <Grid Grid.Column="0" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="30" />
-            </Grid.ColumnDefinitions>
-
-            <c:CustomButton Grid.Column="0" Label="FEMALE" MyBtnClickEvent="Add_DrawableFile" Padding="2" CornerRadius="5" DropdownEnabled="True">
-                <c:CustomButton.DropdownContent>
-                    <StackPanel>
-                        <c:CustomButton Tag="FEMALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
-                    </StackPanel>
-                </c:CustomButton.DropdownContent>
-            </c:CustomButton>
-            <c:CustomButton Grid.Column="1" Label="MALE" MyBtnClickEvent="Add_DrawableFile" Padding="2" CornerRadius="5" DropdownEnabled="True">
-                <c:CustomButton.DropdownContent>
-                    <StackPanel>
-                        <c:CustomButton Tag="MALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
-                    </StackPanel>
-                </c:CustomButton.DropdownContent>
-            </c:CustomButton>
-            <c:CustomButton Grid.Column="2" Image="TrashCanOutline" Tooltip="Delete selected drawable" ToolTipService.InitialShowDelay="0" MyBtnClickEvent="Delete_SelectedDrawable" Padding="2" CornerRadius="5"/>
+                    <c:CustomButton Grid.Column="0" 
+                                   Label="FEMALE" 
+                                   MyBtnClickEvent="Add_DrawableFile" 
+                                   Padding="2,8" 
+                                   CornerRadius="5" 
+                                   Margin="0,0,4,0"
+                                   DropdownEnabled="True">
+                        <c:CustomButton.DropdownContent>
+                            <StackPanel>
+                                <c:CustomButton Tag="FEMALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
+                            </StackPanel>
+                        </c:CustomButton.DropdownContent>
+                    </c:CustomButton>
+                    
+                    <c:CustomButton Grid.Column="1" 
+                                   Label="MALE" 
+                                   MyBtnClickEvent="Add_DrawableFile" 
+                                   Padding="2,8" 
+                                   CornerRadius="5" 
+                                   Margin="0,0,4,0"
+                                   DropdownEnabled="True">
+                        <c:CustomButton.DropdownContent>
+                            <StackPanel>
+                                <c:CustomButton Tag="MALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
+                            </StackPanel>
+                        </c:CustomButton.DropdownContent>
+                    </c:CustomButton>
+                    
+                    <c:CustomButton Grid.Column="2" 
+                                   Image="TrashCanOutline" 
+                                   Tooltip="Delete selected drawable" 
+                                   ToolTipService.InitialShowDelay="0" 
+                                   MyBtnClickEvent="Delete_SelectedDrawable" 
+                                   Padding="2,8" 
+                                   Width="32"
+                                   CornerRadius="5"/>
+                </Grid>
+            </Border>
         </Grid>
-        <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Right">
-            <c:CustomButton Label="3D PREVIEW" Width="150" MyBtnClickEvent="Preview_Btn" Padding="2" CornerRadius="5" />
-            <c:CustomButton Label="BUILD" Width="150" MyBtnClickEvent="BuildResource_Btn" Padding="2"  CornerRadius="5" />
-        </StackPanel>
-        
+
+        <Grid Grid.Column="1" Grid.Row="0">
+            <c:SelectedDrawable x:Name="SelDrawable" 
+                               TextureListSelectedValueChanged="SelectedDrawable_TextureChanged" 
+                               SelectedDrawableUpdated="SelectedDrawable_Updated" 
+                               SelectedDraw="{Binding SelectedAddon.SelectedDrawable}" 
+                               SelectedTxt="{Binding SelectedAddon.SelectedTexture}" />
+        </Grid>
+
+        <Border Grid.Column="1" Grid.Row="1"
+               Background="{DynamicResource Brush100}"
+               BorderBrush="{DynamicResource Brush250}"
+               BorderThickness="0,1,0,0"
+               Padding="2,2">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <c:CustomButton Label="3D PREVIEW" 
+                               Width="150" 
+                               MyBtnClickEvent="Preview_Btn" 
+                               Padding="2,8" 
+                               Margin="0,0,8,0"
+                               CornerRadius="5" />
+                <c:CustomButton Label="BUILD" 
+                               Width="150" 
+                               MyBtnClickEvent="BuildResource_Btn" 
+                               Padding="2,8"  
+                               CornerRadius="5" />
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>
