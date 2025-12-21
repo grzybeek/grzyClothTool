@@ -91,7 +91,14 @@ namespace grzyClothTool
 
                 this.Dispatcher.Invoke(() =>
                 {
-                    PreviewHost?.InitializePreviewInBackground();
+                    try
+                    {
+                        PreviewHost?.InitializePreviewInBackground();
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorLogHelper.LogError("Error during 3D preview initialization in MainWindow", ex);
+                    }
                 });
             }));
 

@@ -66,6 +66,8 @@ public class SettingsHelper : INotifyPropertyChanged
         set => SetProperty(ref _textureResolutionLimitSpecular, value, nameof(TextureResolutionLimitSpecular), revalidateDrawables: true);
     }
 
+    public static bool Preview3DAvailable { get; set; } = true;
+
     private SettingsHelper()
     {
         _displaySelectedDrawablePath = Properties.Settings.Default.DisplaySelectedDrawablePath;

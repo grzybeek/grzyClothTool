@@ -61,6 +61,34 @@ namespace grzyClothTool.Views
             }
 
             DataContext = MainWindow.AddonManager;
+            
+            Loaded += ProjectWindow_Loaded;
+            Unloaded += ProjectWindow_Unloaded;
+            
+            PreviewWindowHost.Preview3DAvailabilityChanged += OnPreview3DAvailabilityChanged;
+        }
+
+        private void ProjectWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdatePreviewButtonState();
+        }
+
+        private void ProjectWindow_Unloaded(object sender, RoutedEventArgs e)
+        {
+            PreviewWindowHost.Preview3DAvailabilityChanged -= OnPreview3DAvailabilityChanged;
+        }
+
+        private void OnPreview3DAvailabilityChanged(object sender, EventArgs e)
+        {
+            Dispatcher.Invoke(() => UpdatePreviewButtonState());
+        }
+
+        private void UpdatePreviewButtonState()
+        {
+            if (PreviewButton != null)
+            {
+                PreviewButton.IsEnabled = SettingsHelper.Preview3DAvailable;
+            }
         }
 
         private async void Add_DrawableFile(object sender, RoutedEventArgs e)
@@ -257,6 +285,8 @@ namespace grzyClothTool.Views
                 }
 
                 MainWindow.AddonManager.IsPreviewEnabled = true;
+                
+                UpdatePreviewButtonState();
             }
         }
 

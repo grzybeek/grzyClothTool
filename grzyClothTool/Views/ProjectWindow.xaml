@@ -261,7 +261,8 @@
                BorderThickness="0,1,0,0"
                Padding="2,2">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <c:CustomButton Label="3D PREVIEW" 
+                <c:CustomButton x:Name="PreviewButton"
+                               Label="3D PREVIEW" 
                                Width="150" 
                                MyBtnClickEvent="Preview_Btn" 
                                Padding="2,8" 

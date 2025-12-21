@@ -20,6 +20,8 @@ namespace grzyClothTool.Controls
         private CustomPedsForm _customPedsForm;
         private bool _isInitialized = false;
 
+        public static event EventHandler Preview3DAvailabilityChanged;
+
         public PreviewWindowHost()
         {
             InitializeComponent();
@@ -71,11 +73,17 @@ namespace grzyClothTool.Controls
 
                 PlaceholderText.Visibility = Visibility.Collapsed;
                 _isInitialized = true;
+                SettingsHelper.Preview3DAvailable = true;
+                Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                LogHelper.Log($"Error initializing 3D preview: {ex.Message}", Views.LogType.Error);
-                PlaceholderText.Text = "Error loading 3D preview";
+                var errorMsg = $"3D Preview initialization failed: {ex.Message}";
+                LogHelper.Log(errorMsg, Views.LogType.Error);
+                ErrorLogHelper.LogError("3D Preview initialization failed (GPU/Graphics error)", ex);
+                PlaceholderText.Text = "3D Preview unavailable (GPU error - see log file)";
+                SettingsHelper.Preview3DAvailable = false;
+                Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -99,10 +107,16 @@ namespace grzyClothTool.Controls
                 _customPedsForm.Show();
 
                 _isInitialized = true;
+                SettingsHelper.Preview3DAvailable = true;
+                Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
             catch (Exception ex)
             {
-                LogHelper.Log($"Error initializing 3D preview in background: {ex.Message}", Views.LogType.Error);
+                var errorMsg = $"3D Preview background initialization failed: {ex.Message}";
+                LogHelper.Log(errorMsg, Views.LogType.Error);
+                ErrorLogHelper.LogError("3D Preview background initialization failed (GPU/Graphics error)", ex);
+                SettingsHelper.Preview3DAvailable = false;
+                Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
