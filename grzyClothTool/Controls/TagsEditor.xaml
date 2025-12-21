@@ -1,0 +1,221 @@
+<UserControl x:Class="grzyClothTool.Controls.TagsEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:grzyClothTool.Controls"
+             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+             x:Name="MyTagsEditor"
+             mc:Ignorable="d" 
+             d:DesignHeight="150" d:DesignWidth="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0"
+                    Background="{DynamicResource Brush100}"
+                    BorderBrush="{DynamicResource Brush400}"
+                    BorderThickness="1"
+                    CornerRadius="4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="TagInputBox"
+                             Grid.Column="0"
+                             Background="Transparent"
+                             Foreground="{DynamicResource Brush950}"
+                             BorderThickness="0"
+                             Padding="8,6"
+                             FontSize="12"
+                             MaxLength="16"
+                             TextChanged="TagInputBox_TextChanged"
+                             KeyDown="TagInputBox_KeyDown"
+                             LostFocus="TagInputBox_LostFocus"
+                             VerticalContentAlignment="Center"/>
+
+                    <Button Grid.Column="1"
+                            Content="Add"
+                            Margin="4"
+                            Padding="12,4"
+                            Background="{DynamicResource Brush300}"
+                            Foreground="{DynamicResource Brush950}"
+                            BorderThickness="0"
+                            Click="AddTagButton_Click"
+                            Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="3"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" 
+                                                                VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource Brush400}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <Popup x:Name="SuggestionsPopup"
+                   Grid.Row="1"
+                   PlacementTarget="{Binding ElementName=TagInputBox}"
+                   Placement="Bottom"
+                   StaysOpen="False"
+                   AllowsTransparency="True"
+                   PopupAnimation="Fade">
+                <Border Background="{DynamicResource Brush100}"
+                        BorderBrush="{DynamicResource Brush400}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Margin="0,2,0,0"
+                        MaxHeight="200">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ListBox x:Name="SuggestionsList"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 SelectionChanged="SuggestionsList_SelectionChanged"
+                                 PreviewMouseLeftButtonUp="SuggestionsList_PreviewMouseLeftButtonUp"
+                                 KeyDown="SuggestionsList_KeyDown"
+                                 MaxHeight="180">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="8,4"/>
+                                    <Setter Property="Cursor" Value="Hand"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource Brush200}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="{DynamicResource Brush300}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" 
+                                               FontSize="11"
+                                               Foreground="{DynamicResource Brush900}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Border>
+            </Popup>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      MaxHeight="150"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Margin="0,8,0,0">
+            <ItemsControl x:Name="SelectedTagsList"
+                          ItemsSource="{Binding Tags, ElementName=MyTagsEditor}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource Brush300}"
+                                BorderBrush="{DynamicResource Brush500}"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="8,4"
+                                Margin="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Converter={StaticResource UpperCaseConverter}}"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource Brush900}"
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,8,0"/>
+
+                                <Border Grid.Column="1"
+                                        x:Name="CloseButtonBorder"
+                                        Width="16"
+                                        Height="16"
+                                        Background="Transparent"
+                                        CornerRadius="3"
+                                        VerticalAlignment="Center">
+                                    <Button Width="16"
+                                            Height="16"
+                                            Padding="0"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Click="RemoveTag_Click"
+                                            Tag="{Binding}"
+                                            Cursor="Hand"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Center">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}">
+                                                                <icons:MaterialIcon Kind="Close"
+                                                                                  Width="12"
+                                                                                  Height="12"
+                                                                                  Foreground="{DynamicResource Brush700}"
+                                                                                  HorizontalAlignment="Center"
+                                                                                  VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource Brush400}"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+
+

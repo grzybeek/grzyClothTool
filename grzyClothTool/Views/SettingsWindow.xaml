@@ -148,7 +148,7 @@
                             </GroupBox>
                         </StackPanel>
                         <StackPanel Margin="5" Grid.Column="1">
-                            <GroupBox Margin="0,5" Height="360" Style="{DynamicResource FixedGroupBox}">
+                            <GroupBox Margin="0,5" Height="380" Style="{DynamicResource FixedGroupBox}">
                                 <GroupBox.Header>
                                     <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="General settings" />
                                 </GroupBox.Header>
@@ -193,53 +193,6 @@
                                 </ScrollViewer>
                             </GroupBox>
 
-                            <GroupBox Margin="0,5" Height="200" Style="{DynamicResource FixedGroupBox}">
-                                <GroupBox.Header>
-                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="Drawable Groups" />
-                                </GroupBox.Header>
-                                <Grid Margin="0">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="*" />
-                                        <RowDefinition Height="auto" />
-                                        <RowDefinition Height="auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock Padding="5,2,5,5" FontStyle="Italic" FontWeight="Normal" Foreground="{DynamicResource Brush500}" Grid.Row="2" TextWrapping="Wrap">
-                                        Groups organize drawables into folders: stream/[gender]/[group]/[type]
-                                        <LineBreak/>
-                                        Supports nesting: "police/swat/outfit1" or "clothing/jackets"
-                                        <LineBreak/>
-                                        Currently only supported in FiveM builds
-                                    </TextBlock>
-
-                                    <ListBox Grid.Row="0" 
-                                             Margin="5"
-                                             Background="Transparent"
-                                             Foreground="{DynamicResource Brush950}"
-                                             BorderBrush="{DynamicResource Brush500}"
-                                             ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}"
-                                             SelectedItem="{Binding SelectedGroup, Mode=TwoWay}">
-                                        <ListBox.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" Padding="5,2" />
-                                            </DataTemplate>
-                                        </ListBox.ItemTemplate>
-                                    </ListBox>
-
-                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
-                                        <TextBox x:Name="NewGroupTextBox" Width="200" Margin="0,0,5,0" 
-                                                 Background="{DynamicResource Brush50}"
-                                                 Foreground="{DynamicResource Brush950}"
-                                                 BorderBrush="{DynamicResource Brush500}"/>
-                                        <Button Content="Add Group" Width="80" Click="AddGroup_Click" Margin="0,0,5,0"
-                                                Background="{DynamicResource Brush200}"
-                                                Foreground="{DynamicResource Brush950}"/>
-                                        <Button Content="Remove" Width="80" Click="RemoveGroup_Click"
-                                                Background="{DynamicResource Brush200}"
-                                                Foreground="{DynamicResource Brush950}"/>
-                                    </StackPanel>
-                                </Grid>
-                            </GroupBox>
                         </StackPanel>
 
                     </Grid>

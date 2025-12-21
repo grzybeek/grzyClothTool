@@ -193,12 +193,6 @@ public static class SaveHelper
                 MainWindow.AddonManager.Addons.Add(addon);
             }
 
-            GroupManager.Instance.Groups.Clear();
-            foreach (var group in addonManager.Groups)
-            {
-                GroupManager.Instance.Groups.Add(group);
-            }
-
             MainWindow.AddonManager.ProjectName = addonManager.ProjectName;
 
             int drawableCount = addonManager.Addons.Sum(a => a.Drawables.Count);

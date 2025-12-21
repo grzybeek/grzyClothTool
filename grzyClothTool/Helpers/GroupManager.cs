@@ -11,20 +11,10 @@ public class GroupManager : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler PropertyChanged;
 
-    private ObservableCollection<string> _groups;
-    public ObservableCollection<string> Groups
-    {
-        get => _groups;
-        set
-        {
-            _groups = value;
-            OnPropertyChanged(nameof(Groups));
-        }
-    }
+    public ObservableCollection<string> Groups => MainWindow.AddonManager?.Groups ?? [];
 
     private GroupManager()
     {
-        Groups = [];
     }
 
     public void AddGroup(string groupPath)
@@ -34,17 +24,22 @@ public class GroupManager : INotifyPropertyChanged
 
         groupPath = groupPath.Trim();
         
-        if (!Groups.Contains(groupPath))
+        var groups = MainWindow.AddonManager?.Groups;
+        if (groups != null && !groups.Contains(groupPath))
         {
-            Groups.Add(groupPath);
+            groups.Add(groupPath);
             OnPropertyChanged(nameof(Groups));
         }
     }
 
     public void RemoveGroup(string groupPath)
     {
-        Groups.Remove(groupPath);
-        OnPropertyChanged(nameof(Groups));
+        var groups = MainWindow.AddonManager?.Groups;
+        if (groups != null)
+        {
+            groups.Remove(groupPath);
+            OnPropertyChanged(nameof(Groups));
+        }
     }
 
     protected void OnPropertyChanged(string propertyName)

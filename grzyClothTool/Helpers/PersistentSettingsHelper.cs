@@ -109,6 +109,7 @@ public class PersistentSettingsHelper
         }
     }
 
+
     public void AddRecentProject(string filePath, string projectName, int drawableCount, int addonCount)
     {
         var recentProjects = RecentlyOpenedProjects;

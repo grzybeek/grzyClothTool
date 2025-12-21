@@ -336,6 +336,43 @@ public class GDrawable : INotifyPropertyChanged
     [JsonIgnore]
     public static List<string> AvailableRenderFlagList => ["", "PRF_ALPHA", "PRF_DECAL", "PRF_CUTOUT"];
 
+    private ObservableCollection<string> _tags = [];
+    public ObservableCollection<string> Tags
+    {
+        get => _tags;
+        set
+        {
+            if (_tags != value)
+            {
+                if (_tags != null)
+                {
+                    _tags.CollectionChanged -= OnTagsCollectionChanged;
+                }
+
+                _tags = value;
+
+                if (_tags != null)
+                {
+                    _tags.CollectionChanged += OnTagsCollectionChanged;
+                }
+
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasTags));
+                OnPropertyChanged(nameof(VisibleTags));
+                OnPropertyChanged(nameof(HiddenTagsCount));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasTags => Tags != null && Tags.Count > 0;
+
+    [JsonIgnore]
+    public List<string> VisibleTags => Tags?.Take(4).ToList() ?? [];
+
+    [JsonIgnore]
+    public int HiddenTagsCount => Tags != null && Tags.Count > 4 ? Tags.Count - 4 : 0;
+
     public ObservableCollection<Texture.GTexture> Textures { get; set; }
 
     [JsonIgnore]
@@ -362,6 +399,9 @@ public class GDrawable : INotifyPropertyChanged
         {
             texture.PropertyChanged += OnTexturePropertyChanged;
         }
+
+        Tags = [];
+        Tags.CollectionChanged += OnTagsCollectionChanged;
         
         TypeNumeric = typeNumeric;
         Number = number;
@@ -503,6 +543,13 @@ public class GDrawable : INotifyPropertyChanged
         Details.Validate(Textures);
         
         OnPropertyChanged(nameof(HasTexturesNeedingOptimization));
+    }
+
+    private void OnTagsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(HasTags));
+        OnPropertyChanged(nameof(VisibleTags));
+        OnPropertyChanged(nameof(HiddenTagsCount));
     }
 
     private void OnTexturePropertyChanged(object? sender, PropertyChangedEventArgs e)

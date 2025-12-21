@@ -65,6 +65,7 @@ namespace grzyClothTool.Models
         private string SavedAt => DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss");
 
         public ObservableCollection<string> Groups { get; set; } = [];
+        public ObservableCollection<string> Tags { get; set; } = [];
         
         [JsonIgnore]
         public ObservableCollection<MoveMenuItem> MoveMenuItems { get; set; } = [];

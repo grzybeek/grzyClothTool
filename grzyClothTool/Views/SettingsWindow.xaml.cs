@@ -41,16 +41,6 @@ namespace grzyClothTool.Views
             }
         }
 
-        private string _selectedGroup;
-        public string SelectedGroup
-        {
-            get => _selectedGroup;
-            set
-            {
-                _selectedGroup = value;
-                OnPropertyChanged(nameof(SelectedGroup));
-            }
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -182,63 +172,5 @@ namespace grzyClothTool.Views
             }
         }
 
-        private void AddGroup_Click(object sender, RoutedEventArgs e)
-        {
-            var groupPath = NewGroupTextBox.Text?.Trim();
-            
-            if (string.IsNullOrWhiteSpace(groupPath))
-            {
-                CustomMessageBox.Show("Please enter a group name", "Add Group", CustomMessageBox.CustomMessageBoxButtons.OKOnly, CustomMessageBox.CustomMessageBoxIcon.Warning);
-                return;
-            }
-
-            var invalidChars = System.IO.Path.GetInvalidFileNameChars();
-            if (groupPath.Any(c => invalidChars.Contains(c) && c != '/' && c != '\\'))
-            {
-                CustomMessageBox.Show("Group name contains invalid characters", "Add Group", CustomMessageBox.CustomMessageBoxButtons.OKOnly, CustomMessageBox.CustomMessageBoxIcon.Error);
-                return;
-            }
-
-            GroupManager.Instance.AddGroup(groupPath);
-            NewGroupTextBox.Clear();
-            LogHelper.Log($"Added group: {groupPath}", LogType.Info);
-        }
-
-        private void RemoveGroup_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(SelectedGroup))
-            {
-                CustomMessageBox.Show("Please select a group to remove", "Remove Group", CustomMessageBox.CustomMessageBoxButtons.OKOnly, CustomMessageBox.CustomMessageBoxIcon.Warning);
-                return;
-            }
-
-            var affectedDrawables = MainWindow.AddonManager?.Addons?
-                .SelectMany(a => a.Drawables)
-                .Where(d => d.Group == SelectedGroup)
-                .ToList() ?? [];
-
-            if (affectedDrawables.Count > 0)
-            {
-                var result = CustomMessageBox.Show(
-                    $"The group '{SelectedGroup}' is currently being used by {affectedDrawables.Count} drawable(s).\n\nRemoving it will clear the group from those drawables.\n\nDo you want to continue?",
-                    "Group In Use",
-                    CustomMessageBox.CustomMessageBoxButtons.OKCancel,
-                    CustomMessageBox.CustomMessageBoxIcon.Warning);
-
-                if (result != CustomMessageBox.CustomMessageBoxResult.OK)
-                {
-                    return;
-                }
-
-                foreach (var drawable in affectedDrawables)
-                {
-                    drawable.Group = null;
-                }
-            }
-
-            LogHelper.Log($"Removed group: {SelectedGroup}", LogType.Info);
-            GroupManager.Instance.RemoveGroup(SelectedGroup);
-            SelectedGroup = null;
-        }
     }
 }

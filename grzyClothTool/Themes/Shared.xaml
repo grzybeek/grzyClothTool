@@ -8,6 +8,8 @@
     <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
     <converters:FilePathToShortVersionConverter x:Key="FilePathToShortVersionConverter" />
+    <converters:UpperCaseConverter x:Key="UpperCaseConverter" />
+    <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
 
     <system:Double x:Key="DisabledOpacity">0.5</system:Double>
 

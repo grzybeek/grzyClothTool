@@ -110,6 +110,10 @@
                                         SnapsToDevicePixels="True"
                                         UseLayoutRounding="True">
                                     <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="3"/>
                                             <ColumnDefinition Width="Auto"/>
@@ -118,6 +122,7 @@
                                         </Grid.ColumnDefinitions>
                                     
                                     <Rectangle Grid.Column="0" 
+                                              Grid.RowSpan="2"
                                               x:Name="GenderBar" 
                                               Fill="#64b5f6"
                                               Width="3.5"
@@ -127,6 +132,7 @@
                                               VerticalAlignment="Stretch" />
                                     
                                     <StackPanel Grid.Column="1" 
+                                               Grid.Row="0"
                                                Orientation="Horizontal" 
                                                VerticalAlignment="Center"
                                                Margin="0,0,5,0">
@@ -159,6 +165,7 @@
                                     </StackPanel>
                                     
                                         <TextBlock Grid.Column="2" 
+                                                  Grid.Row="0"
                                                   x:Name="NameText"
                                                   Text="{Binding Name}" 
                                                   FontSize="11"
@@ -168,37 +175,10 @@
                                                   TextTrimming="CharacterEllipsis" />
                                     
                                     <StackPanel Grid.Column="3" 
+                                               Grid.Row="0"
                                                Orientation="Horizontal" 
                                                VerticalAlignment="Center"
                                                Margin="4,0,0,0">
-                                        
-                                        <!-- Tags (COMMENTED OUT - NOT IMPLEMENTED YET)
-                                        <ItemsControl x:Name="TagsDisplay"
-                                                     ItemsSource="{Binding Tags}"
-                                                     Margin="0,0,3,0"
-                                                     Visibility="Collapsed">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="#e0f2fe"
-                                                           BorderBrush="#38bdf8"
-                                                           BorderThickness="1"
-                                                           CornerRadius="2"
-                                                           Padding="3,1"
-                                                           Margin="0,0,2,0">
-                                                        <TextBlock Text="{Binding}" 
-                                                                  FontSize="8.5" 
-                                                                  FontWeight="SemiBold"
-                                                                  Foreground="#0284c7" />
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                        -->
                                         
                                         <Border x:Name="ReservedBadge"
                                                Background="#fef3c7"
@@ -238,6 +218,67 @@
                                                 Visibility="Collapsed"
                                                 ToolTip="Selected"
                                                 ToolTipService.InitialShowDelay="0" />
+                                        </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="1" 
+                                               Grid.Row="1"
+                                               Grid.ColumnSpan="3"
+                                               Orientation="Horizontal" 
+                                               Margin="0,5,0,0">
+                                        
+                                        <ItemsControl x:Name="TagsDisplay"
+                                                     ItemsSource="{Binding VisibleTags}"
+                                                     Margin="0,0,3,0"
+                                                     Visibility="Collapsed">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="{DynamicResource Brush200}"
+                                                            BorderBrush="{DynamicResource Brush400}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="5,2"
+                                                            Margin="0,0,3,0">
+                                                        <TextBlock Text="{Binding Converter={StaticResource UpperCaseConverter}}" 
+                                                                  FontSize="9" 
+                                                                  FontWeight="SemiBold"
+                                                                  Foreground="{DynamicResource Brush800}" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        
+                                        <Border x:Name="MoreTagsIndicator"
+                                                Background="{DynamicResource Brush200}"
+                                                BorderBrush="{DynamicResource Brush400}"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                Padding="5,2"
+                                                Margin="0,0,3,0"
+                                                Visibility="Collapsed"
+                                                ToolTipService.InitialShowDelay="200">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <ItemsControl ItemsSource="{Binding Tags}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <TextBlock Text="{Binding Converter={StaticResource UpperCaseConverter}}"
+                                                                           FontSize="10"
+                                                                           Margin="2"/>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock Text="{Binding HiddenTagsCount, StringFormat='+{0}'}"
+                                                       FontSize="9"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource Brush800}"/>
+                                        </Border>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -285,12 +326,6 @@
                                 <Setter Property="Visibility" Value="Visible" TargetName="NewBadge" />
                             </MultiDataTrigger>
                             
-                            <!-- Tags Trigger - COMMENTED OUT (Not implemented yet)
-                            <Trigger SourceName="TagsDisplay" Property="HasItems" Value="True">
-                                <Setter Property="Visibility" Value="Visible" TargetName="TagsDisplay" />
-                            </Trigger>
-                            -->
-                            
                             <!-- Selected -->
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="{DynamicResource Brush150}" TargetName="Border"/>
@@ -318,6 +353,16 @@
                                 <Setter Property="BorderBrush" Value="#60a5fa" TargetName="Border"/>
                                 <Setter Property="Opacity" Value="0.35" TargetName="ShadowBorder"/>
                             </MultiTrigger>
+                            
+                            <!-- Show tags section when HasTags is true -->
+                            <DataTrigger Binding="{Binding HasTags}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="TagsDisplay"/>
+                            </DataTrigger>
+                            
+                            <!-- Show more tags indicator when there are hidden tags -->
+                            <DataTrigger Binding="{Binding HiddenTagsCount, Converter={StaticResource IntToVisibilityConverter}}" Value="Visible">
+                                <Setter Property="Visibility" Value="Visible" TargetName="MoreTagsIndicator"/>
+                            </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
