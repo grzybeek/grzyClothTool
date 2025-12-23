@@ -74,11 +74,80 @@ public class Addon : INotifyPropertyChanged
 
     private void SelectedDrawables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
+        if (e.OldItems != null)
+        {
+            foreach (GDrawable drawable in e.OldItems)
+            {
+                drawable.PropertyChanged -= SelectedDrawable_PropertyChanged;
+            }
+        }
+
+        if (e.NewItems != null)
+        {
+            foreach (GDrawable drawable in e.NewItems)
+            {
+                drawable.PropertyChanged += SelectedDrawable_PropertyChanged;
+            }
+        }
+
         AllowOverrideDrawables = false; //reset to false
         OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
         OnPropertyChanged(nameof(IsMultipleDrawablesSameType));
         OnPropertyChanged(nameof(IsMultipleDrawablesExactlyTheSame));
         OnPropertyChanged(nameof(CanEditMultipleDrawables));
+        OnPropertyChanged(nameof(MultiSelectGroupDisplay));
+        OnPropertyChanged(nameof(MultiSelectCommonTags));
+    }
+
+    private void SelectedDrawable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(GDrawable.Group))
+        {
+            OnPropertyChanged(nameof(MultiSelectGroupDisplay));
+        }
+        else if (e.PropertyName == nameof(GDrawable.Tags))
+        {
+            OnPropertyChanged(nameof(MultiSelectCommonTags));
+        }
+    }
+
+    [JsonIgnore]
+    public string MultiSelectGroupDisplay
+    {
+        get
+        {
+            if (!IsMultipleDrawablesSelected || SelectedDrawables.Count == 0)
+                return SelectedDrawable?.Group;
+
+            var groups = SelectedDrawables.Select(d => d.Group).Distinct().ToList();
+            
+            if (groups.Count == 1)
+            {
+                return groups[0];
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public ObservableCollection<string> MultiSelectCommonTags
+    {
+        get
+        {
+            if (!IsMultipleDrawablesSelected || SelectedDrawables.Count == 0)
+                return SelectedDrawable?.Tags ?? [];
+
+            var allUniqueTags = SelectedDrawables
+                .SelectMany(d => d.Tags)
+                .Distinct()
+                .OrderBy(t => t)
+                .ToList();
+
+            return new ObservableCollection<string>(allUniqueTags);
+        }
     }
 
     [JsonIgnore]

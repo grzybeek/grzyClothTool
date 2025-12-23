@@ -56,6 +56,7 @@ namespace grzyClothTool.Controls
         private static readonly Dictionary<string, bool> value = [];
 
         private readonly Dictionary<string, bool> _groupExpandedStates = value;
+        private bool _isBatchUpdating = false;
 
         public DrawableList()
         {
@@ -154,20 +155,42 @@ namespace grzyClothTool.Controls
 
         private void Drawable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-        if (e.PropertyName == nameof(GDrawable.Group))
-        {
-            if (_pendingSelection == null)
+            if (e.PropertyName == nameof(GDrawable.Group))
             {
-                _pendingSelection = [.. MyListBox.SelectedItems.Cast<GDrawable>()];
+                if (_isBatchUpdating)
+                    return;
 
-                DrawablesView?.Refresh();
+                _pendingSelection ??= [.. MyListBox.SelectedItems.Cast<GDrawable>()];
 
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    RestoreSelection();
-                }), System.Windows.Threading.DispatcherPriority.Loaded);
+                    if (_pendingSelection != null)
+                    {
+                        DrawablesView?.Refresh();
+                        RestoreSelection();
+                    }
+                }), System.Windows.Threading.DispatcherPriority.Background);
             }
         }
+
+        public void BeginBatchUpdate()
+        {
+            _isBatchUpdating = true;
+            _pendingSelection ??= [.. MyListBox.SelectedItems.Cast<GDrawable>()];
+        }
+
+        public void EndBatchUpdate()
+        {
+            _isBatchUpdating = false;
+            
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_pendingSelection != null)
+                {
+                    DrawablesView?.Refresh();
+                    RestoreSelection();
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
 
         private void RestoreSelection()

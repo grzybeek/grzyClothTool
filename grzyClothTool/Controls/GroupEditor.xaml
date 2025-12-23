@@ -1,13 +1,17 @@
 <UserControl x:Class="grzyClothTool.Controls.GroupEditor"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:grzyClothTool.Controls"
-             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
-             x:Name="MyGroupEditor"
-             mc:Ignorable="d" 
-             d:DesignHeight="40" d:DesignWidth="400">
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+         xmlns:local="clr-namespace:grzyClothTool.Controls"
+         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+         xmlns:converters="clr-namespace:grzyClothTool.Converters"
+         x:Name="MyGroupEditor"
+         mc:Ignorable="d" 
+         d:DesignHeight="40" d:DesignWidth="400">
+        <UserControl.Resources>
+            <converters:NullOrEmptyToFalseConverter x:Key="NullOrEmptyToFalseConverter" />
+        </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -19,16 +23,41 @@
                     BorderBrush="{DynamicResource Brush400}"
                     BorderThickness="1"
                     CornerRadius="4">
-                <TextBox x:Name="GroupInputBox"
-                         Background="Transparent"
-                         Foreground="{DynamicResource Brush950}"
-                         BorderThickness="0"
-                         Padding="8,8"
-                         FontSize="12"
-                         TextChanged="GroupInputBox_TextChanged"
-                         KeyDown="GroupInputBox_KeyDown"
-                         LostFocus="GroupInputBox_LostFocus"
-                         VerticalContentAlignment="Center"/>
+                <Grid>
+                    <TextBlock Text="{Binding PlaceholderText, ElementName=MyGroupEditor}"
+                               FontSize="12"
+                               Foreground="{DynamicResource Brush500}"
+                               FontStyle="Italic"
+                               Padding="8,8"
+                               IsHitTestVisible="False"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding Text, ElementName=GroupInputBox}" Value="" />
+                                            <Condition Binding="{Binding PlaceholderText, ElementName=MyGroupEditor, Converter={StaticResource NullOrEmptyToFalseConverter}}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    
+                    <TextBox x:Name="GroupInputBox"
+                             Background="Transparent"
+                             Foreground="{DynamicResource Brush950}"
+                             BorderThickness="0"
+                             Padding="8,8"
+                             FontSize="12"
+                             TextChanged="GroupInputBox_TextChanged"
+                             KeyDown="GroupInputBox_KeyDown"
+                             LostFocus="GroupInputBox_LostFocus"
+                             VerticalContentAlignment="Center"/>
+                </Grid>
             </Border>
 
             <Popup x:Name="SuggestionsPopup"

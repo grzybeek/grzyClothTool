@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -9,6 +10,8 @@ namespace grzyClothTool.Controls;
 
 public partial class TagsEditor : UserControl
 {
+    public event EventHandler TagsChanged;
+
     public static readonly DependencyProperty TagsProperty = 
         DependencyProperty.Register(
             nameof(Tags), 
@@ -182,6 +185,8 @@ public partial class TagsEditor : UserControl
         TagInputBox.Clear();
         SuggestionsPopup.IsOpen = false;
         TagInputBox.Focus();
+        
+        TagsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void RemoveTag_Click(object sender, RoutedEventArgs e)
@@ -189,6 +194,7 @@ public partial class TagsEditor : UserControl
         if (sender is Button button && button.Tag is string tag)
         {
             Tags?.Remove(tag);
+            TagsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

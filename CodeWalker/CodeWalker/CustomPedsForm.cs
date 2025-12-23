@@ -220,7 +220,9 @@ namespace CodeWalker
 
 
             formopen = true;
-            new Thread(new ThreadStart(ContentThread)).Start();
+            var contentThread = new Thread(new ThreadStart(ContentThread));
+            contentThread.IsBackground = true;
+            contentThread.Start();
 
             frametimer.Start();
 
@@ -491,59 +493,79 @@ namespace CodeWalker
 
         private void ContentThread()
         {
-            //main content loading thread.
-            running = true;
-
-            UpdateStatus("Scanning...");
-
             try
             {
-                GTA5Keys.LoadFromPath(GTAFolder.CurrentGTAFolder, Settings.Default.Key);
-            }
-            catch
-            {
-                MessageBox.Show("Keys not found! This shouldn't happen.");
-                Close();
-                return;
-            }
+                //main content loading thread.
+                running = true;
 
-            GameFileCache.EnableDlc = false;
-            GameFileCache.EnableMods = false;
-            GameFileCache.LoadPeds = true;
-            GameFileCache.LoadVehicles = false;
-            GameFileCache.LoadAudio = false;
-            GameFileCache.LoadArchetypes = false;//to speed things up a little
-            GameFileCache.BuildExtendedJenkIndex = false;//to speed things up a little
-            GameFileCache.DoFullStringIndex = true;//to get all global text from DLC...
-            GameFileCache.Init(UpdateStatus, LogError);
+                UpdateStatus("Scanning...");
 
-            UpdateGlobalPedsUI();
-
-
-            LoadWorld();
-            isLoading = false;
-            Task.Run(() => {
-                while (formopen && !IsDisposed) //renderer content loop
+                try
                 {
-                    bool rcItemsPending = Renderer.ContentThreadProc();
-                    if (!rcItemsPending)
+                    GTA5Keys.LoadFromPath(GTAFolder.CurrentGTAFolder, Settings.Default.Key);
+                }
+                catch
+                {
+                    MessageBox.Show("Keys not found! This shouldn't happen.");
+                    running = false;
+                    return;
+                }
+
+                try
+                {
+                    GameFileCache.EnableDlc = false;
+                    GameFileCache.EnableMods = false;
+                    GameFileCache.LoadPeds = true;
+                    GameFileCache.LoadVehicles = false;
+                    GameFileCache.LoadAudio = false;
+                    GameFileCache.LoadArchetypes = false;//to speed things up a little
+                    GameFileCache.BuildExtendedJenkIndex = false;//to speed things up a little
+                    GameFileCache.DoFullStringIndex = true;//to get all global text from DLC...
+                    GameFileCache.Init(UpdateStatus, LogError);
+                }
+                catch (Exception ex)
+                {
+                    LogError("Failed to initialize game file cache: " + ex.Message);
+                    LogError("GTA V installation may be corrupted or incomplete. 3D Preview disabled.");
+                    UpdateStatus("Error: GTA V files not found or corrupted. 3D Preview unavailable.");
+                    running = false;
+                    return;
+                }
+
+                UpdateGlobalPedsUI();
+
+
+                LoadWorld();
+                isLoading = false;
+                Task.Run(() => {
+                    while (formopen && !IsDisposed) //renderer content loop
+                    {
+                        bool rcItemsPending = Renderer.ContentThreadProc();
+                        if (!rcItemsPending)
+                        {
+                            Thread.Sleep(1); //sleep if there's nothing to do
+                        }
+                    }
+                });
+
+                while (formopen && !IsDisposed) //main asset loop
+                {
+                    bool fcItemsPending = GameFileCache.ContentThreadProc();
+                    if (!fcItemsPending)
                     {
                         Thread.Sleep(1); //sleep if there's nothing to do
                     }
                 }
-            });
 
-            while (formopen && !IsDisposed) //main asset loop
-            {
-                bool fcItemsPending = GameFileCache.ContentThreadProc();
-                if (!fcItemsPending)
-                {
-                    Thread.Sleep(1); //sleep if there's nothing to do
-                }
+                GameFileCache.Clear();
+                running = false;
             }
-
-            GameFileCache.Clear();
-            running = false;
+            catch (Exception ex)
+            {
+                LogError("Unhandled exception in ContentThread: " + ex.Message);
+                LogError("Stack trace: " + ex.StackTrace);
+                running = false;
+            }
         }
 
         private void LoadSettings()

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +9,8 @@ namespace grzyClothTool.Controls;
 
 public partial class GroupEditor : UserControl
 {
+    public event EventHandler GroupChanged;
+
     public static readonly DependencyProperty GroupProperty = 
         DependencyProperty.Register(
             nameof(Group), 
@@ -15,10 +18,23 @@ public partial class GroupEditor : UserControl
             typeof(GroupEditor), 
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnGroupPropertyChanged));
 
+    public static readonly DependencyProperty PlaceholderTextProperty =
+        DependencyProperty.Register(
+            nameof(PlaceholderText),
+            typeof(string),
+            typeof(GroupEditor),
+            new PropertyMetadata(string.Empty));
+
     public string Group
     {
         get => (string)GetValue(GroupProperty);
         set => SetValue(GroupProperty, value);
+    }
+
+    public string PlaceholderText
+    {
+        get => (string)GetValue(PlaceholderTextProperty);
+        set => SetValue(PlaceholderTextProperty, value);
     }
 
     private bool _isUpdatingTextBox = false;
@@ -28,10 +44,16 @@ public partial class GroupEditor : UserControl
         if (d is GroupEditor editor)
         {
             editor._isUpdatingTextBox = true;
-            if (editor.GroupInputBox.Text != e.NewValue?.ToString())
+            
+            if (string.IsNullOrEmpty(e.NewValue?.ToString()))
             {
-                editor.GroupInputBox.Text = e.NewValue?.ToString() ?? string.Empty;
+                editor.GroupInputBox.Text = string.Empty;
             }
+            else if (editor.GroupInputBox.Text != e.NewValue?.ToString())
+            {
+                editor.GroupInputBox.Text = e.NewValue.ToString();
+            }
+            
             editor._isUpdatingTextBox = false;
         }
     }
@@ -175,6 +197,8 @@ public partial class GroupEditor : UserControl
         GroupManager.Instance.AddGroup(groupName);
 
         SuggestionsPopup.IsOpen = false;
+        
+        GroupChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SaveGroup(string groupName)
@@ -184,6 +208,7 @@ public partial class GroupEditor : UserControl
             _isUpdatingTextBox = true;
             Group = null;
             _isUpdatingTextBox = false;
+            GroupChanged?.Invoke(this, EventArgs.Empty);
             return;
         }
 
@@ -194,6 +219,7 @@ public partial class GroupEditor : UserControl
         _isUpdatingTextBox = false;
         
         GroupManager.Instance.AddGroup(groupName);
+        GroupChanged?.Invoke(this, EventArgs.Empty);
     }
 }
 

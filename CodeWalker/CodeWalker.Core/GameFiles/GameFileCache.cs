@@ -260,46 +260,53 @@ namespace CodeWalker.GameFiles
 
             if (updrpffile != null)
             {
-                XmlDocument updsetupdoc = RpfMan.GetFileXml(updrpfpath + "\\setup2.xml");
-                DlcSetupFile updsetupfile = new DlcSetupFile();
-                updsetupfile.Load(updsetupdoc);
-
-                XmlDocument updcontentdoc = RpfMan.GetFileXml(updrpfpath + "\\" + updsetupfile.datFile);
-                DlcContentFile updcontentfile = new DlcContentFile();
-                updcontentfile.Load(updcontentdoc);
-
-                updsetupfile.DlcFile = updrpffile;
-                updsetupfile.ContentFile = updcontentfile;
-                updcontentfile.DlcFile = updrpffile;
-
-                updsetupfile.deviceName = "update";
-                updcontentfile.LoadDicts(updsetupfile, RpfMan, this);
-
-                if (updcontentfile.ExtraTitleUpdates != null)
+                try
                 {
-                    foreach (var tumount in updcontentfile.ExtraTitleUpdates.Mounts)
+                    XmlDocument updsetupdoc = RpfMan.GetFileXml(updrpfpath + "\\setup2.xml");
+                    DlcSetupFile updsetupfile = new DlcSetupFile();
+                    updsetupfile.Load(updsetupdoc);
+
+                    XmlDocument updcontentdoc = RpfMan.GetFileXml(updrpfpath + "\\" + updsetupfile.datFile);
+                    DlcContentFile updcontentfile = new DlcContentFile();
+                    updcontentfile.Load(updcontentdoc);
+
+                    updsetupfile.DlcFile = updrpffile;
+                    updsetupfile.ContentFile = updcontentfile;
+                    updcontentfile.DlcFile = updrpffile;
+
+                    updsetupfile.deviceName = "update";
+                    updcontentfile.LoadDicts(updsetupfile, RpfMan, this);
+
+                    if (updcontentfile.ExtraTitleUpdates != null)
                     {
-                        var lpath = tumount.path.ToLowerInvariant();
-                        var relpath = lpath.Replace('/', '\\').Replace("update:\\", "");
-                        var dlcname = GetDlcNameFromPath(relpath);
-                        RpfFile dlcfile;
-                        dlcDict2.TryGetValue(dlcname, out dlcfile);
-                        if (dlcfile == null)
-                        { continue; }
-                        var dlcpath = dlcfile.Path + "\\";
-                        var files = updrpffile.GetFiles(relpath, true);
-                        foreach (var file in files)
+                        foreach (var tumount in updcontentfile.ExtraTitleUpdates.Mounts)
                         {
-                            if (file == null) continue;
-                            var fpath = file.Path;
-                            var frelpath = fpath.Replace(updrpfpath, "update:").Replace('\\', '/').Replace(lpath, dlcpath).Replace('/', '\\');
-                            if (frelpath.StartsWith("mods\\"))
+                            var lpath = tumount.path.ToLowerInvariant();
+                            var relpath = lpath.Replace('/', '\\').Replace("update:\\", "");
+                            var dlcname = GetDlcNameFromPath(relpath);
+                            RpfFile dlcfile;
+                            dlcDict2.TryGetValue(dlcname, out dlcfile);
+                            if (dlcfile == null)
+                            { continue; }
+                            var dlcpath = dlcfile.Path + "\\";
+                            var files = updrpffile.GetFiles(relpath, true);
+                            foreach (var file in files)
                             {
-                                frelpath = frelpath.Substring(5);
+                                if (file == null) continue;
+                                var fpath = file.Path;
+                                var frelpath = fpath.Replace(updrpfpath, "update:").Replace('\\', '/').Replace(lpath, dlcpath).Replace('/', '\\');
+                                if (frelpath.StartsWith("mods\\"))
+                                {
+                                    frelpath = frelpath.Substring(5);
+                                }
+                                DlcPatchedPaths[frelpath] = fpath;
                             }
-                            DlcPatchedPaths[frelpath] = fpath;
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    ErrorLog("InitDlcList: Failed to load update.rpf setup files. GTA V installation may be corrupted or incomplete.\n" + ex.Message);
                 }
             }
             else

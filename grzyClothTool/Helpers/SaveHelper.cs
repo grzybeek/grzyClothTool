@@ -195,6 +195,24 @@ public static class SaveHelper
 
             MainWindow.AddonManager.ProjectName = addonManager.ProjectName;
 
+            MainWindow.AddonManager.Groups.Clear();
+            if (addonManager.Groups != null)
+            {
+                foreach (var group in addonManager.Groups)
+                {
+                    MainWindow.AddonManager.Groups.Add(group);
+                }
+            }
+
+            MainWindow.AddonManager.Tags.Clear();
+            if (addonManager.Tags != null)
+            {
+                foreach (var tag in addonManager.Tags)
+                {
+                    MainWindow.AddonManager.Tags.Add(tag);
+                }
+            }
+
             int drawableCount = addonManager.Addons.Sum(a => a.Drawables.Count);
             int addonCount = addonManager.Addons.Count;
 

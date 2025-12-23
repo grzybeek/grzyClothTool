@@ -356,6 +356,92 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private void GroupEditor_Changed(object sender, EventArgs e)
+        {
+            if (sender is GroupEditor groupEditor && MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+            {
+                var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                var newGroup = groupEditor.Group;
+                
+                var drawableList = FindDrawableList();
+                drawableList?.BeginBatchUpdate();
+                
+                try
+                {
+                    foreach (var drawable in selectedDrawables)
+                    {
+                        drawable.Group = newGroup;
+                    }
+                }
+                finally
+                {
+                    drawableList?.EndBatchUpdate();
+                }
+                
+                SaveHelper.SetUnsavedChanges(true);
+            }
+        }
+
+        private DrawableList FindDrawableList()
+        {
+            DependencyObject current = this;
+            while (current != null)
+            {
+                current = VisualTreeHelper.GetParent(current);
+                if (current is UserControl userControl && userControl.GetType().Name == "ProjectWindow")
+                {
+                    return FindVisualChild<DrawableList>(userControl);
+                }
+            }
+            return null;
+        }
+
+        private static T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            if (parent == null) return null;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                
+                if (child is T typedChild)
+                {
+                    return typedChild;
+                }
+
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
+        private void TagsEditor_Changed(object sender, EventArgs e)
+        {
+            if (sender is TagsEditor tagsEditor && MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+            {
+                var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+                var newTags = tagsEditor.Tags?.ToList();
+                
+                foreach (var drawable in selectedDrawables)
+                {
+                    drawable.Tags.Clear();
+                    if (newTags != null)
+                    {
+                        foreach (var tag in newTags)
+                        {
+                            drawable.Tags.Add(tag);
+                        }
+                    }
+                }
+                
+                SaveHelper.SetUnsavedChanges(true);
+            }
+        }
+
         private static ListBox FindTextureListBox(DependencyObject parent)
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)

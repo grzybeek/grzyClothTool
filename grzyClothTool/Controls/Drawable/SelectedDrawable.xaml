@@ -138,7 +138,7 @@
             <Grid Background="{DynamicResource Brush50}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="225" />
+                    <ColumnDefinition Width="250" />
                 </Grid.ColumnDefinitions>
 
                 <Grid Grid.Column="0">
@@ -201,7 +201,7 @@
             <Grid Background="{DynamicResource Brush100}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="225" />
+                    <ColumnDefinition Width="250" />
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" Style="{StaticResource ModernCard}" Margin="8,8,4,8">
@@ -345,12 +345,7 @@
 
                 <Border Grid.Column="1" Style="{StaticResource ModernCard}" Margin="4,8,8,8">
                     <Grid IsEnabled="{Binding SelectedAddon.CanEditMultipleDrawables}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                             <StackPanel>
                                 <TextBlock Text="Drawable Options" Style="{StaticResource SectionTitle}" />
 
@@ -383,30 +378,7 @@
                                                       SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" 
                                                       ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" 
                                                       IsUpdated="SelectedDrawable_Updated"
-                                                      Margin="0,0,0,12" />
-
-                                <c:ModernLabelComboBox Label="Group" 
-                                                      Tag="Group" 
-                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.Group, Mode=TwoWay}" 
-                                                      ItemsSource="{Binding Path=Instance.Groups, Source={x:Static helpers:GroupManager.Instance}}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
                                                       Margin="0,0,0,16" />
-
-                                <Border BorderBrush="{DynamicResource Brush200}"
-                                        BorderThickness="1"
-                                        CornerRadius="8"
-                                        Padding="12"
-                                        Margin="0,0,0,16"
-                                        Background="{DynamicResource Brush100}">
-                                    <StackPanel>
-                                        <TextBlock Text="Tags"
-                                                   FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource Brush800}"
-                                                   Margin="0,0,0,8" />
-                                        <c:TagsEditor Tags="{Binding SelectedAddon.FirstDrawable.Tags, Mode=TwoWay}" />
-                                    </StackPanel>
-                                </Border>
 
                                 <StackPanel Margin="0,0,0,16">
                                     <StackPanel.Style>
@@ -446,13 +418,13 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <c:ModernLabelCheckBox x:Name="EnableHairScale" 
+                                    <c:ModernLabelCheckBox x:Name="EnableHairScaleMulti" 
                                                           Tag="EnableHairScale" 
                                                           Label="Enable Hair scale" 
                                                           IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHairScale}" 
                                                           IsUpdated="SelectedDrawable_Updated"
                                                           Margin="0,0,0,8" />
-                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScale, Path=IsChecked}" 
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScaleMulti, Path=IsChecked}" 
                                                                Tag="HairScaleValue" 
                                                                Label="Hair scale" 
                                                                Value="{Binding SelectedAddon.FirstDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -474,13 +446,13 @@
                                         </Style>
                                     </StackPanel.Style>
 
-                                    <c:ModernLabelCheckBox x:Name="EnableHighHeels" 
+                                    <c:ModernLabelCheckBox x:Name="EnableHighHeelsMulti" 
                                                           Tag="EnableHighHeels" 
                                                           Label="Enable High heels" 
                                                           IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHighHeels}" 
                                                           IsUpdated="SelectedDrawable_Updated"
                                                           Margin="0,0,0,8" />
-                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeels, Path=IsChecked}" 
+                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeelsMulti, Path=IsChecked}" 
                                                                Tag="HighHeelsValue" 
                                                                Label="High heels amount" 
                                                                Value="{Binding SelectedAddon.FirstDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
@@ -489,15 +461,12 @@
                                                                Minimum="0.0" 
                                                                IsUpdated="SelectedDrawable_Updated" />
                                 </StackPanel>
-                            </StackPanel>
-                        </ScrollViewer>
 
-                        <Border Grid.Row="1" 
-                                BorderBrush="{DynamicResource Brush200}" 
-                                BorderThickness="0,1,0,0" 
-                                Padding="0,16,0,0"
-                                Margin="0,16,0,0">
-                            <StackPanel>
+                                <Border Height="1" 
+                                        Background="{DynamicResource Brush300}" 
+                                        Margin="0,8,0,16"
+                                        SnapsToDevicePixels="True" />
+
                                 <TextBlock Text="Preview Options" Style="{StaticResource SectionTitle}" />
 
                                 <TextBlock Text="Run 3D Preview to enable options"
@@ -522,8 +491,45 @@
                                                       IsChecked="{Binding SelectedAddon.FirstDrawable.EnableKeepPreview}" 
                                                       IsUpdated="SelectedDrawable_Updated"
                                                       IsEnabled="{Binding IsPreviewEnabled}" />
+
+                                <Border Height="1" 
+                                        Background="{DynamicResource Brush300}" 
+                                        Margin="0,16,0,16"
+                                        SnapsToDevicePixels="True" />
+
+                                <TextBlock Text="Organization" Style="{StaticResource SectionTitle}" />
+
+                                <TextBlock Text="Group"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource Brush700}"
+                                           Margin="0,0,0,6" />
+                                <c:GroupEditor x:Name="MultiSelectGroupEditor"
+                                              Group="{Binding SelectedAddon.MultiSelectGroupDisplay, Mode=TwoWay}"
+                                              GroupChanged="GroupEditor_Changed"
+                                              Margin="0,0,0,12">
+                                    <c:GroupEditor.Style>
+                                        <Style TargetType="c:GroupEditor">
+                                            <Setter Property="PlaceholderText" Value="" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedAddon.IsMultipleDrawablesSelected}" Value="True">
+                                                    <Setter Property="PlaceholderText" Value="(Multiple groups)" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </c:GroupEditor.Style>
+                                </c:GroupEditor>
+
+                                <TextBlock Text="Tags"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource Brush700}"
+                                           Margin="0,0,0,6" />
+                                <c:TagsEditor x:Name="MultiSelectTagsEditor"
+                                             Tags="{Binding SelectedAddon.MultiSelectCommonTags, Mode=TwoWay}"
+                                             TagsChanged="TagsEditor_Changed" />
                             </StackPanel>
-                        </Border>
+                        </ScrollViewer>
                     </Grid>
                 </Border>
             </Grid>

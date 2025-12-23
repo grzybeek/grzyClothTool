@@ -26,6 +26,10 @@ namespace CodeWalker.GameFiles
 
         public void Load(XmlDocument doc)
         {
+            if (doc == null || doc.DocumentElement == null)
+            {
+                throw new InvalidOperationException("DLC setup XML document is null or has no root element. This may indicate a corrupted or missing GTA V installation.");
+            }
 
             var root = doc.DocumentElement;
             deviceName = Xml.GetChildInnerText(root, "deviceName");

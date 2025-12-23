@@ -80,8 +80,13 @@ namespace grzyClothTool.Controls
             {
                 var errorMsg = $"3D Preview initialization failed: {ex.Message}";
                 LogHelper.Log(errorMsg, Views.LogType.Error);
-                ErrorLogHelper.LogError("3D Preview initialization failed (GPU/Graphics error)", ex);
-                PlaceholderText.Text = "3D Preview unavailable (GPU error - see log file)";
+                ErrorLogHelper.LogError("3D Preview initialization failed", ex);
+                
+                bool isGtaError = ex.Message.Contains("GTA") || ex.Message.Contains("DLC") || ex.Message.Contains("corrupted");
+                PlaceholderText.Text = isGtaError 
+                    ? "3D Preview unavailable (GTA V installation issue - see log)" 
+                    : "3D Preview unavailable (GPU/Graphics error - see log)";
+                
                 SettingsHelper.Preview3DAvailable = false;
                 Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -114,7 +119,7 @@ namespace grzyClothTool.Controls
             {
                 var errorMsg = $"3D Preview background initialization failed: {ex.Message}";
                 LogHelper.Log(errorMsg, Views.LogType.Error);
-                ErrorLogHelper.LogError("3D Preview background initialization failed (GPU/Graphics error)", ex);
+                ErrorLogHelper.LogError("3D Preview background initialization failed", ex);
                 SettingsHelper.Preview3DAvailable = false;
                 Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
@@ -142,68 +147,115 @@ namespace grzyClothTool.Controls
 
         public void SetPedModel(string pedModel)
         {
-            if (_customPedsForm != null && !_customPedsForm.IsDisposed && _customPedsForm.formopen)
+            try
             {
-                _customPedsForm.PedModel = pedModel;
+                if (_customPedsForm != null && !_customPedsForm.IsDisposed && _customPedsForm.formopen)
+                {
+                    _customPedsForm.PedModel = pedModel;
+                }
+            }
+            catch (Exception ex)
+            {
+                HandlePreviewError("Failed to set ped model", ex);
             }
         }
 
         public void UpdateDrawables(ObservableCollection<GDrawable> selectedDrawables, GTexture selectedTexture, Dictionary<string, string> updateDict)
         {
-            if (_customPedsForm == null || _customPedsForm.IsDisposed || !_customPedsForm.formopen || _customPedsForm.isLoading)
+            try
             {
-                return;
-            }
-
-            var selectedNames = selectedDrawables.Select(d => d.Name).ToHashSet();
-            var removedDrawables = _customPedsForm.LoadedDrawables.Keys.Where(name => !selectedNames.Contains(name)).ToList();
-            foreach (var removed in removedDrawables)
-            {
-                if (_customPedsForm.LoadedDrawables.TryGetValue(removed, out var removedDrawable))
+                if (_customPedsForm == null || _customPedsForm.IsDisposed || !_customPedsForm.formopen || _customPedsForm.isLoading)
                 {
-                    _customPedsForm.LoadedTextures.Remove(removedDrawable);
-                }
-                _customPedsForm.LoadedDrawables.Remove(removed);
-            }
-
-            foreach (var drawable in selectedDrawables)
-            {
-                if (drawable.IsEncrypted)
-                {
-                    continue;
+                    return;
                 }
 
-                var ydd = CWHelper.CreateYddFile(drawable);
-                if (ydd == null || ydd.Drawables.Length == 0) continue;
-
-                var firstDrawable = ydd.Drawables.First();
-                _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
-
-                CodeWalker.GameFiles.YtdFile ytd = null;
-                if (selectedTexture != null)
+                var selectedNames = selectedDrawables.Select(d => d.Name).ToHashSet();
+                var removedDrawables = _customPedsForm.LoadedDrawables.Keys.Where(name => !selectedNames.Contains(name)).ToList();
+                foreach (var removed in removedDrawables)
                 {
-                    ytd = CWHelper.CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
-                    _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
-                }
-
-                if (selectedTexture == null && selectedDrawables.Count > 1)
-                {
-                    var firstTexture = drawable.Textures.FirstOrDefault();
-                    if (firstTexture != null)
+                    if (_customPedsForm.LoadedDrawables.TryGetValue(removed, out var removedDrawable))
                     {
-                        ytd = CWHelper.CreateYtdFile(firstTexture, firstTexture.DisplayName);
+                        _customPedsForm.LoadedTextures.Remove(removedDrawable);
+                    }
+                    _customPedsForm.LoadedDrawables.Remove(removed);
+                }
+
+                foreach (var drawable in selectedDrawables)
+                {
+                    if (drawable.IsEncrypted)
+                    {
+                        continue;
+                    }
+
+                    var ydd = CWHelper.CreateYddFile(drawable);
+                    if (ydd == null || ydd.Drawables.Length == 0) continue;
+
+                    var firstDrawable = ydd.Drawables.First();
+                    _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
+
+                    CodeWalker.GameFiles.YtdFile ytd = null;
+                    if (selectedTexture != null)
+                    {
+                        ytd = CWHelper.CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
                         _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
                     }
+
+                    if (selectedTexture == null && selectedDrawables.Count > 1)
+                    {
+                        var firstTexture = drawable.Textures.FirstOrDefault();
+                        if (firstTexture != null)
+                        {
+                            ytd = CWHelper.CreateYtdFile(firstTexture, firstTexture.DisplayName);
+                            _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
+                        }
+                    }
+
+                    _customPedsForm.UpdateSelectedDrawable(
+                        firstDrawable,
+                        ytd?.TextureDict,
+                        updateDict
+                    );
                 }
 
-                _customPedsForm.UpdateSelectedDrawable(
-                    firstDrawable,
-                    ytd?.TextureDict,
-                    updateDict
-                );
+                _customPedsForm.Refresh();
             }
+            catch (Exception ex)
+            {
+                HandlePreviewError("Failed to update drawables in 3D preview", ex);
+            }
+        }
 
-            _customPedsForm.Refresh();
+        private void HandlePreviewError(string context, Exception ex)
+        {
+            ErrorLogHelper.LogError($"3D Preview error - {context}: {ex.Message}", ex);
+            LogHelper.Log($"3D Preview error: {context}", Views.LogType.Warning);
+            
+            // Disable the preview if it's having issues
+            try
+            {
+                if (_customPedsForm != null && !_customPedsForm.IsDisposed)
+                {
+                    _customPedsForm.Dispose();
+                }
+                _customPedsForm = null;
+                _isInitialized = false;
+                SettingsHelper.Preview3DAvailable = false;
+                
+                if (PlaceholderText != null)
+                {
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        PlaceholderText.Text = "3D Preview disabled due to errors (see log)";
+                        PlaceholderText.Visibility = Visibility.Visible;
+                    });
+                }
+                
+                Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
+            }
+            catch
+            {
+                // Silently fail if we can't clean up
+            }
         }
     }
 }

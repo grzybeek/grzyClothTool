@@ -434,24 +434,44 @@ public class GDrawable : INotifyPropertyChanged
 
     public async Task LoadDetails()
     {
-        if (File.Exists(FullFilePath))
+        try
         {
-            var result = await LoadDrawableDetailsWithConcurrencyControl();
-            if (result != null)
+            if (File.Exists(FullFilePath))
             {
-                    Details = result;
-                    OnPropertyChanged(nameof(Details));
+                var result = await LoadDrawableDetailsWithConcurrencyControl();
+                if (result != null)
+                {
+                        Details = result;
+                        OnPropertyChanged(nameof(Details));
+                }
             }
         }
-
-        IsLoading = false;
+        catch (Exception ex)
+        {
+            Helpers.ErrorLogHelper.LogError($"Error loading drawable details for {Name}: {ex.Message}", ex);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private static async void ProcessLoadQueue()
     {
         foreach (var drawable in _loadQueue.GetConsumingEnumerable())
         {
-            await drawable.LoadDetails();
+            try
+            {
+                await drawable.LoadDetails();
+            }
+            catch (Exception ex)
+            {
+                // Handle corrupted drawable files gracefully
+                Helpers.ErrorLogHelper.LogError($"Failed to load drawable details for {drawable.Name}: {ex.Message}", ex);
+                drawable.IsLoading = false;
+                
+                // Continue processing other drawables
+            }
         }
     }
 
