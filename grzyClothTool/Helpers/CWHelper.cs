@@ -47,7 +47,7 @@ public static class CWHelper
     {
         byte[] data = texture.Extension switch
         {
-            ".ytd" => File.ReadAllBytes(texture.FilePath), // Read existing YTD file directly
+            ".ytd" => File.ReadAllBytes(texture.FullFilePath), // Read existing YTD file directly
             ".png" or ".jpg" or ".dds" => ImgHelper.GetDDSBytes(texture), // Create DDS texture
             _ => throw new NotSupportedException($"Unsupported file extension: {texture.Extension}"),
         };
@@ -64,7 +64,7 @@ public static class CWHelper
     {
         try
         {
-            byte[] data = File.ReadAllBytes(d.FilePath);
+            byte[] data = File.ReadAllBytes(d.FullFilePath);
 
             RpfFileEntry rpf = RpfFile.CreateResourceFileEntry(ref data, 0);
             var decompressedData = ResourceBuilder.Decompress(data);
@@ -88,7 +88,7 @@ public static class CWHelper
         }
         catch (Exception ex)
         {
-            TelemetryHelper.CaptureExceptionWithAttachment(ex, d.FilePath);
+            TelemetryHelper.CaptureExceptionWithAttachment(ex, d.FullFilePath);
             throw;
         }
     }

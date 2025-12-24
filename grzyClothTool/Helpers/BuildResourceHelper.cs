@@ -104,7 +104,7 @@ public class BuildResourceHelper
                 Directory.CreateDirectory(folderPath);
                 
                 var prefix = RemoveInvalidChars($"{drawablePedName}_{projectName}^");
-                var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FilePath)}");
+                var finalPath = Path.Combine(folderPath, $"{prefix}{d.Name}{Path.GetExtension(d.FullFilePath)}");
                 fileOperations.Add(FileHelper.CopyAsync(tempYddPath, finalPath));
 
                 if (!string.IsNullOrEmpty(d.ClothPhysicsPath))
@@ -390,12 +390,12 @@ public class BuildResourceHelper
                 var folderPath = d.IsProp ? thirdLevelPropFolder : thirdLevelFolder;
 
                 var tempYddPath = yddPathsDict[d];
-                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FilePath)}")));
+                fileOperations.Add(FileHelper.CopyAsync(tempYddPath, Path.Combine(folderPath, $"{d.Name}{Path.GetExtension(d.FullFilePath)}")));
 
                 foreach(var t in d.Textures)
                 {
                     var buildName = RemoveInvalidChars(t.GetBuildName());
-                    var finalTexPath = Path.Combine(folderPath, $"{buildName}{Path.GetExtension(t.FilePath)}");
+                    var finalTexPath = Path.Combine(folderPath, $"{buildName}{Path.GetExtension(t.FullFilePath)}");
 
                     if (t.IsOptimizedDuringBuild)
                     {
@@ -404,7 +404,7 @@ public class BuildResourceHelper
                     } 
                     else
                     {
-                        fileOperations.Add(FileHelper.CopyAsync(t.FilePath, finalTexPath));
+                        fileOperations.Add(FileHelper.CopyAsync(t.FullFilePath, finalTexPath));
                     }
                 }
             }
@@ -756,7 +756,7 @@ public class BuildResourceHelper
                 var drawableBytes = File.ReadAllBytes(tempYddPath);
 
                 RpfDirectoryEntry folder = d.IsProp ? propsFolder : componentsFolder;            
-                RpfFile.CreateFile(folder, $"{d.Name}{Path.GetExtension(d.FilePath)}", drawableBytes);
+                RpfFile.CreateFile(folder, $"{d.Name}{Path.GetExtension(d.FullFilePath)}", drawableBytes);
 
                 foreach (var t in d.Textures)
                 {
@@ -765,12 +765,12 @@ public class BuildResourceHelper
                     if (t.IsOptimizedDuringBuild)
                     {
                         var optimizedBytes = await ImgHelper.Optimize(t);
-                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FilePath)}", optimizedBytes);
+                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FullFilePath)}", optimizedBytes);
                     }
                     else
                     {
-                        var texBytes = File.ReadAllBytes(t.FilePath);
-                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FilePath)}", texBytes);
+                        var texBytes = File.ReadAllBytes(t.FullFilePath);
+                        RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FullFilePath)}", texBytes);
                     }
                 }
             }
@@ -1243,7 +1243,7 @@ public class BuildResourceHelper
         {
             string tempDir = Path.Combine(Path.GetTempPath(), _buildTempFolderName);
             Directory.CreateDirectory(tempDir);
-            string inputPath = dr.FilePath;
+            string inputPath = dr.FullFilePath;
             string uniqueFileName = $"{dr.Id}_{Path.GetFileName(inputPath)}";
             string outputPath = Path.Combine(tempDir, uniqueFileName);
 
@@ -1475,9 +1475,9 @@ public class BuildResourceHelper
             {
                 foreach (var drawable in addon.Drawables)
                 {
-                    if (!string.IsNullOrEmpty(drawable.FilePath))
+                    if (!string.IsNullOrEmpty(drawable.FullFilePath))
                     {
-                        sourceFilePaths.Add(Path.GetFullPath(drawable.FilePath));
+                        sourceFilePaths.Add(Path.GetFullPath(drawable.FullFilePath));
                     }
 
                     if (!string.IsNullOrEmpty(drawable.ClothPhysicsPath))
@@ -1492,9 +1492,9 @@ public class BuildResourceHelper
 
                     foreach (var texture in drawable.Textures)
                     {
-                        if (!string.IsNullOrEmpty(texture.FilePath))
+                        if (!string.IsNullOrEmpty(texture.FullFilePath))
                         {
-                            sourceFilePaths.Add(Path.GetFullPath(texture.FilePath));
+                            sourceFilePaths.Add(Path.GetFullPath(texture.FullFilePath));
                         }
                     }
                 }

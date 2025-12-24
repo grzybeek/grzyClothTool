@@ -503,7 +503,7 @@ public static class FileHelper
         // Process each drawable asynchronously and save it to the specified folder
         var tasks = drawables.Select(async drawable =>
         {
-            string filePath = Path.Combine(folderPath, $"{drawable.Name}{Path.GetExtension(drawable.FilePath)}");
+            string filePath = Path.Combine(folderPath, $"{drawable.Name}{Path.GetExtension(drawable.FullFilePath)}");
 
             // check if file exists
             if (File.Exists(filePath))

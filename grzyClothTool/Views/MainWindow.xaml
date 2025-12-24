@@ -29,7 +29,14 @@
 
 
             <MenuItem Header="_Project">
-                <MenuItem Header="_Open Addon" Click="OpenAddon_Click" />
+                <MenuItem Header="_Back to home screen" Click="HomeScreen_Click" />
+                <Separator />
+                <MenuItem Header="_Save" Click="Save_Click" InputGestureText="Ctrl+S" />
+                <Separator />
+                <MenuItem Header="_Open Addon" Click="OpenAddon_Click" 
+                          ToolTip="Open addon files (replaces current project)" />
+                <MenuItem Header="_Add Addon" Click="AddAddon_Click" 
+                          ToolTip="Add addon files to current project" />
                 <Separator />
                 <MenuItem Header="_Import Project" Click="ImportProject_Click" />
                 <MenuItem Header="_Export Project" Click="ExportProject_Click" />

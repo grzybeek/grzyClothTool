@@ -146,7 +146,7 @@ namespace grzyClothTool.Controls
                 var textureListBox = FindTextureListBox(this);
                 textureListBox.SelectedIndex = gtxt.TxtNumber;
 
-                MagickImage img = ImgHelper.GetImage(gtxt.FilePath);
+                MagickImage img = ImgHelper.GetImage(gtxt.FullFilePath);
                 if (img == null)
                 {
                     return;
@@ -478,15 +478,15 @@ namespace grzyClothTool.Controls
             {
                 sel.Textures.Remove(texture);
 
-                if (SettingsHelper.Instance.AutoDeleteFiles && File.Exists(texture.FilePath))
+                if (SettingsHelper.Instance.AutoDeleteFiles && File.Exists(texture.FullFilePath))
                 {
                     try
                     {
-                        File.Delete(texture.FilePath);
+                        File.Delete(texture.FullFilePath);
                     }
                     catch (Exception ex)
                     {
-                        LogHelper.Log($"Failed to delete file {texture.FilePath}: {ex.Message}", LogType.Warning);
+                        LogHelper.Log($"Failed to delete file {texture.FullFilePath}: {ex.Message}", LogType.Warning);
                     }
                 }
             }
@@ -873,7 +873,7 @@ namespace grzyClothTool.Controls
         {
             if(SelectedTxt != null)
             {
-                FileHelper.OpenFileLocation(SelectedTxt.FilePath);
+                FileHelper.OpenFileLocation(SelectedTxt.FullFilePath);
             }
         }
 

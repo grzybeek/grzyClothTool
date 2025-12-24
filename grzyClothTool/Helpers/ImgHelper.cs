@@ -121,11 +121,11 @@ public static class ImgHelper
 
         if (gtxt.Extension == ".dds")
         {
-            ddsBytes = File.ReadAllBytes(gtxt.FilePath);
+            ddsBytes = File.ReadAllBytes(gtxt.FullFilePath);
         } 
         else if (gtxt.Extension == ".jpg" || gtxt.Extension == ".png")
         {
-            using var img = GetImage(gtxt.FilePath);
+            using var img = GetImage(gtxt.FullFilePath);
             img.Format = MagickFormat.Dds;
 
             var stream = new MemoryStream();

@@ -318,7 +318,7 @@ namespace grzyClothTool.Controls
         private void OpenFileLocation_Click(object sender, RoutedEventArgs e)
         {
             var drawable = DrawableListSelectedValue as GDrawable;
-            FileHelper.OpenFileLocation(drawable?.FilePath);
+            FileHelper.OpenFileLocation(drawable?.FullFilePath);
         }
 
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)

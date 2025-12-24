@@ -4,6 +4,7 @@ using grzyClothTool.Models;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -111,7 +112,7 @@ namespace grzyClothTool.Views
             }
         }
 
-        public string BuildPath { get; set; }
+        public string BuildPath { get; set; } = Path.Combine(PersistentSettingsHelper.Instance.MainProjectsFolder, MainWindow.AddonManager.ProjectName, "build_output");
 
         private BuildResourceType _resourceType;
 
@@ -196,6 +197,8 @@ namespace grzyClothTool.Views
             ProgressValue = 0;
             pbBuild.Maximum = totalSteps;
             IsBuilding = true;
+
+            SaveHelper.SaveAsync().Wait();
 
             try
             {

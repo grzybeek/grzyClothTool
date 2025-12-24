@@ -103,6 +103,16 @@ namespace grzyClothTool
             }));
 
             this.Loaded += MainWindow_Loaded;
+            this.KeyDown += MainWindow_KeyDown;
+        }
+
+        private async void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                e.Handled = true;
+                await SaveAsync();
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -225,9 +235,52 @@ namespace grzyClothTool
             _navigationHelper.Navigate(tag);
         }
 
+        private async void Save_Click(object sender, RoutedEventArgs e)
+        {
+            await SaveAsync();
+        }
+
+        private async Task SaveAsync()
+        {
+            if (!SaveHelper.HasUnsavedChanges)
+            {
+                LogHelper.Log("No changes to save", LogType.Info);
+                return;
+            }
+
+            await SaveHelper.SaveAsync();
+        }
+
+        public void HomeScreen_Click(object sender, RoutedEventArgs e)
+        {
+            if (!SaveHelper.CheckUnsavedChangesMessage())
+            {
+                return;
+            }
+
+            AddonManager.Addons.Clear();
+            AddonManager.ProjectName = string.Empty;
+            AddonManager.Groups.Clear();
+            AddonManager.Tags.Clear();
+            AddonManager.MoveMenuItems.Clear();
+            AddonManager.SelectedAddon = null;
+            AddonManager.IsPreviewEnabled = false;
+
+            SaveHelper.SetUnsavedChanges(false);
+
+            _navigationHelper.Navigate("Home");
+
+            LogHelper.Log("Cleared data, moved to home screen", LogType.Info);
+        }
+
         public void OpenAddon_Click(object sender, RoutedEventArgs e)
         {
             _ = OpenAddonAsync();
+        }
+
+        public void AddAddon_Click(object sender, RoutedEventArgs e)
+        {
+            _ = AddAddonAsync();
         }
 
         public async Task OpenAddonAsync(bool shouldSetProjectName = false)
@@ -270,6 +323,44 @@ namespace grzyClothTool
                 }
 
                 ProgressHelper.Stop("Addon loaded in {0}", true);
+                SaveHelper.SetUnsavedChanges(true);
+            }
+        }
+
+        public async Task AddAddonAsync(bool shouldSetProjectName = false)
+        {
+            OpenFileDialog metaFiles = new()
+            {
+                Title = "Select .meta file(s) to add",
+                Multiselect = true,
+                Filter = "Meta files (*.meta)|*.meta"
+            };
+
+            if (metaFiles.ShowDialog() == true)
+            {
+                ProgressHelper.Start("Started adding addon");
+
+                // Import addon - add to existing addons instead of replacing
+                foreach (var dir in metaFiles.FileNames)
+                {
+                    using (var reader = new StreamReader(dir))
+                    {
+                        string firstLine = await reader.ReadLineAsync();
+                        string secondLine = await reader.ReadLineAsync();
+
+                        //Check two first lines if it contains "ShopPedApparel"
+                        if ((firstLine == null || !firstLine.Contains("ShopPedApparel")) &&
+                            (secondLine == null || !secondLine.Contains("ShopPedApparel")))
+                        {
+                            LogHelper.Log($"Skipped file {dir} as it is probably not a correct .meta file");
+                            return;
+                        }
+                    }
+
+                    await AddonManager.LoadAddon(dir, shouldSetProjectName);
+                }
+
+                ProgressHelper.Stop("Addon added in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
             }
         }
