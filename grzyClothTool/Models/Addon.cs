@@ -96,6 +96,7 @@ public class Addon : INotifyPropertyChanged
         OnPropertyChanged(nameof(IsMultipleDrawablesExactlyTheSame));
         OnPropertyChanged(nameof(CanEditMultipleDrawables));
         OnPropertyChanged(nameof(MultiSelectGroupDisplay));
+        OnPropertyChanged(nameof(HasMultipleDifferentGroups));
         OnPropertyChanged(nameof(MultiSelectCommonTags));
     }
 
@@ -104,6 +105,7 @@ public class Addon : INotifyPropertyChanged
         if (e.PropertyName == nameof(GDrawable.Group))
         {
             OnPropertyChanged(nameof(MultiSelectGroupDisplay));
+            OnPropertyChanged(nameof(HasMultipleDifferentGroups));
         }
         else if (e.PropertyName == nameof(GDrawable.Tags))
         {
@@ -127,8 +129,21 @@ public class Addon : INotifyPropertyChanged
             }
             else
             {
-                return null;
+                return string.Empty;
             }
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasMultipleDifferentGroups
+    {
+        get
+        {
+            if (!IsMultipleDrawablesSelected || SelectedDrawables.Count == 0)
+                return false;
+
+            var groups = SelectedDrawables.Select(d => d.Group).Distinct().ToList();
+            return groups.Count > 1;
         }
     }
 

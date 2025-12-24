@@ -419,28 +419,36 @@ namespace grzyClothTool.Controls
             return null;
         }
 
-        private void TagsEditor_Changed(object sender, EventArgs e)
+    private void TagsEditor_Changed(object sender, EventArgs e)
+    {
+        if (sender is TagsEditor tagsEditor && MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
         {
-            if (sender is TagsEditor tagsEditor && MainWindow.AddonManager.SelectedAddon.IsMultipleDrawablesSelected)
+            var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
+            var editorTags = tagsEditor.Tags?.ToList() ?? [];
+            
+            var allCurrentTags = selectedDrawables.SelectMany(d => d.Tags).Distinct().ToHashSet();
+            var addedTags = editorTags.Where(t => !allCurrentTags.Contains(t)).ToList();
+            var removedTags = allCurrentTags.Where(t => !editorTags.Contains(t)).ToList();
+            
+            foreach (var drawable in selectedDrawables)
             {
-                var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
-                var newTags = tagsEditor.Tags?.ToList();
-                
-                foreach (var drawable in selectedDrawables)
+                foreach (var tag in addedTags)
                 {
-                    drawable.Tags.Clear();
-                    if (newTags != null)
+                    if (!drawable.Tags.Contains(tag))
                     {
-                        foreach (var tag in newTags)
-                        {
-                            drawable.Tags.Add(tag);
-                        }
+                        drawable.Tags.Add(tag);
                     }
                 }
                 
-                SaveHelper.SetUnsavedChanges(true);
+                foreach (var tag in removedTags)
+                {
+                    drawable.Tags.Remove(tag);
+                }
             }
+            
+            SaveHelper.SetUnsavedChanges(true);
         }
+    }
 
         private static ListBox FindTextureListBox(DependencyObject parent)
         {

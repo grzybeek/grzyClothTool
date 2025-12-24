@@ -344,193 +344,195 @@
                 </Border>
 
                 <Border Grid.Column="1" Style="{StaticResource ModernCard}" Margin="4,8,8,8">
-                    <Grid IsEnabled="{Binding SelectedAddon.CanEditMultipleDrawables}">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel>
-                                <TextBlock Text="Drawable Options" Style="{StaticResource SectionTitle}" />
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel>
+                            <Grid IsEnabled="{Binding SelectedAddon.CanEditMultipleDrawables}">
+                                <StackPanel>
+                                    <TextBlock Text="Drawable Options" Style="{StaticResource SectionTitle}" />
 
-                                <c:ModernLabelComboBox Label="Audio" 
-                                                      Tag="Audio" 
-                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.Audio, Mode=TwoWay}" 
-                                                      ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableAudioList}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
-                                                      Margin="0,0,0,12" />
-
-                                <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.FirstDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                                                      Label="RenderFlag" 
-                                                      Tag="RenderFlag" 
-                                                      SelectedItem="{Binding SelectedAddon.FirstDrawable.RenderFlag}" 
-                                                      ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableRenderFlagList}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
-                                                      Margin="0,0,0,12" />
-
-                                <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.FirstDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" 
-                                                      Tag="HasSkin" 
-                                                      Label="Has Skin" 
-                                                      IsChecked="{Binding SelectedAddon.FirstDrawable.HasSkin}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
-                                                      Margin="0,0,0,12" />
-
-                                <c:ModernLabelComboBox IsMultiSelect="True" 
-                                                      Label="Flags" 
-                                                      Tag="SelectedFlags" 
-                                                      Text="{Binding SelectedAddon.FirstDrawable.FlagsText}" 
-                                                      SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" 
-                                                      ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
-                                                      Margin="0,0,0,16" />
-
-                                <StackPanel Margin="0,0,0,16">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsComponent}" Value="True" />
-                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="1" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </MultiDataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-
-                                    <c:ModernLabelCheckBox Tag="HidesHair" 
-                                                          Label="Hides Hair" 
-                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.HidesHair}" 
-                                                          IsUpdated="SelectedDrawable_Updated" />
-                                </StackPanel>
-
-                                <StackPanel Margin="0,0,0,16">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <MultiDataTrigger>
-                                                    <MultiDataTrigger.Conditions>
-                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsProp}" Value="True" />
-                                                        <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="0" />
-                                                    </MultiDataTrigger.Conditions>
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </MultiDataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-
-                                    <c:ModernLabelCheckBox x:Name="EnableHairScaleMulti" 
-                                                          Tag="EnableHairScale" 
-                                                          Label="Enable Hair scale" 
-                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHairScale}" 
+                                    <c:ModernLabelComboBox Label="Audio" 
+                                                          Tag="Audio" 
+                                                          SelectedItem="{Binding SelectedAddon.FirstDrawable.Audio, Mode=TwoWay}" 
+                                                          ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableAudioList}" 
                                                           IsUpdated="SelectedDrawable_Updated"
-                                                          Margin="0,0,0,8" />
-                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScaleMulti, Path=IsChecked}" 
-                                                               Tag="HairScaleValue" 
-                                                               Label="Hair scale" 
-                                                               Value="{Binding SelectedAddon.FirstDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                               Increment="0.05" 
-                                                               Maximum="1.0" 
-                                                               Minimum="0.0" 
-                                                               IsUpdated="SelectedDrawable_Updated" />
-                                </StackPanel>
+                                                          Margin="0,0,0,12" />
 
-                                <StackPanel Margin="0,0,0,16">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="6">
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
-
-                                    <c:ModernLabelCheckBox x:Name="EnableHighHeelsMulti" 
-                                                          Tag="EnableHighHeels" 
-                                                          Label="Enable High heels" 
-                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHighHeels}" 
+                                    <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.FirstDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                          Label="RenderFlag" 
+                                                          Tag="RenderFlag" 
+                                                          SelectedItem="{Binding SelectedAddon.FirstDrawable.RenderFlag}" 
+                                                          ItemsSource="{Binding SelectedAddon.FirstDrawable.AvailableRenderFlagList}" 
                                                           IsUpdated="SelectedDrawable_Updated"
-                                                          Margin="0,0,0,8" />
-                                    <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeelsMulti, Path=IsChecked}" 
-                                                               Tag="HighHeelsValue" 
-                                                               Label="High heels amount" 
-                                                               Value="{Binding SelectedAddon.FirstDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                               Increment="0.1" 
-                                                               Maximum="3.0" 
-                                                               Minimum="0.0" 
-                                                               IsUpdated="SelectedDrawable_Updated" />
+                                                          Margin="0,0,0,12" />
+
+                                    <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.FirstDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                          Tag="HasSkin" 
+                                                          Label="Has Skin" 
+                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.HasSkin}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,12" />
+
+                                    <c:ModernLabelComboBox IsMultiSelect="True" 
+                                                          Label="Flags" 
+                                                          Tag="SelectedFlags" 
+                                                          Text="{Binding SelectedAddon.FirstDrawable.FlagsText}" 
+                                                          SelectedItems="{Binding SelectedAddon.FirstDrawable.SelectedFlags, Mode=TwoWay}" 
+                                                          ItemsSourceSelectable="{Binding SelectedAddon.FirstDrawable.AvailableFlags}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          Margin="0,0,0,16" />
+
+                                    <StackPanel Margin="0,0,0,16">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsComponent}" Value="True" />
+                                                            <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="1" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <c:ModernLabelCheckBox Tag="HidesHair" 
+                                                              Label="Hides Hair" 
+                                                              IsChecked="{Binding SelectedAddon.FirstDrawable.HidesHair}" 
+                                                              IsUpdated="SelectedDrawable_Updated" />
+                                    </StackPanel>
+
+                                    <StackPanel Margin="0,0,0,16">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding SelectedAddon.FirstDrawable.IsProp}" Value="True" />
+                                                            <Condition Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="0" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <c:ModernLabelCheckBox x:Name="EnableHairScaleMulti" 
+                                                              Tag="EnableHairScale" 
+                                                              Label="Enable Hair scale" 
+                                                              IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHairScale}" 
+                                                              IsUpdated="SelectedDrawable_Updated"
+                                                              Margin="0,0,0,8" />
+                                        <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHairScaleMulti, Path=IsChecked}" 
+                                                                   Tag="HairScaleValue" 
+                                                                   Label="Hair scale" 
+                                                                   Value="{Binding SelectedAddon.FirstDrawable.HairScaleValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                                   Increment="0.05" 
+                                                                   Maximum="1.0" 
+                                                                   Minimum="0.0" 
+                                                                   IsUpdated="SelectedDrawable_Updated" />
+                                    </StackPanel>
+
+                                    <StackPanel Margin="0,0,0,16">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SelectedAddon.FirstDrawable.TypeNumeric}" Value="6">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+
+                                        <c:ModernLabelCheckBox x:Name="EnableHighHeelsMulti" 
+                                                              Tag="EnableHighHeels" 
+                                                              Label="Enable High heels" 
+                                                              IsChecked="{Binding SelectedAddon.FirstDrawable.EnableHighHeels}" 
+                                                              IsUpdated="SelectedDrawable_Updated"
+                                                              Margin="0,0,0,8" />
+                                        <c:ModernLabelNumericUpDown IsEnabled="{Binding ElementName=EnableHighHeelsMulti, Path=IsChecked}" 
+                                                                   Tag="HighHeelsValue" 
+                                                                   Label="High heels amount" 
+                                                                   Value="{Binding SelectedAddon.FirstDrawable.HighHeelsValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                                   Increment="0.1" 
+                                                                   Maximum="3.0" 
+                                                                   Minimum="0.0" 
+                                                                   IsUpdated="SelectedDrawable_Updated" />
+                                    </StackPanel>
+
+                                    <Border Height="1" 
+                                            Background="{DynamicResource Brush300}" 
+                                            Margin="0,8,0,16"
+                                            SnapsToDevicePixels="True" />
+
+                                    <TextBlock Text="Preview Options" Style="{StaticResource SectionTitle}" />
+
+                                    <TextBlock Text="Run 3D Preview to enable options"
+                                               HorizontalAlignment="Center"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource Brush500}"
+                                               Margin="0,0,0,8">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <c:ModernLabelCheckBox Tag="EnableKeepPreview" 
+                                                          Label="Keep preview" 
+                                                          IsChecked="{Binding SelectedAddon.FirstDrawable.EnableKeepPreview}" 
+                                                          IsUpdated="SelectedDrawable_Updated"
+                                                          IsEnabled="{Binding IsPreviewEnabled}" />
+
+                                    <Border Height="1" 
+                                            Background="{DynamicResource Brush300}" 
+                                            Margin="0,16,0,16"
+                                            SnapsToDevicePixels="True" />
                                 </StackPanel>
+                            </Grid>
 
-                                <Border Height="1" 
-                                        Background="{DynamicResource Brush300}" 
-                                        Margin="0,8,0,16"
-                                        SnapsToDevicePixels="True" />
+                            <TextBlock Text="Organization" Style="{StaticResource SectionTitle}" />
 
-                                <TextBlock Text="Preview Options" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="Group"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush700}"
+                                       Margin="0,0,0,6" />
+                            <c:GroupEditor x:Name="MultiSelectGroupEditor"
+                                          Group="{Binding SelectedAddon.MultiSelectGroupDisplay, Mode=OneWay}"
+                                          GroupChanged="GroupEditor_Changed"
+                                          Margin="0,0,0,12">
+                                <c:GroupEditor.Style>
+                                    <Style TargetType="c:GroupEditor">
+                                        <Setter Property="PlaceholderText" Value="" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedAddon.HasMultipleDifferentGroups}" Value="True">
+                                                <Setter Property="PlaceholderText" Value="(Multiple groups)" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </c:GroupEditor.Style>
+                            </c:GroupEditor>
 
-                                <TextBlock Text="Run 3D Preview to enable options"
-                                           HorizontalAlignment="Center"
-                                           FontSize="11"
-                                           Foreground="{DynamicResource Brush500}"
-                                           Margin="0,0,0,8">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsPreviewEnabled}" Value="False">
-                                                    <Setter Property="Visibility" Value="Visible" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-
-                                <c:ModernLabelCheckBox Tag="EnableKeepPreview" 
-                                                      Label="Keep preview" 
-                                                      IsChecked="{Binding SelectedAddon.FirstDrawable.EnableKeepPreview}" 
-                                                      IsUpdated="SelectedDrawable_Updated"
-                                                      IsEnabled="{Binding IsPreviewEnabled}" />
-
-                                <Border Height="1" 
-                                        Background="{DynamicResource Brush300}" 
-                                        Margin="0,16,0,16"
-                                        SnapsToDevicePixels="True" />
-
-                                <TextBlock Text="Organization" Style="{StaticResource SectionTitle}" />
-
-                                <TextBlock Text="Group"
-                                           FontSize="11"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource Brush700}"
-                                           Margin="0,0,0,6" />
-                                <c:GroupEditor x:Name="MultiSelectGroupEditor"
-                                              Group="{Binding SelectedAddon.MultiSelectGroupDisplay, Mode=TwoWay}"
-                                              GroupChanged="GroupEditor_Changed"
-                                              Margin="0,0,0,12">
-                                    <c:GroupEditor.Style>
-                                        <Style TargetType="c:GroupEditor">
-                                            <Setter Property="PlaceholderText" Value="" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding SelectedAddon.IsMultipleDrawablesSelected}" Value="True">
-                                                    <Setter Property="PlaceholderText" Value="(Multiple groups)" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </c:GroupEditor.Style>
-                                </c:GroupEditor>
-
-                                <TextBlock Text="Tags"
-                                           FontSize="11"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource Brush700}"
-                                           Margin="0,0,0,6" />
-                                <c:TagsEditor x:Name="MultiSelectTagsEditor"
-                                             Tags="{Binding SelectedAddon.MultiSelectCommonTags, Mode=TwoWay}"
-                                             TagsChanged="TagsEditor_Changed" />
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Grid>
+                            <TextBlock Text="Tags"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource Brush700}"
+                                       Margin="0,0,0,6" />
+                            <c:TagsEditor x:Name="MultiSelectTagsEditor"
+                                         Tags="{Binding SelectedAddon.MultiSelectCommonTags, Mode=OneWay}"
+                                         TagsChanged="TagsEditor_Changed" />
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </DataTemplate>
@@ -1304,6 +1306,14 @@
                                                       IsUpdated="SelectedDrawable_Updated"
                                                       Margin="0,0,0,12" />
 
+                                <c:ModernLabelComboBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsProp, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                                                      Label="RenderFlag" 
+                                                      Tag="RenderFlag" 
+                                                      SelectedItem="{Binding SelectedAddon.SelectedDrawable.RenderFlag}" 
+                                                      ItemsSource="{Binding SelectedAddon.SelectedDrawable.AvailableRenderFlagList}" 
+                                                      IsUpdated="SelectedDrawable_Updated"
+                                                      Margin="0,0,0,12" />
+
                                 <c:ModernLabelCheckBox Visibility="{Binding SelectedAddon.SelectedDrawable.IsComponent, Converter={StaticResource BooleanToVisibilityConverter}}" 
                                                       Tag="HasSkin" 
                                                       Label="Has Skin" 
@@ -1319,6 +1329,28 @@
                                                       ItemsSourceSelectable="{Binding SelectedAddon.SelectedDrawable.AvailableFlags}" 
                                                       IsUpdated="SelectedDrawable_Updated"
                                                       Margin="0,0,0,16" />
+
+                                <StackPanel Margin="0,0,0,16">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding SelectedAddon.SelectedDrawable.IsComponent}" Value="True" />
+                                                        <Condition Binding="{Binding SelectedAddon.SelectedDrawable.TypeNumeric}" Value="1" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+
+                                    <c:ModernLabelCheckBox Tag="HidesHair" 
+                                                          Label="Hides Hair" 
+                                                          IsChecked="{Binding SelectedAddon.SelectedDrawable.HidesHair}" 
+                                                          IsUpdated="SelectedDrawable_Updated" />
+                                </StackPanel>
 
                                 <StackPanel Margin="0,0,0,16">
                                     <StackPanel.Style>
