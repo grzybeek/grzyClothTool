@@ -28,7 +28,7 @@ public class BuildResourceHelper
     private readonly bool _splitAddons;
     private readonly IProgress<int> _progress;
 
-    private static readonly string _buildTempFolderName = "grzyClothTool_buildtemp";
+    private readonly string _buildTempFolderPath;
     private readonly bool shouldUseNumber = false;
 
     private readonly List<string> firstPersonFiles = [];
@@ -44,6 +44,10 @@ public class BuildResourceHelper
         _splitAddons = splitAddons;
 
         shouldUseNumber = MainWindow.AddonManager.Addons.Count > 1;
+
+        var buildParentDir = Path.GetDirectoryName(_baseBuildPath);
+        _buildTempFolderPath = Path.Combine(buildParentDir, "buildtemp");
+        Directory.CreateDirectory(_buildTempFolderPath);
     }
 
     public void SetAddon(Addon addon)
@@ -177,7 +181,7 @@ public class BuildResourceHelper
 
     public async Task BuildFiveMResource()
     {
-        //CleanupExistingBuildDirectories(); todo: fix it removing too much
+        CleanupBuildOutputDirectory();
 
         int counter = 1;
         var metaFiles = new List<string>();
@@ -291,7 +295,7 @@ public class BuildResourceHelper
 
     public async Task BuildAltVResource()
     {
-        //CleanupExistingBuildDirectories(); todo: fix it removing too much
+        CleanupBuildOutputDirectory();
 
         int counter = 1;
         var metaFiles = new List<string>();
@@ -1203,7 +1207,7 @@ public class BuildResourceHelper
     /// <summary>
     /// Batch process multiple drawables in parallel to improve performance
     /// </summary>
-    private static async Task<Dictionary<GDrawable, string>> BatchResaveYdd(IEnumerable<GDrawable> drawables, int maxParallelism = 4, IProgress<int> progress = null)
+    private async Task<Dictionary<GDrawable, string>> BatchResaveYdd(IEnumerable<GDrawable> drawables, int maxParallelism = 4, IProgress<int> progress = null)
     {
         var result = new Dictionary<GDrawable, string>();
         var semaphore = new SemaphoreSlim(maxParallelism, maxParallelism);
@@ -1237,15 +1241,13 @@ public class BuildResourceHelper
         return result;
     }
 
-    public static async Task<string> ResaveYdd(GDrawable dr)
+    public async Task<string> ResaveYdd(GDrawable dr)
     {
         try
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), _buildTempFolderName);
-            Directory.CreateDirectory(tempDir);
             string inputPath = dr.FullFilePath;
             string uniqueFileName = $"{dr.Id}_{Path.GetFileName(inputPath)}";
-            string outputPath = Path.Combine(tempDir, uniqueFileName);
+            string outputPath = Path.Combine(_buildTempFolderPath, uniqueFileName);
 
             // If drawable is encrypted or has no embedded textures, just copy the original file without processing
             if (dr?.IsEncrypted == true || dr.Details?.EmbeddedTextures == null || dr.Details.EmbeddedTextures.Count == 0 || dr.Details.EmbeddedTextures.All(x => x.Value.Details.Width == 0))
@@ -1466,122 +1468,54 @@ public class BuildResourceHelper
     }
 
 
-    private void CleanupExistingBuildDirectories()
+    
+
+    private void CleanupBuildOutputDirectory()
     {
         try
         {
-            var sourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var addon in MainWindow.AddonManager.Addons)
+            // only delete if the path explicitly ends with "build_output"
+            if (!_baseBuildPath.EndsWith("build_output", StringComparison.OrdinalIgnoreCase))
             {
-                foreach (var drawable in addon.Drawables)
-                {
-                    if (!string.IsNullOrEmpty(drawable.FullFilePath))
-                    {
-                        sourceFilePaths.Add(Path.GetFullPath(drawable.FullFilePath));
-                    }
-
-                    if (!string.IsNullOrEmpty(drawable.ClothPhysicsPath))
-                    {
-                        sourceFilePaths.Add(Path.GetFullPath(drawable.ClothPhysicsPath));
-                    }
-
-                    if (!string.IsNullOrEmpty(drawable.FirstPersonPath))
-                    {
-                        sourceFilePaths.Add(Path.GetFullPath(drawable.FirstPersonPath));
-                    }
-
-                    foreach (var texture in drawable.Textures)
-                    {
-                        if (!string.IsNullOrEmpty(texture.FullFilePath))
-                        {
-                            sourceFilePaths.Add(Path.GetFullPath(texture.FullFilePath));
-                        }
-                    }
-                }
+                LogHelper.Log($"Skipping cleanup: Build path does not end with 'build_output'. Path: {_baseBuildPath}", LogType.Warning);
+                return;
             }
 
-            if (_splitAddons)
+            // ensure the path is not a root directory
+            if (Path.GetPathRoot(_baseBuildPath) == _baseBuildPath)
             {
-                int addonCount = MainWindow.AddonManager.Addons.Count;
-                for (int i = 1; i <= addonCount; i++)
-                {
-                    string projectDir = Path.Combine(_baseBuildPath, GetProjectName(i));
-                    if (Directory.Exists(projectDir))
-                    {
-                        CleanupDirectorySelectively(projectDir, sourceFilePaths);
-                    }
-                }
-            }
-            else
-            {
-                if (Directory.Exists(_baseBuildPath))
-                {
-                    CleanupDirectorySelectively(_baseBuildPath, sourceFilePaths);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            LogHelper.Log($"Failed to clean up existing build directories: {ex.Message}", LogType.Warning);
-        }
-    }
-
-    private void CleanupDirectorySelectively(string directory, HashSet<string> sourceFilePaths)
-    {
-        try
-        {
-            var files = Directory.GetFiles(directory);
-            foreach (var file in files)
-            {
-                string fullPath = Path.GetFullPath(file);
-                
-                if (!sourceFilePaths.Contains(fullPath))
-                {
-                    try
-                    {
-                        File.Delete(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogHelper.Log($"Could not delete file {Path.GetFileName(file)}: {ex.Message}", LogType.Warning);
-                    }
-                }
+                LogHelper.Log($"Skipping cleanup: Cannot delete root directory. Path: {_baseBuildPath}", LogType.Warning);
+                return;
             }
 
-            var subdirectories = Directory.GetDirectories(directory);
-            foreach (var subdirectory in subdirectories)
+            if (Directory.Exists(_baseBuildPath))
             {
-                CleanupDirectorySelectively(subdirectory, sourceFilePaths);
-
                 try
                 {
-                    if (Directory.GetFiles(subdirectory).Length == 0 && 
-                        Directory.GetDirectories(subdirectory).Length == 0)
-                    {
-                        Directory.Delete(subdirectory);
-                    }
+                    Directory.Delete(_baseBuildPath, true);
+                    LogHelper.Log($"Deleted existing build output directory: {_baseBuildPath}", LogType.Info);
                 }
                 catch (Exception ex)
                 {
-                    LogHelper.Log($"Could not delete directory {Path.GetFileName(subdirectory)}: {ex.Message}", LogType.Warning);
+                    LogHelper.Log($"Failed to delete build output directory: {ex.Message}", LogType.Warning);
                 }
             }
+
+            Directory.CreateDirectory(_baseBuildPath);
         }
         catch (Exception ex)
         {
-            LogHelper.Log($"Failed to clean directory {directory}: {ex.Message}", LogType.Warning);
+            LogHelper.Log($"Error during build output cleanup: {ex.Message}", LogType.Warning);
         }
     }
-
-
-    private static void CleanupBuildTempDirectory()
+    private void CleanupBuildTempDirectory()
     {
         try
         {
-            string tempDir = Path.Combine(Path.GetTempPath(), _buildTempFolderName);
-            if (Directory.Exists(tempDir))
+            if (Directory.Exists(_buildTempFolderPath))
             {
-                Directory.Delete(tempDir, true);
+                Directory.Delete(_buildTempFolderPath, true);
+                LogHelper.Log($"Deleted build temp directory: {_buildTempFolderPath}", LogType.Info);
             }
         }
         catch (Exception ex)

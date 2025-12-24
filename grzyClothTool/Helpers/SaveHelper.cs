@@ -37,7 +37,10 @@ public static class SaveHelper
 
     public static JsonSerializerOptions SerializerOptions
     {
-        get { return new JsonSerializerOptions { WriteIndented = true }; }
+        get 
+        { 
+            return new JsonSerializerOptions { WriteIndented = true };
+        }
     }
 
     static SaveHelper()
@@ -185,7 +188,18 @@ public static class SaveHelper
             FileHelper.SetLoadContext(filePath);
 
             var json = await File.ReadAllTextAsync(filePath);
-            var addonManager = JsonSerializer.Deserialize<AddonManager>(json) ?? throw new InvalidOperationException("Failed to deserialize save file.");
+            var addonManager = JsonSerializer.Deserialize<AddonManager>(json, SerializerOptions) ?? throw new InvalidOperationException("Failed to deserialize save file.");
+
+            foreach (var addon in addonManager.Addons)
+            {
+                foreach (var drawable in addon.Drawables)
+                {
+                    if (!string.IsNullOrEmpty(drawable.FilePath) && drawable.FilePath.Contains("reservedDrawable.ydd"))
+                    {
+                        drawable.IsReserved = true;
+                    }
+                }
+            }
 
             MainWindow.AddonManager.Addons.Clear();
             foreach (var addon in addonManager.Addons)

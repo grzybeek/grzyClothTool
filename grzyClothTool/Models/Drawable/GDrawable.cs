@@ -79,7 +79,19 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
-    public virtual bool IsReserved => false;
+    private bool _isReserved;
+    public virtual bool IsReserved
+    {
+        get => _isReserved;
+        set
+        {
+            if (_isReserved != value)
+            {
+                _isReserved = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     private bool _isEncrypted;
     public bool IsEncrypted

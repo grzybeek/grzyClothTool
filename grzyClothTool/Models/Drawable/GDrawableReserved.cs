@@ -7,8 +7,6 @@ namespace grzyClothTool.Models.Drawable;
 
 public class GDrawableReserved : GDrawable
 {
-    public override bool IsReserved => true;
-
     public GDrawableReserved(Enums.SexType sex, bool isProp, int compType, int count) : base(sex, isProp, compType, count)
     {
         FilePath = Path.Combine(FileHelper.ReservedAssetsPath, "reservedDrawable.ydd");
@@ -17,6 +15,7 @@ public class GDrawableReserved : GDrawable
         Number = count;
         Sex = sex;
         IsProp = isProp;
+        IsReserved = true;
 
         SetDrawableName();
     }
