@@ -210,17 +210,17 @@ public static class UpdateHelper
         CancellationTokenSource cts = null;
         try
         {
-            cts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             
             string currentVersion = GetCurrentVersion();
                 
             App.splashScreen.AddMessage("Checking for updates...");
-            var latestVersion = await RetryOperation(async () => await GetLatestVersion(), maxAttempts: 3, cts.Token);
+            var latestVersion = await RetryOperation(async () => await GetLatestVersion(), maxAttempts: 2, cts.Token);
 
             if (latestVersion is null)
             {
                 App.splashScreen.AddMessage("Could not check for updates.");
-                await Task.Delay(1500, cts.Token);
+                await Task.Delay(500, cts.Token);
                 return;
             }
 
@@ -238,7 +238,7 @@ public static class UpdateHelper
         catch (OperationCanceledException)
         {
             App.splashScreen.AddMessage("Update check timed out.");
-            await Task.Delay(1500);
+            await Task.Delay(1000);
         }
         catch (Exception ex)
         {
@@ -248,7 +248,7 @@ public static class UpdateHelper
                 await File.WriteAllTextAsync("update_check_failed.log", $"[{DateTime.Now}]\n{ex}");
             }
             catch { }
-            await Task.Delay(1500);
+            await Task.Delay(1000);
         }
         finally
         {

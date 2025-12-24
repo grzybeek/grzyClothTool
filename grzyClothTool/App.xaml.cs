@@ -64,9 +64,18 @@ namespace grzyClothTool
             MaterialIconDataProvider.Instance = new CustomIconProvider(); // use custom icons
             httpClient.DefaultRequestHeaders.Add("X-GrzyClothTool", "true");
 
+            _ = InitializeSentryAsync();
+
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+        }
+
+        private async Task InitializeSentryAsync()
+        {
             try
             {
-                var sentryDsn = GetSentryDsnAsync().GetAwaiter().GetResult();
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var sentryDsn = await GetSentryDsnAsync().WaitAsync(cts.Token);
 
                 SentrySdk.Init(options =>
                 {
@@ -74,11 +83,9 @@ namespace grzyClothTool
                     options.StackTraceMode = StackTraceMode.Enhanced;
                     options.IsGlobalModeEnabled = true;
                     options.AutoSessionTracking = true;
-
                     options.Debug = true;
                     options.TracesSampleRate = 1.0;
                     options.ProfilesSampleRate = 1.0;
-
                     options.AddIntegration(new ProfilingIntegration());
                 });
             }
@@ -86,9 +93,6 @@ namespace grzyClothTool
             {
                 Console.WriteLine($"Failed to initialize Sentry: {ex.Message}");
             }
-
-            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionHandler;
-            DispatcherUnhandledException += App_DispatcherUnhandledException;
         }
 
         private static async Task<string> GetSentryDsnAsync()
