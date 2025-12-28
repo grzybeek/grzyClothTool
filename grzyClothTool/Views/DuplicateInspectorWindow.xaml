@@ -1,0 +1,224 @@
+<Window x:Class="grzyClothTool.Views.DuplicateInspectorWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+    mc:Ignorable="d"
+    Title="Duplicate Inspector" 
+    Height="700" 
+    Width="900"
+    WindowStartupLocation="CenterOwner"
+    Background="{DynamicResource Brush50}"
+    Foreground="{DynamicResource Brush900}">
+    
+<Window.Resources>
+    <Style TargetType="Button" x:Key="ActionButton">
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+        <Setter Property="Background" Value="{DynamicResource Brush100}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush300}"/>
+        <Setter Property="Foreground" Value="{DynamicResource Brush900}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="4"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Brush200}"/>
+                            <Setter Property="BorderBrush" Value="{DynamicResource Brush400}"/>
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</Window.Resources>
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Duplicate Inspector" 
+                      FontSize="24" 
+                      FontWeight="Bold"
+                      Foreground="{DynamicResource Brush900}"/>
+            <TextBlock x:Name="SubtitleText"
+                      Text="Found X duplicate groups"
+                      FontSize="14"
+                      Foreground="{DynamicResource Brush600}"
+                      Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" 
+                     VerticalScrollBarVisibility="Auto"
+                     x:Name="GroupsScrollViewer">
+            <ItemsControl x:Name="DuplicateGroupsControl">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource Brush100}"
+                                BorderBrush="{DynamicResource Brush300}"
+                                BorderThickness="1"
+                                CornerRadius="3"
+                                Margin="4"
+                                x:Name="GroupBorder">
+                            <StackPanel>
+                                <Border Background="{DynamicResource Brush100}"
+                                        BorderBrush="{DynamicResource Brush300}"
+                                        BorderThickness="0,0,0,2"
+                                        Padding="16,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <Border Grid.Column="0"
+                                                Background="{Binding GroupColor}"
+                                                CornerRadius="3"
+                                                Padding="8,4"
+                                                VerticalAlignment="Center"
+                                                Margin="0,0,12,0">
+                                            <TextBlock FontSize="11"
+                                                      FontWeight="Bold"
+                                                      Foreground="White">
+                                                <Run Text="DUP" />
+                                                <Run Text="{Binding Count, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </Border>
+                                        
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding GroupTitle}"
+                                                      FontSize="15"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="{DynamicResource Brush900}"/>
+                                            <TextBlock Text="{Binding GroupDescription}"
+                                                      FontSize="11"
+                                                      Foreground="{DynamicResource Brush600}"
+                                                      Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                        
+                                        <Button Grid.Column="2"
+                                               Content="Delete All Except First"
+                                               Tag="{Binding}"
+                                               Click="DeleteGroupExceptFirst_Click"
+                                               Style="{StaticResource ActionButton}"
+                                               Padding="10,5"
+                                               FontSize="11"
+                                               Margin="0"/>
+                                    </Grid>
+                                </Border>
+                                
+                                <ItemsControl ItemsSource="{Binding Items}"
+                                             Margin="8">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{DynamicResource Brush100}"
+                                                    BorderBrush="{DynamicResource Brush250}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="4"
+                                                    Padding="12"
+                                                    Margin="0,0,0,6"
+                                                    x:Name="ItemBorder">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    
+                                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding Name}"
+                                                                      FontSize="12"
+                                                                      FontWeight="SemiBold"
+                                                                      Foreground="{DynamicResource Brush900}"/>
+                                                            <Border Background="{Binding SexBrush}"
+                                                                    CornerRadius="3"
+                                                                    Padding="6,1"
+                                                                    Margin="8,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Sex}"
+                                                                          FontSize="9"
+                                                                          FontWeight="SemiBold"
+                                                                          Foreground="White"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Location}"
+                                                                  FontSize="10"
+                                                                  Foreground="{DynamicResource Brush600}"
+                                                                  Margin="0,2,0,0"/>
+                                                    </StackPanel>
+                                                    
+                                                    <StackPanel Grid.Column="1" 
+                                                              Orientation="Horizontal"
+                                                              VerticalAlignment="Center">
+                                                        <Button Content="Open"
+                                                               Tag="{Binding}"
+                                                               Click="OpenItem_Click"
+                                                               Style="{StaticResource ActionButton}"
+                                                               Padding="8,4"
+                                                               FontSize="10"/>
+                                                        <Button Content="Delete"
+                                                               Tag="{Binding}"
+                                                               Click="DeleteItem_Click"
+                                                               Style="{StaticResource ActionButton}"
+                                                               Padding="8,4"
+                                                               FontSize="10"
+                                                               Margin="0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                                    <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#3b82f6"/>
+                                                    <Setter TargetName="ItemBorder" Property="BorderThickness" Value="1"/>
+                                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Brush100}"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsHighlighted}" Value="True">
+                                <Setter TargetName="GroupBorder" Property="BorderBrush" Value="#3b82f6"/>
+                                <Setter TargetName="GroupBorder" Property="BorderThickness" Value="2"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" 
+                   Orientation="Horizontal" 
+                   HorizontalAlignment="Right"
+                   Margin="0,16,0,0">
+            <Button Content="Refresh"
+                   Click="Refresh_Click"
+                   Style="{StaticResource ActionButton}"/>
+            <Button Content="Close"
+                   Click="Close_Click"
+                   Style="{StaticResource ActionButton}"
+                   Margin="0"/>
+        </StackPanel>
+    </Grid>
+</Window>

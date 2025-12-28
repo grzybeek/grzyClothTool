@@ -1,20 +1,46 @@
 ﻿<UserControl x:Class="grzyClothTool.Controls.DrawableList"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
-             xmlns:models="clr-namespace:grzyClothTool.Models"
-             xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
-             xmlns:local="clr-namespace:grzyClothTool.Controls"
-             d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
-             x:Name="MyDrawableList"
-             mc:Ignorable="d">
+         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+         xmlns:icons="clr-namespace:Material.Icons.WPF;assembly=Material.Icons.WPF"
+         xmlns:models="clr-namespace:grzyClothTool.Models"
+         xmlns:helpers="clr-namespace:grzyClothTool.Helpers"
+         xmlns:converters="clr-namespace:grzyClothTool.Converters"
+         xmlns:local="clr-namespace:grzyClothTool.Controls"
+         d:DataContext="{d:DesignInstance Type=models:AddonManagerDesign, IsDesignTimeCreatable=True}"
+         x:Name="MyDrawableList"
+         mc:Ignorable="d">
 
-    <UserControl.Resources>
-        <local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
+<UserControl.Resources>
+    <local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
+    <converters:HexColorToBrushConverter x:Key="HexColorToBrushConverter" />
         
         <ContextMenu x:Key="SingleSelectionContextMenu">
+            <MenuItem Header="Show in duplicate inspector" Click="ShowDuplicateInspector_Click" x:Name="ShowDuplicateInspectorMenuItem">
+                <MenuItem.Style>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PlacementTarget.SelectedItem.DuplicateInfo.IsDuplicate, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </MenuItem.Style>
+            </MenuItem>
+            <Separator x:Name="DuplicateSeparator">
+                <Separator.Style>
+                    <Style TargetType="Separator">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PlacementTarget.SelectedItem.DuplicateInfo.IsDuplicate, RelativeSource={RelativeSource AncestorType=ContextMenu}}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Separator.Style>
+            </Separator>
             <MenuItem Header="Delete" Click="DeleteDrawable_Click" />
             <MenuItem Header="Replace" Click="ReplaceDrawable_Click" />
             <MenuItem Header="Duplicate to opposite gender" Click="DuplicateToOppositeGender_Click" />
@@ -210,14 +236,35 @@
                                                       VerticalAlignment="Center" />
                                         </Border>
                                         
+                                        <Border x:Name="DuplicateIndicator"
+                                               Background="{Binding DuplicateInfo.DuplicateColor, Converter={StaticResource HexColorToBrushConverter}}"
+                                               BorderBrush="{Binding DuplicateInfo.DuplicateColor, Converter={StaticResource HexColorToBrushConverter}}"
+                                               CornerRadius="2"
+                                               Padding="4,1"
+                                               Margin="0,0,2,0"
+                                               Visibility="Collapsed"
+                                               ToolTipService.InitialShowDelay="0">
+                                            <Border.ToolTip>
+                                                <ToolTip>
+                                                    <TextBlock Text="{Binding DuplicateInfo.DuplicateTooltip}" />
+                                                </ToolTip>
+                                            </Border.ToolTip>
+                                            <TextBlock FontSize="8"
+                                                      FontWeight="Bold"
+                                                      Foreground="White">
+                                                <Run Text="DUP" />
+                                                <Run Text="{Binding DuplicateInfo.DuplicateCount, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </Border>
+
                                         <Ellipse x:Name="SelectionDot"
-                                                Width="6"
-                                                Height="6"
-                                                Fill="#10b981"
-                                                Margin="2,0,0,0"
-                                                Visibility="Collapsed"
-                                                ToolTip="Selected"
-                                                ToolTipService.InitialShowDelay="0" />
+                                            Width="6"
+                                            Height="6"
+                                            Fill="#10b981"
+                                            Margin="2,0,0,0"
+                                            Visibility="Collapsed"
+                                            ToolTip="Selected"
+                                            ToolTipService.InitialShowDelay="0" />
                                         </StackPanel>
                                     
                                     <StackPanel Grid.Column="1" 
@@ -349,7 +396,7 @@
                                     <Condition Property="IsSelected" Value="True"/>
                                     <Condition Property="IsMouseOver" Value="True"/>
                                 </MultiTrigger.Conditions>
-                                <Setter Property="Background" Value="{DynamicResource Brush175}" TargetName="Border"/>
+                                <Setter Property="Background" Value="{DynamicResource Brush150}" TargetName="Border"/>
                                 <Setter Property="BorderBrush" Value="#60a5fa" TargetName="Border"/>
                                 <Setter Property="Opacity" Value="0.35" TargetName="ShadowBorder"/>
                             </MultiTrigger>
@@ -362,6 +409,11 @@
                             <!-- Show more tags indicator when there are hidden tags -->
                             <DataTrigger Binding="{Binding HiddenTagsCount, Converter={StaticResource IntToVisibilityConverter}}" Value="Visible">
                                 <Setter Property="Visibility" Value="Visible" TargetName="MoreTagsIndicator"/>
+                            </DataTrigger>
+                            
+                            <!-- duplicate indicator -->
+                            <DataTrigger Binding="{Binding DuplicateInfo.IsDuplicate}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" TargetName="DuplicateIndicator"/>
                             </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

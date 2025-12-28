@@ -44,6 +44,7 @@
             <MenuItem Header="_Settings" Tag="Settings" Click="Navigation_Click" />
             <MenuItem Header="_View" Tag="View">
                 <MenuItem Header="_Logs" Tag="Logs" Click="LogsOpen_Click" />
+                <MenuItem Header="_Duplicate Inspector" Tag="DuplicateInspector" Click="DuplicateInspector_Click" />
             </MenuItem>
 
             <MenuItem Header="" IsEnabled="False">

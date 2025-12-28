@@ -6,8 +6,11 @@
     </ResourceDictionary.MergedDictionaries>
 
     <Color x:Key="Color50">#f6f6f6</Color>
+    <Color x:Key="Color75">#efefef</Color>
     <Color x:Key="Color100">#e7e7e7</Color>
+    <Color x:Key="Color125">#e2e2e2</Color>
     <Color x:Key="Color150">#dcdcdc</Color>
+    <Color x:Key="Color175">#d7d7d7</Color>
     <Color x:Key="Color200">#d1d1d1</Color>
     <Color x:Key="Color250">#c0c0c0</Color>
     <Color x:Key="Color300">#b0b0b0</Color>
@@ -22,8 +25,11 @@
     <Color x:Key="Color950">#262626</Color>
 
     <SolidColorBrush x:Key="Brush50" Color="{StaticResource Color50}" />
+    <SolidColorBrush x:Key="Brush75" Color="{StaticResource Color75}" />
     <SolidColorBrush x:Key="Brush100" Color="{StaticResource Color100}" />
+    <SolidColorBrush x:Key="Brush125" Color="{StaticResource Color125}" />
     <SolidColorBrush x:Key="Brush150" Color="{StaticResource Color150}" />
+    <SolidColorBrush x:Key="Brush175" Color="{StaticResource Color175}" />
     <SolidColorBrush x:Key="Brush200" Color="{StaticResource Color200}" />
     <SolidColorBrush x:Key="Brush250" Color="{StaticResource Color250}" />
     <SolidColorBrush x:Key="Brush300" Color="{StaticResource Color300}" />

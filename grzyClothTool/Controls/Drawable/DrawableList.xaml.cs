@@ -321,6 +321,15 @@ namespace grzyClothTool.Controls
             FileHelper.OpenFileLocation(drawable?.FullFilePath);
         }
 
+        private void ShowDuplicateInspector_Click(object sender, RoutedEventArgs e)
+        {
+            if (DrawableListSelectedValue is GDrawable drawable && drawable.DuplicateInfo.IsDuplicate)
+            {
+                var inspector = new DuplicateInspectorWindow(drawable);
+                inspector.ShowDialog();
+            }
+        }
+
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
         {
             var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();

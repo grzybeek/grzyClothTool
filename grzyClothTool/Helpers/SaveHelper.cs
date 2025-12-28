@@ -237,6 +237,18 @@ public static class SaveHelper
                 addonCount
             );
 
+            LogHelper.Log("Scanning project for duplicate drawables...");
+            DuplicateDetector.Clear();
+            
+            foreach (var addon in MainWindow.AddonManager.Addons)
+            {
+                foreach (var drawable in addon.Drawables)
+                {
+                    DuplicateDetector.RegisterDrawable(drawable);
+                }
+            }
+            
+            LogHelper.Log($"Duplicate scan complete. Found {DuplicateDetector.GetDuplicateGroupCount()} duplicate drawable groups.");
             LogHelper.Log($"Loaded save from: {filePath}");
         }
         finally

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Xml.Linq;
 
 namespace grzyClothTool.Helpers;
 
@@ -33,6 +34,7 @@ public static class ErrorLogHelper
                 logEntry += "\n" + new string('-', 80) + "\n";
 
                 File.AppendAllText(logFilePath, logEntry);
+                LogHelper.Log(message, Views.LogType.Warning);
             }
         }
         catch

@@ -499,6 +499,12 @@ namespace grzyClothTool
             LogHelper.OpenLogWindow();
         }
 
+        private void DuplicateInspector_Click(object sender, RoutedEventArgs e)
+        {
+            var inspector = new DuplicateInspectorWindow();
+            inspector.ShowDialog();
+        }
+
         private static void TempFoldersCleanup()
         {
             // At the start of app we can remove temp folders from previous session

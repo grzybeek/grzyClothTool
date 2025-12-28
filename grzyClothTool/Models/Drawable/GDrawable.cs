@@ -3,6 +3,7 @@ using grzyClothTool.Constants;
 using grzyClothTool.Controls;
 using grzyClothTool.Extensions;
 using grzyClothTool.Helpers;
+using grzyClothTool.Models.Duplicate;
 using grzyClothTool.Models.Texture;
 using System;
 using System.Collections.Concurrent;
@@ -393,9 +394,26 @@ public class GDrawable : INotifyPropertyChanged
     [JsonIgnore]
     public bool HasEmbeddedTexturesNeedingOptimization => Details?.EmbeddedTextures?.Values.Any(t => t.Details?.IsOptimizeNeeded == true && !t.IsOptimizedDuringBuild) ?? false;
 
+    private DuplicateInfo _duplicateInfo = new();
+    [JsonIgnore]
+    public DuplicateInfo DuplicateInfo
+    {
+        get => _duplicateInfo;
+        set
+        {
+            if (_duplicateInfo != value)
+            {
+                _duplicateInfo = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public GDrawable(Guid id, string filePath, Enums.SexType sex, bool isProp, int typeNumeric, int number, bool hasSkin, ObservableCollection<GTexture> textures)
     {
         IsLoading = true;
+
+        _duplicateInfo.SetOwner(this);
 
         Id = id;
         if (Id == Guid.Empty)
@@ -660,9 +678,17 @@ public class GDrawable : INotifyPropertyChanged
         var bytes = await File.ReadAllBytesAsync(FullFilePath);
 
         var yddFile = new YddFile();
-        await yddFile.LoadAsync(bytes);
+        try
+        {
+            await yddFile.LoadAsync(bytes);
+        }
+        catch (Exception ex)
+        {
+            ErrorLogHelper.LogError($"Failed to load drawable file '{Name}': {ex.Message}", ex);
+            return null;
+        }
 
-        if (yddFile.DrawableDict.Drawables.Count == 0)
+        if (yddFile.DrawableDict?.Drawables == null || yddFile.DrawableDict.Drawables.Count == 0)
         {
             return null;
         }

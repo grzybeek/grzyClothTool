@@ -287,10 +287,18 @@ namespace grzyClothTool.Models
 
         private async void ProcessDrawableQueue()
         {
+            var pendingDrawables = new List<GDrawable>();
+            
             foreach (var workItem in _drawableQueue.GetConsumingEnumerable())
             {
                 if (workItem is CompletionMarker marker)
                 {
+                    if (pendingDrawables.Count > 0)
+                    {
+                        await ProcessBatchDuplicatesAndAdd(pendingDrawables);
+                        pendingDrawables.Clear();
+                    }
+                    
                     marker.Tcs.SetResult();
                     continue;
                 }
@@ -453,12 +461,69 @@ namespace grzyClothTool.Models
                     }
                 }
 
+                pendingDrawables.Add(drawable);
+            }
+        }
+
+        private async Task ProcessBatchDuplicatesAndAdd(List<GDrawable> drawables)
+        {
+            var duplicatesDict = DuplicateDetector.CheckDrawableDuplicatesBatch(drawables);
+            
+            var drawablesWithDuplicates = drawables.Where(d => duplicatesDict.ContainsKey(d)).ToList();
+            var drawablesWithoutDuplicates = drawables.Where(d => !duplicatesDict.ContainsKey(d)).ToList();
+            
+            foreach (var drawable in drawablesWithoutDuplicates)
+            {
                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    AddDrawable(drawable);
-                    Addons.Sort(true);
+                    AddDrawableInternal(drawable);
                 });
             }
+            
+            if (drawablesWithDuplicates.Count > 0)
+            {
+                var batchItems = drawablesWithDuplicates
+                    .Select(d => new DuplicateBatchItem
+                    {
+                        Drawable = d,
+                        ExistingDuplicates = duplicatesDict[d]
+                    })
+                    .ToList();
+
+                DuplicateBatchResult result = null;
+                await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    result = DuplicateBatchDialog.Show(batchItems);
+                });
+
+                if (result != null && !result.Cancelled)
+                {
+                    foreach (var drawable in result.DrawablesToAdd)
+                    {
+                        await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            AddDrawableInternal(drawable);
+                        });
+                    }
+
+                    foreach (var drawable in result.DrawablesToSkip)
+                    {
+                        LogHelper.Log($"Drawable '{Path.GetFileName(drawable.FilePath)}' was not added (user skipped duplicate)", Views.LogType.Info);
+                    }
+                }
+                else if (result?.Cancelled == true)
+                {
+                    foreach (var drawable in drawablesWithDuplicates)
+                    {
+                        LogHelper.Log($"Drawable '{Path.GetFileName(drawable.FilePath)}' was not added (user cancelled duplicate batch)", Views.LogType.Info);
+                    }
+                }
+            }
+
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                Addons.Sort(true);
+            });
         }
 
 
@@ -514,6 +579,36 @@ namespace grzyClothTool.Models
         {
             lock (AddonsLock)
             {
+                var existingDuplicates = DuplicateDetector.CheckDrawableDuplicate(drawable);
+                if (existingDuplicates != null && existingDuplicates.Count > 0)
+                {
+                    var duplicateNames = string.Join("\n", existingDuplicates.Select(d => $"  • {d.Name} (Addon: {Addons.FirstOrDefault(a => a.Drawables.Contains(d))?.Name ?? "Unknown"})"));
+                    var message = $"A duplicate drawable has been detected!\n\nThe drawable you're trying to add appears to be identical to:\n{duplicateNames}\n\nThis new drawable will be added but marked as a duplicate.\n\nDo you want to continue?";
+                    
+                    var result = System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        Controls.CustomMessageBox.Show(message, "Duplicate Drawable Detected", 
+                            Controls.CustomMessageBox.CustomMessageBoxButtons.OKCancel, 
+                            Controls.CustomMessageBox.CustomMessageBoxIcon.Warning));
+                    
+                    if (result == Controls.CustomMessageBox.CustomMessageBoxResult.Cancel)
+                    {
+                        LogHelper.Log($"Drawable '{Path.GetFileName(drawable.FilePath)}' was not added (user cancelled duplicate)", Views.LogType.Info);
+                        return;
+                    }
+                }
+
+                AddDrawableInternal(drawable);
+            }
+        }
+
+        /// <summary>
+        /// Internal method to add a drawable without duplicate checking.
+        /// Used by batch processing after duplicates have already been handled.
+        /// </summary>
+        private void AddDrawableInternal(GDrawable drawable)
+        {
+            lock (AddonsLock)
+            {
                 int nextNumber = 0;
                 int currentAddonIndex = 0;
                 Addon currentAddon;
@@ -555,6 +650,7 @@ namespace grzyClothTool.Models
 
                 currentAddon.Drawables.Add(drawable);
 
+                DuplicateDetector.RegisterDrawable(drawable);
                 SaveHelper.SetUnsavedChanges(true);
             }
         }
@@ -565,6 +661,8 @@ namespace grzyClothTool.Models
             var addon = SelectedAddon;
             foreach (GDrawable drawable in drawables)
             {
+                DuplicateDetector.UnregisterDrawable(drawable);
+
                 addon.Drawables.Remove(drawable);
 
                 if (SettingsHelper.Instance.AutoDeleteFiles)
