@@ -25,13 +25,40 @@ namespace grzyClothTool.Controls
     /// <summary>
     /// Interaction logic for DrawableList.xaml
     /// </summary>
-    public partial class DrawableList : UserControl
+    public partial class DrawableList : UserControl, INotifyPropertyChanged
     {
         public event EventHandler DrawableListSelectedValueChanged;
         public event KeyEventHandler DrawableListKeyDown;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.RegisterAttached("ItemsSource", typeof(ObservableCollection<GDrawable>), typeof(DrawableList), new PropertyMetadata(default(ObservableCollection<GDrawable>), OnItemsSourceChanged));
+
+        public static readonly DependencyProperty SearchTextProperty =
+            DependencyProperty.Register("SearchText", typeof(string), typeof(DrawableList), new FrameworkPropertyMetadata(string.Empty, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnSearchTextChanged));
+
+        private static void OnSearchTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is DrawableList drawableList)
+            {
+                drawableList.ApplySearchFilter();
+            }
+        }
+
+        public string SearchText
+        {
+            get => (string)GetValue(SearchTextProperty);
+            set => SetValue(SearchTextProperty, value);
+        }
+
+        public static readonly DependencyProperty FilteredCountProperty =
+            DependencyProperty.Register("FilteredCount", typeof(int), typeof(DrawableList), new PropertyMetadata(0));
+
+        public int FilteredCount
+        {
+            get => (int)GetValue(FilteredCountProperty);
+            set => SetValue(FilteredCountProperty, value);
+        }
 
         public ObservableCollection<GDrawable> ItemsSource
         {
@@ -254,7 +281,87 @@ namespace grzyClothTool.Controls
                 }
             }
             
+            ApplySearchFilter();
+            
+            // update filtered count when collection changes
+            if (ItemsSource is System.Collections.Specialized.INotifyCollectionChanged notifyCollection)
+            {
+                notifyCollection.CollectionChanged -= OnCollectionChangedForCount;
+                notifyCollection.CollectionChanged += OnCollectionChangedForCount;
+            }
+        }
+
+        private void OnCollectionChangedForCount(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            UpdateFilteredCount();
+        }
+
+        private void ApplySearchFilter()
+        {
+            if (DrawablesView == null) return;
+
+            var searchText = SearchText;
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                DrawablesView.Filter = null;
+            }
+            else
+            {
+                DrawablesView.Filter = FilterDrawable;
+            }
+
             DrawablesView.Refresh();
+            UpdateFilteredCount();
+        }
+
+        private void UpdateFilteredCount()
+        {
+            if (DrawablesView == null)
+            {
+                FilteredCount = ItemsSource?.Count ?? 0;
+                return;
+            }
+
+            // count visible items
+            int count = 0;
+            foreach (var item in DrawablesView)
+            {
+                count++;
+            }
+            FilteredCount = count;
+        }
+
+        private bool FilterDrawable(object item)
+        {
+            if (item is not GDrawable drawable)
+                return false;
+
+            var searchText = SearchText;
+            if (string.IsNullOrWhiteSpace(searchText))
+                return true;
+
+            return GetSearchableFields(drawable)
+                .Any(field => !string.IsNullOrEmpty(field) && 
+                              field.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static IEnumerable<string?> GetSearchableFields(GDrawable drawable)
+        {
+            yield return drawable.Name;
+            yield return drawable.DisplayName;
+            yield return drawable.TypeName;
+            yield return drawable.Number.ToString();
+            yield return drawable.DisplayNumber;
+            yield return drawable.SexName;
+            yield return drawable.Group;
+
+            if (drawable.Tags != null)
+            {
+                foreach (var tag in drawable.Tags)
+                {
+                    yield return tag;
+                }
+            }
         }
 
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

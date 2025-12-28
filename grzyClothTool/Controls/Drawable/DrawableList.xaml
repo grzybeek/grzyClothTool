@@ -13,9 +13,9 @@
          mc:Ignorable="d">
 
 <UserControl.Resources>
-    <local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
+<local:GroupExpandedStateConverter x:Key="GroupExpandedStateConverter" />
     <converters:HexColorToBrushConverter x:Key="HexColorToBrushConverter" />
-        
+
         <ContextMenu x:Key="SingleSelectionContextMenu">
             <MenuItem Header="Show in duplicate inspector" Click="ShowDuplicateInspector_Click" x:Name="ShowDuplicateInspectorMenuItem">
                 <MenuItem.Style>
