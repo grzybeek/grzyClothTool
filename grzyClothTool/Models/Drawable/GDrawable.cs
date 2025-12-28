@@ -75,10 +75,31 @@ public class GDrawable : INotifyPropertyChanged
         get => _name;
         set
         {
-            _name = value;
-            OnPropertyChanged();
+            if (_name != value)
+            {
+                _name = value;
+                OnPropertyChanged();
+            }
         }
     }
+
+    private string _displayName;
+    public string DisplayName
+    {
+        get => _displayName;
+        set
+        {
+            if (_displayName != value)
+            {
+                _displayName = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasDisplayName));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public bool HasDisplayName => !string.IsNullOrEmpty(_displayName);
 
     private bool _isReserved;
     public virtual bool IsReserved
@@ -162,7 +183,22 @@ public class GDrawable : INotifyPropertyChanged
     public bool IsProp { get; set; }
     public bool IsComponent => !IsProp;
 
-    public int Number { get; set; }
+    private int _number;
+    public int Number
+    {
+        get => _number;
+        set
+        {
+            if (_number != value)
+            {
+                _number = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayNumber));
+                // Update Name when Number changes (e.g., during reordering)
+                SetDrawableName();
+            }
+        }
+    }
     public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
     private GDrawableDetails _details;
@@ -433,11 +469,16 @@ public class GDrawable : INotifyPropertyChanged
         Tags = [];
         Tags.CollectionChanged += OnTagsCollectionChanged;
         
+        // Use backing fields during construction to avoid triggering SetDrawableName() prematurely
         TypeNumeric = typeNumeric;
-        Number = number;
-        HasSkin = hasSkin;
+        _number = number;
         Sex = sex;
         IsProp = isProp;
+        _hasSkin = hasSkin;
+        foreach (var txt in Textures)
+        {
+            txt.HasSkin = hasSkin;
+        }
         IsNew = true;
 
         _availableFlags = EnumHelper.GetFlags(Flags);

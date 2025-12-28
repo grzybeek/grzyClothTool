@@ -593,11 +593,11 @@
                                 </Grid.ColumnDefinitions>
 
                                 <c:ModernLabelTextBox Grid.Column="0"
-                                                     Tag="Name" 
-                                                     Label="Name" 
-                                                     Text="{Binding SelectedAddon.SelectedDrawable.Name, UpdateSourceTrigger=PropertyChanged}" 
-                                                     Margin="0,0,8,0" 
-                                                     IsUpdated="SelectedDrawable_Updated"/>
+                                Tag="DisplayName" 
+                                Label="Display Name" 
+                                Text="{Binding SelectedAddon.SelectedDrawable.DisplayName, UpdateSourceTrigger=PropertyChanged}" 
+                                Margin="0,0,8,0" 
+                                IsUpdated="SelectedDrawable_Updated"/>
 
                                 <c:ModernLabelComboBox Grid.Column="1"
                                                       Width="150"

@@ -190,15 +190,35 @@
                                                            ToolTipService.InitialShowDelay="0" />
                                     </StackPanel>
                                     
-                                        <TextBlock Grid.Column="2" 
+                                        <StackPanel Grid.Column="2" 
                                                   Grid.Row="0"
-                                                  x:Name="NameText"
-                                                  Text="{Binding Name}" 
-                                                  FontSize="11"
-                                                  FontWeight="Medium"
-                                                  Foreground="{DynamicResource Brush900}"
-                                                  VerticalAlignment="Center"
-                                                  TextTrimming="CharacterEllipsis" />
+                                                  Orientation="Horizontal"
+                                                  VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name, StringFormat='[{0}]'}"
+                                                      FontSize="10"
+                                                      FontFamily="Consolas"
+                                                      Foreground="{DynamicResource Brush500}"
+                                                      VerticalAlignment="Center"
+                                                      Margin="0,0,4,0"
+                                                      Visibility="{Binding HasDisplayName, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                            <TextBlock x:Name="NameText"
+                                                      FontSize="11"
+                                                      FontWeight="Medium"
+                                                      Foreground="{DynamicResource Brush900}"
+                                                      VerticalAlignment="Center"
+                                                      TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding Name}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasDisplayName}" Value="True">
+                                                                <Setter Property="Text" Value="{Binding DisplayName}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
                                     
                                     <StackPanel Grid.Column="3" 
                                                Grid.Row="0"

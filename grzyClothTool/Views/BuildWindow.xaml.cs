@@ -198,7 +198,7 @@ namespace grzyClothTool.Views
             pbBuild.Maximum = totalSteps;
             IsBuilding = true;
 
-            SaveHelper.SaveAsync().Wait();
+            await SaveHelper.SaveAsync();
 
             try
             {
