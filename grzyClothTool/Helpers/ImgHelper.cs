@@ -63,51 +63,67 @@ public static class ImgHelper
         return (width, height);
     }
 
-    public static async Task<byte[]> Optimize(GTexture gtxt, bool shouldSkipOptimization = false)
+    public static async Task<byte[]?> Optimize(GTexture gtxt, bool shouldSkipOptimization = false)
     {
-        var ytd = new YtdFile
+        try
         {
-            TextureDict = new TextureDictionary()
-        };
+            var ytd = new YtdFile
+            {
+                TextureDict = new TextureDictionary()
+            };
 
-        using var img = GetImage(gtxt.FullFilePath);
-        img.Format = MagickFormat.Dds;
+            using var img = GetImage(gtxt.FullFilePath);
+            img.Format = MagickFormat.Dds;
 
-        // Skip optimization (I think this is best way to not duplicate code, and reuse this for jpg/png textures that don't need optimization)
-        if (!shouldSkipOptimization)
-        {
-            var details = gtxt.OptimizeDetails;
-            img.Resize((uint)details.Width, (uint)details.Height);
-            img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
-            img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
-            img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", details.MipMapCount);
+            // Skip optimization (I think this is best way to not duplicate code, and reuse this for jpg/png textures that don't need optimization)
+            if (!shouldSkipOptimization)
+            {
+                var details = gtxt.OptimizeDetails;
+                img.Resize((uint)details.Width, (uint)details.Height);
+                img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(details.Compression));
+                img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
+                img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", details.MipMapCount);
+            }
+
+            var stream = new MemoryStream();
+            img.Write(stream);
+
+            var newDds = stream.ToArray();
+            var newTxt = CodeWalker.Utils.DDSIO.GetTexture(newDds);
+            newTxt.Name = gtxt.DisplayName;
+            ytd.TextureDict.BuildFromTextureList([newTxt]);
+
+            var bytes = ytd.Save();
+            return bytes;
         }
-
-        var stream = new MemoryStream();
-        img.Write(stream);
-
-        var newDds = stream.ToArray();
-        var newTxt = CodeWalker.Utils.DDSIO.GetTexture(newDds);
-        newTxt.Name = gtxt.DisplayName;
-        ytd.TextureDict.BuildFromTextureList([newTxt]);
-
-        var bytes = ytd.Save();
-        return bytes;
+        catch (MagickCorruptImageErrorException)
+        {
+            // Image is corrupted and cannot be processed
+            return null;
+        }
     }
 
-    public static async Task<byte[]> Optimize(byte[] imgBytes, GTextureDetails optimizeDetails)
+    public static async Task<byte[]?> Optimize(byte[] imgBytes, GTextureDetails optimizeDetails)
     {
-        using var img = new MagickImage(imgBytes);
-        img.Format = MagickFormat.Dds;
+        try
+        {
+            using var img = new MagickImage(imgBytes);
+            img.Format = MagickFormat.Dds;
 
-        img.Resize((uint)optimizeDetails.Width, (uint)optimizeDetails.Height);
-        img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(optimizeDetails.Compression));
-        img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
-        img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", optimizeDetails.MipMapCount);
+            img.Resize((uint)optimizeDetails.Width, (uint)optimizeDetails.Height);
+            img.Settings.SetDefine(MagickFormat.Dds, "compression", GetCompressionString(optimizeDetails.Compression));
+            img.Settings.SetDefine(MagickFormat.Dds, "cluster-fit", true);
+            img.Settings.SetDefine(MagickFormat.Dds, "mipmaps", optimizeDetails.MipMapCount);
 
-        var stream = new MemoryStream();
-        img.Write(stream);
-        return stream.ToArray();
+            var stream = new MemoryStream();
+            img.Write(stream);
+            return stream.ToArray();
+        }
+        catch (MagickCorruptImageErrorException)
+        {
+            // Image is corrupted and cannot be processed
+            return null;
+        }
     }
 
     public static byte[] GetDDSBytes(GTexture gtxt)

@@ -130,10 +130,15 @@ public class BuildResourceHelper
                     var buildName = RemoveInvalidChars(t.GetBuildName());
                     var finalTexPath = Path.Combine(folderPath, $"{prefix}{buildName}.ytd");
 
-                    byte[] txtBytes = null;
+                    byte[]? txtBytes = null;
                     if (t.IsOptimizedDuringBuild)
                     {
                         txtBytes = await ImgHelper.Optimize(t);
+                        if (txtBytes == null)
+                        {
+                            LogHelper.Log($"Skipping corrupted texture: {t.DisplayName}", LogType.Warning);
+                            continue;
+                        }
                         fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, txtBytes));
                     }
                     else
@@ -141,6 +146,11 @@ public class BuildResourceHelper
                         if(t.Extension != ".ytd")
                         {
                             txtBytes = await ImgHelper.Optimize(t, true);
+                            if (txtBytes == null)
+                            {
+                                LogHelper.Log($"Skipping corrupted texture: {t.DisplayName}", LogType.Warning);
+                                continue;
+                            }
                         } 
                         else
                         {
@@ -404,6 +414,11 @@ public class BuildResourceHelper
                     if (t.IsOptimizedDuringBuild)
                     {
                         var optimizedBytes = await ImgHelper.Optimize(t);
+                        if (optimizedBytes == null)
+                        {
+                            LogHelper.Log($"Skipping corrupted texture: {t.DisplayName}", LogType.Warning);
+                            continue;
+                        }
                         fileOperations.Add(File.WriteAllBytesAsync(finalTexPath, optimizedBytes));
                     } 
                     else
@@ -769,6 +784,11 @@ public class BuildResourceHelper
                     if (t.IsOptimizedDuringBuild)
                     {
                         var optimizedBytes = await ImgHelper.Optimize(t);
+                        if (optimizedBytes == null)
+                        {
+                            LogHelper.Log($"Skipping corrupted texture: {t.DisplayName}", LogType.Warning);
+                            continue;
+                        }
                         RpfFile.CreateFile(folder, $"{displayName}{Path.GetExtension(t.FullFilePath)}", optimizedBytes);
                     }
                     else
@@ -1303,6 +1323,11 @@ public class BuildResourceHelper
                     {
                         var dds = DDSIO.GetDDSFile(embeddedDto.ReplacementTextureData);
                         var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                        if (optimizedBytes == null)
+                        {
+                            LogHelper.Log($"Skipping corrupted embedded texture: {embeddedDto.Details.Name} in drawable {dr.Name}", LogType.Warning);
+                            continue;
+                        }
                         newTexture = DDSIO.GetTexture(optimizedBytes);
                     }
                     else
@@ -1363,6 +1388,11 @@ public class BuildResourceHelper
                 {
                     var dds = DDSIO.GetDDSFile(embeddedDto.ReplacementTextureData);
                     var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                    if (optimizedBytes == null)
+                    {
+                        LogHelper.Log($"Skipping corrupted embedded texture: {embeddedDto.Details.Name} in drawable {dr.Name}", LogType.Warning);
+                        continue;
+                    }
                     textureToUpdate = DDSIO.GetTexture(optimizedBytes);
                 }
                 else if (embeddedDto.HasReplacement)
@@ -1373,6 +1403,11 @@ public class BuildResourceHelper
                 {
                     var dds = DDSIO.GetDDSFile(originalTexturePair.Value);
                     var optimizedBytes = await ImgHelper.Optimize(dds, embeddedDto.OptimizeDetails);
+                    if (optimizedBytes == null)
+                    {
+                        LogHelper.Log($"Skipping corrupted embedded texture: {embeddedDto.Details.Name} in drawable {dr.Name}", LogType.Warning);
+                        continue;
+                    }
                     textureToUpdate = DDSIO.GetTexture(optimizedBytes);
                 }
                 else
