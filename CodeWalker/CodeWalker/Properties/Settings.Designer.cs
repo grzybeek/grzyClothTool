@@ -958,7 +958,22 @@ namespace CodeWalker.Properties {
                 this["FeetComp"] = value;
             }
         }
-        
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[]")]
+        public string CameraPresets
+        {
+            get
+            {
+                return ((string)(this["CameraPresets"]));
+            }
+            set
+            {
+                this["CameraPresets"] = value;
+            }
+        }
+
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
