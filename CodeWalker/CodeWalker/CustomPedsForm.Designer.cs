@@ -40,12 +40,13 @@ namespace CodeWalker
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CustomPedsForm));
             this.ToolsPanelShowButton = new System.Windows.Forms.Button();
             this.ToolsPanelHideButton = new System.Windows.Forms.Button();
             this.ToolsDragPanel = new System.Windows.Forms.Panel();
             this.ConsolePanel = new System.Windows.Forms.Panel();
-            this.ConsoleTextBox = new CodeWalker.WinForms.TextBoxFix();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.MousedLabel = new System.Windows.Forms.ToolStripStatusLabel();
@@ -56,6 +57,7 @@ namespace CodeWalker
             this.ToolsPedTabPage = new System.Windows.Forms.TabPage();
             this.button1 = new System.Windows.Forms.Button();
             this.label13 = new System.Windows.Forms.Label();
+            this.CustomAnimComboBox = new System.Windows.Forms.ComboBox();
             this.PolygonCountText = new System.Windows.Forms.Label();
             this.VertexCountText = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
@@ -74,16 +76,13 @@ namespace CodeWalker
             this.label3 = new System.Windows.Forms.Label();
             this.PedNameComboBox = new System.Windows.Forms.ComboBox();
             this.ToolsModelsTabPage = new System.Windows.Forms.TabPage();
-            this.ModelsTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ToolsTexturesTabPage = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.diffuseRadio = new System.Windows.Forms.RadioButton();
             this.liveTxtButton = new System.Windows.Forms.Button();
             this.specularRadio = new System.Windows.Forms.RadioButton();
             this.normalRadio = new System.Windows.Forms.RadioButton();
-            this.TexturesTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ToolsOptionsTabPage = new System.Windows.Forms.TabPage();
-            this.btn_restartCamera = new System.Windows.Forms.Button();
             this.OnlySelectedCheckBox = new System.Windows.Forms.CheckBox();
             this.AutoRotatePedCheckBox = new System.Windows.Forms.CheckBox();
             this.floorUpDown = new System.Windows.Forms.NumericUpDown();
@@ -122,7 +121,22 @@ namespace CodeWalker
             this.head_updown = new System.Windows.Forms.NumericUpDown();
             this.StatusBarCheckBox = new System.Windows.Forms.CheckBox();
             this.ErrorConsoleCheckBox = new System.Windows.Forms.CheckBox();
-            this.CustomAnimComboBox = new System.Windows.Forms.ComboBox();
+            this.ToolsCameraTabPage = new System.Windows.Forms.TabPage();
+            this.CameraPresetsDataGridView = new System.Windows.Forms.DataGridView();
+            this.DataGridViewName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DataGridViewDelete = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.CameraDistanceTextBox = new System.Windows.Forms.TextBox();
+            this.CameraSavePresetTextBox = new System.Windows.Forms.TextBox();
+            this.label102 = new System.Windows.Forms.Label();
+            this.btn_addCameraPreset = new System.Windows.Forms.Button();
+            this.label101 = new System.Windows.Forms.Label();
+            this.CameraRotationTextBox = new System.Windows.Forms.TextBox();
+            this.label100 = new System.Windows.Forms.Label();
+            this.CameraPositionTextBox = new System.Windows.Forms.TextBox();
+            this.btn_restartCamera = new System.Windows.Forms.Button();
+            this.ConsoleTextBox = new CodeWalker.WinForms.TextBoxFix();
+            this.ModelsTreeView = new CodeWalker.WinForms.TreeViewFix();
+            this.TexturesTreeView = new CodeWalker.WinForms.TreeViewFix();
             this.ConsolePanel.SuspendLayout();
             this.StatusStrip.SuspendLayout();
             this.ToolsPanel.SuspendLayout();
@@ -141,6 +155,8 @@ namespace CodeWalker
             ((System.ComponentModel.ISupportInitialize)(this.hair_updown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.berd_updown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.head_updown)).BeginInit();
+            this.ToolsCameraTabPage.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.CameraPresetsDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // ToolsPanelShowButton
@@ -187,18 +203,6 @@ namespace CodeWalker
             this.ConsolePanel.Size = new System.Drawing.Size(701, 101);
             this.ConsolePanel.TabIndex = 9;
             this.ConsolePanel.Visible = false;
-            // 
-            // ConsoleTextBox
-            // 
-            this.ConsoleTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ConsoleTextBox.Location = new System.Drawing.Point(3, 3);
-            this.ConsoleTextBox.Multiline = true;
-            this.ConsoleTextBox.Name = "ConsoleTextBox";
-            this.ConsoleTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.ConsoleTextBox.Size = new System.Drawing.Size(695, 95);
-            this.ConsoleTextBox.TabIndex = 0;
             // 
             // StatusStrip
             // 
@@ -265,6 +269,7 @@ namespace CodeWalker
             this.ToolsTabControl.Controls.Add(this.ToolsModelsTabPage);
             this.ToolsTabControl.Controls.Add(this.ToolsTexturesTabPage);
             this.ToolsTabControl.Controls.Add(this.ToolsOptionsTabPage);
+            this.ToolsTabControl.Controls.Add(this.ToolsCameraTabPage);
             this.ToolsTabControl.Location = new System.Drawing.Point(2, 30);
             this.ToolsTabControl.Name = "ToolsTabControl";
             this.ToolsTabControl.SelectedIndex = 0;
@@ -327,7 +332,7 @@ namespace CodeWalker
             this.CustomAnimComboBox.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.CustomAnimComboBox.FormattingEnabled = true;
             this.CustomAnimComboBox.Location = new System.Drawing.Point(53, 149);
-            this.CustomAnimComboBox.Name = "comboBox1";
+            this.CustomAnimComboBox.Name = "CustomAnimComboBox";
             this.CustomAnimComboBox.Size = new System.Drawing.Size(154, 21);
             this.CustomAnimComboBox.TabIndex = 57;
             this.CustomAnimComboBox.SelectedIndexChanged += new System.EventHandler(this.CustomAnimComboBox_SelectedIndexChanged);
@@ -527,21 +532,6 @@ namespace CodeWalker
             this.ToolsModelsTabPage.Text = "Models";
             this.ToolsModelsTabPage.UseVisualStyleBackColor = true;
             // 
-            // ModelsTreeView
-            // 
-            this.ModelsTreeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.ModelsTreeView.CheckBoxes = true;
-            this.ModelsTreeView.Location = new System.Drawing.Point(0, 3);
-            this.ModelsTreeView.Name = "ModelsTreeView";
-            this.ModelsTreeView.ShowRootLines = false;
-            this.ModelsTreeView.Size = new System.Drawing.Size(268, 604);
-            this.ModelsTreeView.TabIndex = 2;
-            this.ModelsTreeView.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.ModelsTreeView_AfterCheck);
-            this.ModelsTreeView.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.ModelsTreeView_NodeMouseDoubleClick);
-            this.ModelsTreeView.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ModelsTreeView_KeyPress);
-            // 
             // ToolsTexturesTabPage
             // 
             this.ToolsTexturesTabPage.Controls.Add(this.groupBox1);
@@ -612,20 +602,8 @@ namespace CodeWalker
             this.normalRadio.UseVisualStyleBackColor = true;
             this.normalRadio.CheckedChanged += new System.EventHandler(this.liveTexture_CheckedChanged);
             // 
-            // TexturesTreeView
-            // 
-            this.TexturesTreeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.TexturesTreeView.Location = new System.Drawing.Point(0, 3);
-            this.TexturesTreeView.Name = "TexturesTreeView";
-            this.TexturesTreeView.ShowRootLines = false;
-            this.TexturesTreeView.Size = new System.Drawing.Size(268, 451);
-            this.TexturesTreeView.TabIndex = 1;
-            // 
             // ToolsOptionsTabPage
             // 
-            this.ToolsOptionsTabPage.Controls.Add(this.btn_restartCamera);
             this.ToolsOptionsTabPage.Controls.Add(this.OnlySelectedCheckBox);
             this.ToolsOptionsTabPage.Controls.Add(this.AutoRotatePedCheckBox);
             this.ToolsOptionsTabPage.Controls.Add(this.floorUpDown);
@@ -670,16 +648,6 @@ namespace CodeWalker
             this.ToolsOptionsTabPage.TabIndex = 3;
             this.ToolsOptionsTabPage.Text = "Options";
             this.ToolsOptionsTabPage.UseVisualStyleBackColor = true;
-            // 
-            // btn_restartCamera
-            // 
-            this.btn_restartCamera.Location = new System.Drawing.Point(10, 221);
-            this.btn_restartCamera.Name = "btn_restartCamera";
-            this.btn_restartCamera.Size = new System.Drawing.Size(94, 26);
-            this.btn_restartCamera.TabIndex = 69;
-            this.btn_restartCamera.Text = "Restart Camera";
-            this.btn_restartCamera.UseVisualStyleBackColor = true;
-            this.btn_restartCamera.Click += new System.EventHandler(this.RestartCamera_Click);
             // 
             // OnlySelectedCheckBox
             // 
@@ -1102,6 +1070,202 @@ namespace CodeWalker
             this.ErrorConsoleCheckBox.UseVisualStyleBackColor = true;
             this.ErrorConsoleCheckBox.CheckedChanged += new System.EventHandler(this.ErrorConsoleCheckBox_CheckedChanged);
             // 
+            // ToolsCameraTabPage
+            // 
+            this.ToolsCameraTabPage.Controls.Add(this.CameraPresetsDataGridView);
+            this.ToolsCameraTabPage.Controls.Add(this.CameraDistanceTextBox);
+            this.ToolsCameraTabPage.Controls.Add(this.CameraSavePresetTextBox);
+            this.ToolsCameraTabPage.Controls.Add(this.label102);
+            this.ToolsCameraTabPage.Controls.Add(this.btn_addCameraPreset);
+            this.ToolsCameraTabPage.Controls.Add(this.label101);
+            this.ToolsCameraTabPage.Controls.Add(this.CameraRotationTextBox);
+            this.ToolsCameraTabPage.Controls.Add(this.label100);
+            this.ToolsCameraTabPage.Controls.Add(this.CameraPositionTextBox);
+            this.ToolsCameraTabPage.Controls.Add(this.btn_restartCamera);
+            this.ToolsCameraTabPage.Location = new System.Drawing.Point(4, 22);
+            this.ToolsCameraTabPage.Name = "ToolsCameraTabPage";
+            this.ToolsCameraTabPage.Padding = new System.Windows.Forms.Padding(3);
+            this.ToolsCameraTabPage.Size = new System.Drawing.Size(239, 607);
+            this.ToolsCameraTabPage.TabIndex = 5;
+            this.ToolsCameraTabPage.Text = "Camera";
+            this.ToolsCameraTabPage.UseVisualStyleBackColor = true;
+            // 
+            // CameraPresetsDataGridView
+            // 
+            this.CameraPresetsDataGridView.AllowUserToAddRows = false;
+            this.CameraPresetsDataGridView.AllowUserToDeleteRows = false;
+            this.CameraPresetsDataGridView.AllowUserToResizeColumns = false;
+            this.CameraPresetsDataGridView.AllowUserToResizeRows = false;
+            this.CameraPresetsDataGridView.BackgroundColor = System.Drawing.SystemColors.Control;
+            this.CameraPresetsDataGridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.CameraPresetsDataGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            this.CameraPresetsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.CameraPresetsDataGridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.DataGridViewName,
+            this.DataGridViewDelete});
+            this.CameraPresetsDataGridView.Location = new System.Drawing.Point(9, 90);
+            this.CameraPresetsDataGridView.MultiSelect = false;
+            this.CameraPresetsDataGridView.Name = "CameraPresetsDataGridView";
+            this.CameraPresetsDataGridView.ReadOnly = true;
+            this.CameraPresetsDataGridView.RowHeadersVisible = false;
+            this.CameraPresetsDataGridView.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.CameraPresetsDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.CameraPresetsDataGridView.ShowCellErrors = false;
+            this.CameraPresetsDataGridView.ShowCellToolTips = false;
+            this.CameraPresetsDataGridView.ShowEditingIcon = false;
+            this.CameraPresetsDataGridView.ShowRowErrors = false;
+            this.CameraPresetsDataGridView.Size = new System.Drawing.Size(224, 413);
+            this.CameraPresetsDataGridView.TabIndex = 82;
+            this.CameraPresetsDataGridView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.CameraPresetsDataGridView_CellClick);
+            this.CameraPresetsDataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.CameraPresetsDataGridView_CellContentClick);
+            // 
+            // DataGridViewName
+            // 
+            this.DataGridViewName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.DataGridViewName.HeaderText = "Name";
+            this.DataGridViewName.Name = "DataGridViewName";
+            this.DataGridViewName.ReadOnly = true;
+            this.DataGridViewName.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            // 
+            // DataGridViewDelete
+            // 
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Red;
+            dataGridViewCellStyle2.Padding = new System.Windows.Forms.Padding(1);
+            this.DataGridViewDelete.DefaultCellStyle = dataGridViewCellStyle2;
+            this.DataGridViewDelete.HeaderText = "";
+            this.DataGridViewDelete.Name = "DataGridViewDelete";
+            this.DataGridViewDelete.ReadOnly = true;
+            this.DataGridViewDelete.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.DataGridViewDelete.Width = 20;
+            // 
+            // CameraDistanceTextBox
+            // 
+            this.CameraDistanceTextBox.AccessibleName = "CameraDistanceTextBox";
+            this.CameraDistanceTextBox.Location = new System.Drawing.Point(59, 64);
+            this.CameraDistanceTextBox.Name = "CameraDistanceTextBox";
+            this.CameraDistanceTextBox.Size = new System.Drawing.Size(174, 20);
+            this.CameraDistanceTextBox.TabIndex = 81;
+            this.CameraDistanceTextBox.TextChanged += new System.EventHandler(this.CameraDistanceTextBox_TextChanged);
+            // 
+            // CameraSavePresetTextBox
+            // 
+            this.CameraSavePresetTextBox.AccessibleName = "CameraSavePresetTextBox";
+            this.CameraSavePresetTextBox.Location = new System.Drawing.Point(109, 515);
+            this.CameraSavePresetTextBox.Name = "CameraSavePresetTextBox";
+            this.CameraSavePresetTextBox.Size = new System.Drawing.Size(124, 20);
+            this.CameraSavePresetTextBox.TabIndex = 80;
+            // 
+            // label102
+            // 
+            this.label102.AutoSize = true;
+            this.label102.Location = new System.Drawing.Point(8, 70);
+            this.label102.Name = "label102";
+            this.label102.Size = new System.Drawing.Size(52, 13);
+            this.label102.TabIndex = 75;
+            this.label102.Text = "Distance:";
+            // 
+            // btn_addCameraPreset
+            // 
+            this.btn_addCameraPreset.Location = new System.Drawing.Point(9, 509);
+            this.btn_addCameraPreset.Name = "btn_addCameraPreset";
+            this.btn_addCameraPreset.Size = new System.Drawing.Size(94, 26);
+            this.btn_addCameraPreset.TabIndex = 74;
+            this.btn_addCameraPreset.Text = "Add preset";
+            this.btn_addCameraPreset.UseVisualStyleBackColor = true;
+            this.btn_addCameraPreset.Click += new System.EventHandler(this.btn_addCameraPreset_Click);
+            // 
+            // label101
+            // 
+            this.label101.AutoSize = true;
+            this.label101.Location = new System.Drawing.Point(9, 42);
+            this.label101.Name = "label101";
+            this.label101.Size = new System.Drawing.Size(50, 13);
+            this.label101.TabIndex = 73;
+            this.label101.Text = "Rotation:";
+            // 
+            // CameraRotationTextBox
+            // 
+            this.CameraRotationTextBox.AccessibleName = "CameraRotationTextBox";
+            this.CameraRotationTextBox.Location = new System.Drawing.Point(59, 36);
+            this.CameraRotationTextBox.Name = "CameraRotationTextBox";
+            this.CameraRotationTextBox.Size = new System.Drawing.Size(174, 20);
+            this.CameraRotationTextBox.TabIndex = 72;
+            this.CameraRotationTextBox.TextChanged += new System.EventHandler(this.CameraRotationTextBox_TextChanged);
+            // 
+            // label100
+            // 
+            this.label100.AutoSize = true;
+            this.label100.Location = new System.Drawing.Point(9, 16);
+            this.label100.Name = "label100";
+            this.label100.Size = new System.Drawing.Size(47, 13);
+            this.label100.TabIndex = 71;
+            this.label100.Text = "Position:";
+            // 
+            // CameraPositionTextBox
+            // 
+            this.CameraPositionTextBox.AccessibleName = "CameraPositionTextBox";
+            this.CameraPositionTextBox.Location = new System.Drawing.Point(59, 10);
+            this.CameraPositionTextBox.Name = "CameraPositionTextBox";
+            this.CameraPositionTextBox.Size = new System.Drawing.Size(174, 20);
+            this.CameraPositionTextBox.TabIndex = 70;
+            this.CameraPositionTextBox.TextChanged += new System.EventHandler(this.CameraPositionTextBox_TextChanged);
+            // 
+            // btn_restartCamera
+            // 
+            this.btn_restartCamera.Location = new System.Drawing.Point(9, 541);
+            this.btn_restartCamera.Name = "btn_restartCamera";
+            this.btn_restartCamera.Size = new System.Drawing.Size(94, 26);
+            this.btn_restartCamera.TabIndex = 69;
+            this.btn_restartCamera.Text = "Reset Camera";
+            this.btn_restartCamera.UseVisualStyleBackColor = true;
+            this.btn_restartCamera.Click += new System.EventHandler(this.RestartCamera_Click);
+            // 
+            // ConsoleTextBox
+            // 
+            this.ConsoleTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ConsoleTextBox.Location = new System.Drawing.Point(3, 3);
+            this.ConsoleTextBox.Multiline = true;
+            this.ConsoleTextBox.Name = "ConsoleTextBox";
+            this.ConsoleTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.ConsoleTextBox.Size = new System.Drawing.Size(695, 95);
+            this.ConsoleTextBox.TabIndex = 0;
+            // 
+            // ModelsTreeView
+            // 
+            this.ModelsTreeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ModelsTreeView.CheckBoxes = true;
+            this.ModelsTreeView.Location = new System.Drawing.Point(0, 3);
+            this.ModelsTreeView.Name = "ModelsTreeView";
+            this.ModelsTreeView.ShowRootLines = false;
+            this.ModelsTreeView.Size = new System.Drawing.Size(268, 604);
+            this.ModelsTreeView.TabIndex = 2;
+            this.ModelsTreeView.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.ModelsTreeView_AfterCheck);
+            this.ModelsTreeView.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.ModelsTreeView_NodeMouseDoubleClick);
+            this.ModelsTreeView.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ModelsTreeView_KeyPress);
+            // 
+            // TexturesTreeView
+            // 
+            this.TexturesTreeView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.TexturesTreeView.Location = new System.Drawing.Point(0, 3);
+            this.TexturesTreeView.Name = "TexturesTreeView";
+            this.TexturesTreeView.ShowRootLines = false;
+            this.TexturesTreeView.Size = new System.Drawing.Size(268, 451);
+            this.TexturesTreeView.TabIndex = 1;
+            // 
             // CustomPedsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1146,6 +1310,9 @@ namespace CodeWalker
             ((System.ComponentModel.ISupportInitialize)(this.hair_updown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.berd_updown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.head_updown)).EndInit();
+            this.ToolsCameraTabPage.ResumeLayout(false);
+            this.ToolsCameraTabPage.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.CameraPresetsDataGridView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1235,5 +1402,17 @@ namespace CodeWalker
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.TabPage ToolsCameraTabPage;
+        private System.Windows.Forms.Label label100;
+        private System.Windows.Forms.TextBox CameraPositionTextBox;
+        private System.Windows.Forms.Label label101;
+        private System.Windows.Forms.TextBox CameraRotationTextBox;
+        private System.Windows.Forms.Button btn_addCameraPreset;
+        private System.Windows.Forms.Label label102;
+        private System.Windows.Forms.TextBox CameraSavePresetTextBox;
+        private System.Windows.Forms.TextBox CameraDistanceTextBox;
+        private System.Windows.Forms.DataGridView CameraPresetsDataGridView;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DataGridViewName;
+        private System.Windows.Forms.DataGridViewButtonColumn DataGridViewDelete;
     }
 }

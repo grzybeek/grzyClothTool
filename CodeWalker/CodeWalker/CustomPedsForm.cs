@@ -1,4 +1,14 @@
-﻿using CodeWalker.GameFiles;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml.Linq;
+using CodeWalker.GameFiles;
 using CodeWalker.Properties;
 using CodeWalker.Rendering;
 using CodeWalker.Utils;
@@ -6,15 +16,6 @@ using CodeWalker.World;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.XInput;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml.Linq;
 using Color = SharpDX.Color;
 
 namespace CodeWalker
@@ -109,6 +110,10 @@ namespace CodeWalker
         private float autoRotateAngle = 0f;
         private const float AutoRotateSpeed = 1.0f;
 
+        private volatile bool _inputsUpdatePending;
+        private Throttler throttler;
+        private string _activePresetName = null;
+
         public class ComponentComboItem
         {
             public MCPVDrawblData DrawableData { get; set; }
@@ -163,6 +168,8 @@ namespace CodeWalker
                 new List<ComponentComboItem>(),
                 new List<ComponentComboItem>(),
             };
+
+            throttler = new Throttler(1000);
 
             Renderer = new Renderer(this, GameFileCache);
             camera = Renderer.camera;
@@ -281,6 +288,8 @@ namespace CodeWalker
 
                 try
                 {
+                    throttler.Throttle(() => UpdateCameraInputs());
+
                     UpdateControlInputs(elapsed);
 
                     Renderer.Update(elapsed, MouseLastPoint.X, MouseLastPoint.Y);
@@ -585,6 +594,10 @@ namespace CodeWalker
             RenderModeComboBox.SelectedIndex = Math.Max(RenderModeComboBox.FindString(s.RenderMode), 0);
             TextureSamplerComboBox.SelectedIndex = Math.Max(TextureSamplerComboBox.FindString(s.RenderTextureSampler), 0);
             TextureCoordsComboBox.SelectedIndex = Math.Max(TextureCoordsComboBox.FindString(s.RenderTextureSamplerCoord), 0);
+
+            // Camera presets
+            FillDataGridView();
+            LoadLastUsedPreset();
         }
         private void LoadWorld()
         {
@@ -679,6 +692,7 @@ namespace CodeWalker
         private void RotateCam(int dx, int dy)
         {
             camera.MouseRotate(dx, dy);
+            ClearActivePreset();
         }
 
         private void MoveCameraToView(Vector3 pos, float rad)
@@ -1091,7 +1105,8 @@ namespace CodeWalker
             //Yft = yft;
 
             var dr = yft.Fragment?.Drawable;
-            if (movecamera && (dr != null))
+            // Don't move camera if we have an active preset
+            if (movecamera && (dr != null) && _activePresetName == null)
             {
                 MoveCameraToView(dr.BoundingCenter, dr.BoundingSphereRadius);
             }
@@ -1315,6 +1330,7 @@ namespace CodeWalker
             if (e.Delta != 0)
             {
                 camera.MouseZoom(e.Delta);
+                ClearActivePreset();
             }
         }
 
@@ -1879,9 +1895,280 @@ namespace CodeWalker
             }
         }
 
+        private void UpdateCameraInputsText()
+        {
+            if (CameraPositionTextBox.Focused || CameraRotationTextBox.Focused || CameraDistanceTextBox.Focused)
+                return;
+
+            CameraPositionTextBox.Text = Vector3ToText(camEntity.Position);
+            CameraRotationTextBox.Text = Vector3ToText(RadiansToDegrees(camera.CurrentRotation));
+            CameraDistanceTextBox.Text = $"{camera.CurrentDistance.ToString("F4", CultureInfo.InvariantCulture)}";
+        }
+
+        private void UpdateCameraInputs()
+        {
+            if (_inputsUpdatePending) return;
+
+            if (CameraPositionTextBox.InvokeRequired)
+            {
+                _inputsUpdatePending = true;
+
+                BeginInvoke((Action)(() =>
+                {
+                    try
+                    {
+                        UpdateCameraInputsText();
+                    }
+                    finally
+                    {
+                        _inputsUpdatePending = false;
+                    }
+                }));
+            }
+            else
+            {
+                UpdateCameraInputsText();
+            }
+        }
+
+        private string Vector3ToText(Vector3 v)
+        {
+            return $"{v.X.ToString("F4", CultureInfo.InvariantCulture)}, {v.Y.ToString("F4", CultureInfo.InvariantCulture)}, {v.Z.ToString("F4", CultureInfo.InvariantCulture)}";
+        }
+
+        private bool TryParseVector3FromText(string text, out Vector3 result)
+        {
+            result = Vector3.Zero;
+
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            var parts = text.Split(',');
+
+            if (parts.Length != 3)
+                return false;
+
+            float x, y, z;
+
+            if (!float.TryParse(parts[0].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out x)) return false;
+            if (!float.TryParse(parts[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out y)) return false;
+            if (!float.TryParse(parts[2].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out z)) return false;
+
+            result = new Vector3(x, y, z);
+            return true;
+        }
+
+        private static Vector3 DegreesToRadians(Vector3 degrees)
+        {
+            float radiansX = 3.14f * degrees.X / 180f;
+            float radiansY = 3.14f * degrees.Y / 180f;
+            float radiansZ = 3.14f * degrees.Z / 180f;
+
+            return new Vector3(radiansX, radiansY, radiansZ);
+        }
+
+        private static Vector3 RadiansToDegrees(Vector3 radians)
+        {
+            float degreesX = radians.X * 180f / 3.14f;
+            float degreesY = radians.Y * 180f / 3.14f;
+            float degreesZ = radians.Z * 180f / 3.14f;
+
+            return new Vector3(degreesX, degreesY, degreesZ);
+        }
+
+        private void CameraPositionTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (TryParseVector3FromText(CameraPositionTextBox.Text, out Vector3 position))
+            {
+                camEntity.Position = position;
+                if (CameraPositionTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
+            }
+        }
+
+        private void CameraRotationTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (TryParseVector3FromText(CameraRotationTextBox.Text, out Vector3 rotationDeg))
+            {
+                var rotationRad = DegreesToRadians(rotationDeg);
+                camera.CurrentRotation = rotationRad;
+                camera.TargetRotation = rotationRad;
+                if (CameraRotationTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
+            }
+        }
+
+        private void CameraDistanceTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if (float.TryParse(CameraDistanceTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out float distance))
+            {
+                camera.CurrentDistance = distance;
+                camera.TargetDistance = distance;
+                if (CameraDistanceTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
+            }
+        }
+
+        private void FillDataGridView()
+        {
+            CameraPresetsDataGridView.Rows.Clear();
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            foreach (var mapValue in presets.Values)
+            {
+                DataGridViewRow NewPresetRow = new DataGridViewRow();
+
+                NewPresetRow.CreateCells(CameraPresetsDataGridView);
+                NewPresetRow.Cells[0].Value = mapValue.Name;
+                NewPresetRow.Cells[1].Value = "✕";
+
+                // Highlight active preset with green
+                if (mapValue.Name == _activePresetName)
+                {
+                    NewPresetRow.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+                    NewPresetRow.DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
+                    NewPresetRow.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.LightGreen;
+                    NewPresetRow.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
+                }
+                else
+                {
+                    NewPresetRow.DefaultCellStyle.SelectionBackColor = CameraPresetsDataGridView.DefaultCellStyle.BackColor;
+                    NewPresetRow.DefaultCellStyle.SelectionForeColor = CameraPresetsDataGridView.DefaultCellStyle.ForeColor;
+                }
+
+                CameraPresetsDataGridView.Rows.Add(NewPresetRow);
+            }
+        }
+
+        private void btn_addCameraPreset_Click(object sender, EventArgs e)
+        {
+            if (CameraSavePresetTextBox.Text.Length == 0)
+                return;
+
+            var presetName = CameraSavePresetTextBox.Text;
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            var position = CameraPositionTextBox.Text;
+            var rotation = CameraRotationTextBox.Text;
+            var distance = CameraDistanceTextBox.Text;
+            presets.Add(new CameraPreset(presetName, position, rotation, distance));
+            Settings.Default.CameraPresets = presets.Serialize();
+            Settings.Default.Save();
+
+            CameraSavePresetTextBox.Text = "";
+            SetActivePreset(presetName);
+        }
+
+        private void CameraPresetsDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            if (e.RowIndex >= presets.Values.Count) return;
+
+            // Delete preset (X column)
+            if (e.ColumnIndex == CameraPresetsDataGridView.Columns["DataGridViewDelete"].Index)
+            {
+                var preset = presets.GetByIndex(e.RowIndex);
+                var presetName = preset.Name;
+
+                presets.RemoveByName(presetName);
+                Settings.Default.CameraPresets = presets.Serialize();
+                Settings.Default.Save();
+
+                if (_activePresetName == presetName)
+                {
+                    ClearActivePreset();
+                }
+
+                FillDataGridView();
+            }
+        }
+
+        private void CameraPresetsDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (e.ColumnIndex != CameraPresetsDataGridView.Columns["DataGridViewName"].Index)
+                return;
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            if (e.RowIndex >= presets.Values.Count) return;
+
+            var preset = presets.GetByIndex(e.RowIndex);
+
+            ApplyCameraPreset(preset);
+            SetActivePreset(preset.Name);
+        }
+
         private void RestartCamera_Click(object sender, EventArgs e)
         {
             SetDefaultCameraPosition();
+            ClearActivePreset();
+        }
+
+        private void SetActivePreset(string presetName)
+        {
+            _activePresetName = presetName;
+            Settings.Default.LastUsedCameraPreset = presetName;
+            Settings.Default.Save();
+            FillDataGridView();
+        }
+
+        private void ClearActivePreset()
+        {
+            if (_activePresetName != null)
+            {
+                _activePresetName = null;
+                FillDataGridView();
+            }
+        }
+
+        private void LoadLastUsedPreset()
+        {
+            var lastUsedPresetName = Settings.Default.LastUsedCameraPreset;
+            if (string.IsNullOrEmpty(lastUsedPresetName))
+                return;
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            var preset = presets.GetByName(lastUsedPresetName);
+
+            if (preset != null)
+            {
+                _activePresetName = preset.Name;
+                ApplyCameraPreset(preset);
+                FillDataGridView();
+            }
+        }
+
+        private void ApplyCameraPreset(CameraPreset preset)
+        {
+            if (TryParseVector3FromText(preset.Position, out Vector3 position))
+            {
+                camEntity.Position = position;
+            }
+
+            if (TryParseVector3FromText(preset.Rotation, out Vector3 rotationDeg))
+            {
+                var rotationRad = DegreesToRadians(rotationDeg);
+                camera.CurrentRotation = rotationRad;
+                camera.TargetRotation = rotationRad;
+            }
+
+            if (float.TryParse(preset.Distance, NumberStyles.Float, CultureInfo.InvariantCulture, out float distance))
+            {
+                camera.CurrentDistance = distance;
+                camera.TargetDistance = distance;
+            }
+
+            CameraPositionTextBox.Text = preset.Position;
+            CameraRotationTextBox.Text = preset.Rotation;
+            CameraDistanceTextBox.Text = preset.Distance;
         }
 
         private void AddCustomAnimButton_Click(object sender, EventArgs e)
