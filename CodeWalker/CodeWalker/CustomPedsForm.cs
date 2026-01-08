@@ -112,6 +112,7 @@ namespace CodeWalker
 
         private volatile bool _inputsUpdatePending;
         private Throttler throttler;
+        private string _activePresetName = null;
 
         public class ComponentComboItem
         {
@@ -596,6 +597,7 @@ namespace CodeWalker
 
             // Camera presets
             FillDataGridView();
+            LoadLastUsedPreset();
         }
         private void LoadWorld()
         {
@@ -690,6 +692,7 @@ namespace CodeWalker
         private void RotateCam(int dx, int dy)
         {
             camera.MouseRotate(dx, dy);
+            ClearActivePreset();
         }
 
         private void MoveCameraToView(Vector3 pos, float rad)
@@ -1102,7 +1105,8 @@ namespace CodeWalker
             //Yft = yft;
 
             var dr = yft.Fragment?.Drawable;
-            if (movecamera && (dr != null))
+            // Don't move camera if we have an active preset
+            if (movecamera && (dr != null) && _activePresetName == null)
             {
                 MoveCameraToView(dr.BoundingCenter, dr.BoundingSphereRadius);
             }
@@ -1326,6 +1330,7 @@ namespace CodeWalker
             if (e.Delta != 0)
             {
                 camera.MouseZoom(e.Delta);
+                ClearActivePreset();
             }
         }
 
@@ -1976,6 +1981,10 @@ namespace CodeWalker
             if (TryParseVector3FromText(CameraPositionTextBox.Text, out Vector3 position))
             {
                 camEntity.Position = position;
+                if (CameraPositionTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
             }
         }
 
@@ -1986,6 +1995,10 @@ namespace CodeWalker
                 var rotationRad = DegreesToRadians(rotationDeg);
                 camera.CurrentRotation = rotationRad;
                 camera.TargetRotation = rotationRad;
+                if (CameraRotationTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
             }
         }
 
@@ -1995,6 +2008,10 @@ namespace CodeWalker
             {
                 camera.CurrentDistance = distance;
                 camera.TargetDistance = distance;
+                if (CameraDistanceTextBox.Focused)
+                {
+                    ClearActivePreset();
+                }
             }
         }
 
@@ -2009,7 +2026,21 @@ namespace CodeWalker
 
                 NewPresetRow.CreateCells(CameraPresetsDataGridView);
                 NewPresetRow.Cells[0].Value = mapValue.Name;
-                NewPresetRow.Cells[1].Value = "✔";
+                NewPresetRow.Cells[1].Value = "✕";
+
+                // Highlight active preset with green
+                if (mapValue.Name == _activePresetName)
+                {
+                    NewPresetRow.DefaultCellStyle.BackColor = System.Drawing.Color.LightGreen;
+                    NewPresetRow.DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
+                    NewPresetRow.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.LightGreen;
+                    NewPresetRow.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
+                }
+                else
+                {
+                    NewPresetRow.DefaultCellStyle.SelectionBackColor = CameraPresetsDataGridView.DefaultCellStyle.BackColor;
+                    NewPresetRow.DefaultCellStyle.SelectionForeColor = CameraPresetsDataGridView.DefaultCellStyle.ForeColor;
+                }
 
                 CameraPresetsDataGridView.Rows.Add(NewPresetRow);
             }
@@ -2020,76 +2051,124 @@ namespace CodeWalker
             if (CameraSavePresetTextBox.Text.Length == 0)
                 return;
 
-            DataGridViewRow NewPresetRow = new DataGridViewRow();
-
-            NewPresetRow.CreateCells(CameraPresetsDataGridView);
-            NewPresetRow.Cells[0].Value = CameraSavePresetTextBox.Text;
-            NewPresetRow.Cells[1].Value = "✔";
-
-            CameraPresetsDataGridView.Rows.Add(NewPresetRow);
+            var presetName = CameraSavePresetTextBox.Text;
 
             var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
             var position = CameraPositionTextBox.Text;
             var rotation = CameraRotationTextBox.Text;
             var distance = CameraDistanceTextBox.Text;
-            presets.Add(new CameraPreset(CameraSavePresetTextBox.Text, position, rotation, distance));
+            presets.Add(new CameraPreset(presetName, position, rotation, distance));
             Settings.Default.CameraPresets = presets.Serialize();
             Settings.Default.Save();
-        }
 
-        private void btn_removeCameraPreset_Click(object sender, EventArgs e)
-        {
-            if (CameraSavePresetTextBox.Text.Length == 0)
-                return;
-
-            var presetNameToDelete = CameraSavePresetTextBox.Text;
-
-            foreach (DataGridViewRow row in CameraPresetsDataGridView.Rows)
-            {
-                var presetName = row.Cells[0].Value.ToString();
-                if (row.Cells[0].Value != null && row.Cells[0].Value.ToString() == presetNameToDelete)
-                {
-                    CameraPresetsDataGridView.Rows.Remove(row);
-
-                    var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
-                    presets.RemoveByName(presetNameToDelete);
-                    Settings.Default.CameraPresets = presets.Serialize();
-                    Settings.Default.Save();
-
-                    break;
-                }
-            }
+            CameraSavePresetTextBox.Text = "";
+            SetActivePreset(presetName);
         }
 
         private void CameraPresetsDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex != CameraPresetsDataGridView.Columns["DataGridViewAction"].Index)
-                return;
+            if (e.RowIndex < 0) return;
 
             var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
-            var preset = presets.GetByIndex(e.RowIndex);
+            if (e.RowIndex >= presets.Values.Count) return;
 
-            CameraPositionTextBox.Text = preset.Position;
-            CameraRotationTextBox.Text = preset.Rotation;
-            CameraDistanceTextBox.Text = preset.Distance;
+            // Delete preset (X column)
+            if (e.ColumnIndex == CameraPresetsDataGridView.Columns["DataGridViewDelete"].Index)
+            {
+                var preset = presets.GetByIndex(e.RowIndex);
+                var presetName = preset.Name;
+
+                presets.RemoveByName(presetName);
+                Settings.Default.CameraPresets = presets.Serialize();
+                Settings.Default.Save();
+
+                if (_activePresetName == presetName)
+                {
+                    ClearActivePreset();
+                }
+
+                FillDataGridView();
+            }
         }
 
-        private void CameraPresetsDataGridView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        private void CameraPresetsDataGridView_CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.RowIndex < 0) return;
             if (e.ColumnIndex != CameraPresetsDataGridView.Columns["DataGridViewName"].Index)
                 return;
 
             var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            if (e.RowIndex >= presets.Values.Count) return;
+
             var preset = presets.GetByIndex(e.RowIndex);
 
-            CameraPositionTextBox.Text = preset.Position;
-            CameraRotationTextBox.Text = preset.Rotation;
-            CameraDistanceTextBox.Text = preset.Distance;
+            ApplyCameraPreset(preset);
+            SetActivePreset(preset.Name);
         }
 
         private void RestartCamera_Click(object sender, EventArgs e)
         {
             SetDefaultCameraPosition();
+            ClearActivePreset();
+        }
+
+        private void SetActivePreset(string presetName)
+        {
+            _activePresetName = presetName;
+            Settings.Default.LastUsedCameraPreset = presetName;
+            Settings.Default.Save();
+            FillDataGridView();
+        }
+
+        private void ClearActivePreset()
+        {
+            if (_activePresetName != null)
+            {
+                _activePresetName = null;
+                FillDataGridView();
+            }
+        }
+
+        private void LoadLastUsedPreset()
+        {
+            var lastUsedPresetName = Settings.Default.LastUsedCameraPreset;
+            if (string.IsNullOrEmpty(lastUsedPresetName))
+                return;
+
+            var presets = CameraPresetCollection.Deserialize(Settings.Default.CameraPresets);
+            var preset = presets.GetByName(lastUsedPresetName);
+
+            if (preset != null)
+            {
+                _activePresetName = preset.Name;
+                ApplyCameraPreset(preset);
+                FillDataGridView();
+            }
+        }
+
+        private void ApplyCameraPreset(CameraPreset preset)
+        {
+            if (TryParseVector3FromText(preset.Position, out Vector3 position))
+            {
+                camEntity.Position = position;
+            }
+
+            if (TryParseVector3FromText(preset.Rotation, out Vector3 rotationDeg))
+            {
+                var rotationRad = DegreesToRadians(rotationDeg);
+                camera.CurrentRotation = rotationRad;
+                camera.TargetRotation = rotationRad;
+            }
+
+            if (float.TryParse(preset.Distance, NumberStyles.Float, CultureInfo.InvariantCulture, out float distance))
+            {
+                camera.CurrentDistance = distance;
+                camera.TargetDistance = distance;
+            }
+
+            CameraPositionTextBox.Text = preset.Position;
+            CameraRotationTextBox.Text = preset.Rotation;
+            CameraDistanceTextBox.Text = preset.Distance;
         }
 
         private void AddCustomAnimButton_Click(object sender, EventArgs e)
