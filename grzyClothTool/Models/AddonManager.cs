@@ -54,7 +54,7 @@ namespace grzyClothTool.Models
 
         public static readonly object AddonsLock = new();
 
-        private static readonly Regex AlternateRegex = new(@"_\w_\d+\.ydd$", RegexOptions.Compiled);
+        private static readonly Regex AlternateRegex = new(@"_\w_\d+\.ydd$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private static readonly Regex PhysicsRegex = new(@"\.yld$", RegexOptions.Compiled);
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -186,7 +186,7 @@ namespace grzyClothTool.Models
                         var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
                         return number ?? int.MaxValue;
                     })
-                    .ThenBy(Path.GetFileName)
+                    .ThenBy(Path.GetFileName, StringComparer.Ordinal)
                     .ToArray();
 
                 var ymt = allFiles
@@ -201,7 +201,7 @@ namespace grzyClothTool.Models
                         var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(x));
                         return number ?? int.MaxValue;
                     })
-                    .ThenBy(Path.GetFileName)
+                    .ThenBy(Path.GetFileName, StringComparer.Ordinal)
                     .ToArray();
 
                 return (ydds, ymt, ylds);
@@ -288,6 +288,7 @@ namespace grzyClothTool.Models
         private async void ProcessDrawableQueue()
         {
             var pendingDrawables = new List<GDrawable>();
+            var pendingDrawableSourceNumbers = new Dictionary<GDrawable, int>();
             
             foreach (var workItem in _drawableQueue.GetConsumingEnumerable())
             {
@@ -297,6 +298,7 @@ namespace grzyClothTool.Models
                     {
                         await ProcessBatchDuplicatesAndAdd(pendingDrawables);
                         pendingDrawables.Clear();
+                        pendingDrawableSourceNumbers.Clear();
                     }
                     
                     marker.Tcs.SetResult();
@@ -330,7 +332,7 @@ namespace grzyClothTool.Models
 
                 if (AlternateRegex.IsMatch(filePath))
                 {
-                    if (filePath.EndsWith("_1.ydd"))
+                    if (filePath.EndsWith("_1.ydd", StringComparison.OrdinalIgnoreCase))
                     {
                         var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
                         if (number == null)
@@ -340,12 +342,22 @@ namespace grzyClothTool.Models
                         }
 
                         var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
+                        if (foundDrawable == null)
+                        {
+                            foundDrawable = pendingDrawables.FirstOrDefault(x => 
+                                x.TypeNumeric == drawableType && 
+                                x.IsProp == isProp && 
+                                x.Sex == sex && 
+                                pendingDrawableSourceNumbers.TryGetValue(x, out var srcNum) && 
+                                srcNum == number);
+                        }
+                        
                         if (foundDrawable != null)
                         {
                             try
                             {
-                                var firstPersonGuid = Guid.NewGuid();
-                                var firstPersonRelativePath = await FileHelper.CopyToProjectAssetsAsync(filePath, firstPersonGuid.ToString());
+                                var firstPersonFileNameWithoutExtension = $"{foundDrawable.Id}_firstperson";
+                                var firstPersonRelativePath = await FileHelper.CopyToProjectAssetsWithReplaceAsync(filePath, firstPersonFileNameWithoutExtension);
                                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.FirstPersonPath = firstPersonRelativePath);
                             }
                             catch (Exception ex)
@@ -353,6 +365,10 @@ namespace grzyClothTool.Models
                                 LogHelper.Log($"Failed to copy first person file to project assets: {ex.Message}. Using original path.", Views.LogType.Warning);
                                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.FirstPersonPath = filePath);
                             }
+                        }
+                        else
+                        {
+                            LogHelper.Log($"Could not find associated YDD file for first person file: {filePath}, please do it manually", Views.LogType.Warning);
                         }
                     }
                     continue;
@@ -368,12 +384,21 @@ namespace grzyClothTool.Models
                     }
 
                     var foundDrawable = drawablesOfType.FirstOrDefault(x => x.Number == number);
+                    if (foundDrawable == null)
+                    {
+                        foundDrawable = pendingDrawables.FirstOrDefault(x => 
+                            x.TypeNumeric == drawableType && 
+                            x.IsProp == isProp && 
+                            x.Sex == sex && 
+                            pendingDrawableSourceNumbers.TryGetValue(x, out var srcNum) && 
+                            srcNum == number);
+                    }
                     if (foundDrawable != null)
                     {
                         try
                         {
-                            var physicsGuid = Guid.NewGuid();
-                            var physicsRelativePath = await FileHelper.CopyToProjectAssetsAsync(filePath, physicsGuid.ToString());
+                            var physicsFileNameWithoutExtension = $"{foundDrawable.Id}_cloth";
+                            var physicsRelativePath = await FileHelper.CopyToProjectAssetsWithReplaceAsync(filePath, physicsFileNameWithoutExtension);
                             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.ClothPhysicsPath = physicsRelativePath);
                         }
                         catch (Exception ex)
@@ -382,10 +407,21 @@ namespace grzyClothTool.Models
                             await System.Windows.Application.Current.Dispatcher.InvokeAsync(() => foundDrawable.ClothPhysicsPath = filePath);
                         }
                     }
+                    else
+                    {
+                        LogHelper.Log($"Could not find associated YDD file for this YLD: {filePath}, please do it manually", Views.LogType.Warning);
+                    }
                     continue;
                 }
 
                 var drawable = await FileHelper.CreateDrawableAsync(filePath, sex, isProp, drawableType, 0); // Number is set by AddDrawable
+                
+                var sourceNumber = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(filePath));
+                if (sourceNumber.HasValue)
+                {
+                    pendingDrawableSourceNumbers[drawable] = sourceNumber.Value;
+                }
+                
                 if (!string.IsNullOrEmpty(basePath) && filePath.StartsWith(basePath))
                 {
                     var extractedGroup = ExtractGroupFromPath(filePath, basePath, sex, isProp);

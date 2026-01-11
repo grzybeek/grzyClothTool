@@ -38,6 +38,12 @@ namespace grzyClothTool.Controls
                 typeof(ModernLabelTextBox),
                 new FrameworkPropertyMetadata(""));
 
+        public static readonly DependencyProperty OriginalSelectedPathProperty = DependencyProperty
+            .Register("OriginalSelectedPath",
+                typeof(string),
+                typeof(ModernLabelTextBox),
+                new FrameworkPropertyMetadata(""));
+
         public string Label
         {
             get { return (string)GetValue(LabelProperty); }
@@ -68,6 +74,12 @@ namespace grzyClothTool.Controls
             set { SetValue(FileExtensionProperty, value); }
         }
 
+        public string OriginalSelectedPath
+        {
+            get { return (string)GetValue(OriginalSelectedPathProperty); }
+            set { SetValue(OriginalSelectedPathProperty, value); }
+        }
+
         public bool IsFolderOrFileSelection {
             get {
                 return IsFolderSelection || IsFileSelection;
@@ -96,6 +108,7 @@ namespace grzyClothTool.Controls
                 var dialog = new System.Windows.Forms.FolderBrowserDialog();
                 dialog.ShowDialog();
 
+                OriginalSelectedPath = dialog.SelectedPath;
                 Text = dialog.SelectedPath;
             } 
             else if (IsFileSelection)
@@ -107,6 +120,7 @@ namespace grzyClothTool.Controls
                 };
                 dialog.ShowDialog();
 
+                OriginalSelectedPath = dialog.FileName;
                 Text = dialog.FileName;
             }
             IsUserInitiated = false;

@@ -190,6 +190,23 @@ public static class FileHelper
         return fileName; // Return relative path
     }
 
+    public static async Task<string> CopyToProjectAssetsWithReplaceAsync(string sourceFilePath, string fileNameWithoutExtension)
+    {
+        var assetsPath = GetProjectAssetsPath();
+        var extension = Path.GetExtension(sourceFilePath);
+        var fileName = $"{fileNameWithoutExtension}{extension}";
+        var destinationPath = Path.Combine(assetsPath, fileName);
+
+        if (File.Exists(destinationPath))
+        {
+            File.Delete(destinationPath);
+        }
+
+        await CopyAsync(sourceFilePath, destinationPath);
+
+        return fileName;
+    }
+
     public static void GenerateReservedAssets()
     {
         var documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

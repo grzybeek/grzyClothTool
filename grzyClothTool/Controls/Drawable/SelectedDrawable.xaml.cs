@@ -311,7 +311,7 @@ namespace grzyClothTool.Controls
         }
 
         // Used to notify CW ped viewer of changes to selected drawable
-        private void SelectedDrawable_Updated(object sender, UpdatedEventArgs e)
+        private async void SelectedDrawable_Updated(object sender, UpdatedEventArgs e)
         {
             if (!e.IsUserInitiated)
             {
@@ -329,6 +329,23 @@ namespace grzyClothTool.Controls
             if (args.Value == null)
             {
                 return;
+            }
+
+            // Handle FirstPersonPath and ClothPhysicsPath - copy to project assets with proper naming
+            if ((args.UpdatedName == "FirstPersonPath" || args.UpdatedName == "ClothPhysicsPath") && 
+                control is ModernLabelTextBox textBox)
+            {
+                var originalPath = textBox.OriginalSelectedPath;
+                if (!string.IsNullOrEmpty(originalPath) && File.Exists(originalPath))
+                {
+                    var relativePath = await HandleSpecialFilePath(args.UpdatedName, originalPath);
+                    textBox.OriginalSelectedPath = string.Empty;
+                    if (!string.IsNullOrEmpty(relativePath))
+                    {
+                        textBox.Text = relativePath;
+                    }
+                    return;
+                }
             }
 
             SelectedDrawableUpdated?.Invoke(control, args);
@@ -353,6 +370,62 @@ namespace grzyClothTool.Controls
                         property.SetValue(drawable, Convert.ChangeType(args.Value, property.PropertyType));
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Handles special file paths (FirstPersonPath, ClothPhysicsPath) by copying them to project assets
+        /// using the main drawable's GUID with a suffix (e.g., "_firstperson" or "_cloth").
+        /// </summary>
+        /// <returns>The relative path of the copied file, or null if failed.</returns>
+        private async Task<string?> HandleSpecialFilePath(string propertyName, string sourceFilePath)
+        {
+            try
+            {
+                if (SelectedDraw == null)
+                {
+                    LogHelper.Log($"Cannot process {propertyName}: No drawable selected", LogType.Warning);
+                    return null;
+                }
+
+                string suffix = propertyName switch
+                {
+                    "FirstPersonPath" => "_firstperson",
+                    "ClothPhysicsPath" => "_cloth",
+                    _ => throw new ArgumentException($"Unknown property: {propertyName}")
+                };
+
+                var fileNameWithoutExtension = $"{SelectedDraw.Id}{suffix}";
+                var relativePath = await FileHelper.CopyToProjectAssetsWithReplaceAsync(sourceFilePath, fileNameWithoutExtension);
+
+                if (propertyName == "FirstPersonPath")
+                {
+                    SelectedDraw.FirstPersonPath = relativePath;
+                }
+                else if (propertyName == "ClothPhysicsPath")
+                {
+                    SelectedDraw.ClothPhysicsPath = relativePath;
+                }
+
+                SaveHelper.SetUnsavedChanges(true);
+                LogHelper.Log($"Copied {propertyName} file to project assets: {relativePath}", LogType.Info);
+                return relativePath;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to copy {propertyName} file to project assets: {ex.Message}. Using original path.", LogType.Warning);
+                
+                if (propertyName == "FirstPersonPath")
+                {
+                    SelectedDraw.FirstPersonPath = sourceFilePath;
+                }
+                else if (propertyName == "ClothPhysicsPath")
+                {
+                    SelectedDraw.ClothPhysicsPath = sourceFilePath;
+                }
+                
+                SaveHelper.SetUnsavedChanges(true);
+                return null;
             }
         }
 
