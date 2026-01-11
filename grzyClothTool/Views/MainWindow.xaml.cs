@@ -266,6 +266,8 @@ namespace grzyClothTool
             AddonManager.SelectedAddon = null;
             AddonManager.IsPreviewEnabled = false;
 
+            DuplicateDetector.Clear();
+
             SaveHelper.SetUnsavedChanges(false);
 
             _navigationHelper.Navigate("Home");
@@ -303,6 +305,7 @@ namespace grzyClothTool
 
                 // Opening existing addon, should clear everything and add new opened ones
                 AddonManager.Addons = [];
+                DuplicateDetector.Clear();
                 foreach (var dir in metaFiles.FileNames)
                 {
                     using (var reader = new StreamReader(dir))
