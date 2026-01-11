@@ -283,11 +283,11 @@ namespace grzyClothTool
             _ = AddAddonAsync();
         }
 
-        public async Task OpenAddonAsync(bool shouldSetProjectName = false)
+        public async Task<bool> OpenAddonAsync(bool shouldSetProjectName = false)
         {
             if (!SaveHelper.CheckUnsavedChangesMessage())
             {
-                return;
+                return false;
             }
 
             OpenFileDialog metaFiles = new()
@@ -315,7 +315,7 @@ namespace grzyClothTool
                             (secondLine == null || !secondLine.Contains("ShopPedApparel")))
                         {
                             LogHelper.Log($"Skipped file {dir} as it is probably not a correct .meta file");
-                            return;
+                            return false;
                         }
                     }
 
@@ -324,7 +324,10 @@ namespace grzyClothTool
 
                 ProgressHelper.Stop("Addon loaded in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
+                return true;
             }
+
+            return false;
         }
 
         public async Task AddAddonAsync(bool shouldSetProjectName = false)
@@ -370,7 +373,7 @@ namespace grzyClothTool
             _ = ImportProjectAsync();
         }
 
-        public async Task ImportProjectAsync(bool shouldSetProjectName = false)
+        public async Task<bool> ImportProjectAsync(bool shouldSetProjectName = false)
         {
 
             // open file dialog to select project file
@@ -415,7 +418,7 @@ namespace grzyClothTool
                 if (metaFiles.Count == 0)
                 {
                     LogHelper.Log("No meta files found in project file, this shouldn't happen, please report it to developer on discord");
-                    return;
+                    return false;
                 }
 
                 foreach (var metaFile in metaFiles)
@@ -425,7 +428,10 @@ namespace grzyClothTool
 
                 ProgressHelper.Stop("Project imported in {0}", true);
                 SaveHelper.SetUnsavedChanges(true);
+                return true;
             }
+
+            return false;
         }
 
         private async void ExportProject_Click(object sender, RoutedEventArgs e)

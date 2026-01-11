@@ -112,7 +112,20 @@ namespace grzyClothTool.Views
             }
         }
 
-        public string BuildPath { get; set; } = Path.Combine(PersistentSettingsHelper.Instance.MainProjectsFolder, MainWindow.AddonManager.ProjectName, "build_output");
+        public string BuildPath { get; set; } = GetDefaultBuildPath();
+
+        private static string GetDefaultBuildPath()
+        {
+            var projectName = MainWindow.AddonManager.ProjectName;
+            var mainFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
+
+            if (string.IsNullOrEmpty(projectName) || string.IsNullOrEmpty(mainFolder))
+            {
+                return string.Empty;
+            }
+
+            return Path.Combine(mainFolder, projectName, "build_output");
+        }
 
         private BuildResourceType _resourceType;
 
@@ -133,6 +146,22 @@ namespace grzyClothTool.Views
 
         private void CheckAddons()
         {
+            if (string.IsNullOrEmpty(ProjectName))
+            {
+                IsWarningVisible = true;
+                WarningMessage = "No project loaded. Please create or open a project first.";
+                CanBuild = false;
+                return;
+            }
+
+            if (string.IsNullOrEmpty(BuildPath))
+            {
+                IsWarningVisible = true;
+                WarningMessage = "Build path could not be determined. Please check your project settings.";
+                CanBuild = false;
+                return;
+            }
+
             var allDrawablesCount = MainWindow.AddonManager.Addons.Sum(a => a.Drawables.Count);
             if (allDrawablesCount == 0)
             {
@@ -179,10 +208,9 @@ namespace grzyClothTool.Views
                 return;
             }
 
-            if (ProjectName == null || BuildPath == null)
+            if (string.IsNullOrEmpty(ProjectName) || string.IsNullOrEmpty(BuildPath))
             {
-                MessageBox.Show("Please fill in all fields");
-                CustomMessageBox.Show($"Please fill in all fields", "Error", CustomMessageBoxButtons.OKCancel);
+                CustomMessageBox.Show("Please fill in all fields. Make sure a project is loaded.", "Error", CustomMessageBoxButtons.OKOnly);
                 return;
             }
 

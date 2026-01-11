@@ -262,6 +262,15 @@ namespace grzyClothTool.Views
 
         private void BuildResource_Btn(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrEmpty(MainWindow.AddonManager.ProjectName))
+            {
+                CustomMessageBox.Show("No project is currently loaded. Please create or open a project first.", 
+                    "No Project", 
+                    CustomMessageBox.CustomMessageBoxButtons.OKOnly, 
+                    CustomMessageBox.CustomMessageBoxIcon.Warning);
+                return;
+            }
+
             BuildWindow buildWindow = new()
             {
                 Owner = Window.GetWindow(this)

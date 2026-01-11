@@ -424,14 +424,20 @@ namespace grzyClothTool.Views
 
         private async void OpenAddon_Click(object sender, RoutedEventArgs e)
         {
-            await MainWindow.Instance.OpenAddonAsync(true);
-            MainWindow.NavigationHelper.Navigate("Project");
+            var success = await MainWindow.Instance.OpenAddonAsync(true);
+            if (success)
+            {
+                MainWindow.NavigationHelper.Navigate("Project");
+            }
         }
 
         private async void ImportProject_Click(object sender, RoutedEventArgs e)
         {
-            await MainWindow.Instance.ImportProjectAsync(true);
-            MainWindow.NavigationHelper.Navigate("Project");
+            var success = await MainWindow.Instance.ImportProjectAsync(true);
+            if (success)
+            {
+                MainWindow.NavigationHelper.Navigate("Project");
+            }
         }
 
         private async void OpenSave_Click(object sender, RoutedEventArgs e)
