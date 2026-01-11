@@ -56,6 +56,9 @@ public static class FileHelper
     }
     public static string ReservedAssetsPath { get; private set; }
 
+    private static byte[] _cachedReservedDrawableBytes;
+    private static long _cachedReservedDrawableLength;
+
     /// <summary>
     /// Gets the full path to the project assets directory for the current project
     /// </summary>
@@ -245,15 +248,20 @@ public static class FileHelper
                 return false;
 
             var fileInfo = new FileInfo(filePath);
-            var reservedFileInfo = new FileInfo(reservedDrawablePath);
 
-            if (fileInfo.Length != reservedFileInfo.Length)
+            // Initialize cache if needed
+            if (_cachedReservedDrawableBytes == null)
+            {
+                var reservedFileInfo = new FileInfo(reservedDrawablePath);
+                _cachedReservedDrawableLength = reservedFileInfo.Length;
+                _cachedReservedDrawableBytes = await ReadAllBytesAsync(reservedDrawablePath);
+            }
+
+            if (fileInfo.Length != _cachedReservedDrawableLength)
                 return false;
 
             var fileBytes = await ReadAllBytesAsync(filePath);
-            var reservedBytes = await ReadAllBytesAsync(reservedDrawablePath);
-
-            return fileBytes.SequenceEqual(reservedBytes);
+            return fileBytes.SequenceEqual(_cachedReservedDrawableBytes);
         }
         catch
         {
