@@ -3,6 +3,7 @@ using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,6 +13,7 @@ namespace CodeWalker.World
 {
     [TypeConverter(typeof(ExpandableObjectConverter))] public class Ped
     {
+        private const int FileLoadTimeoutMs = 2000;
         public string Name { get; set; } = string.Empty;
         public MetaHash NameHash { get; set; } = 0;//ped name hash
         public CPedModelInfo__InitData InitData { get; set; } = null; //ped init data
@@ -108,44 +110,33 @@ namespace CodeWalker.World
             if (ClothFilesDict?.TryGetValue(pedhash, out clothFile) ?? false)
             {
                 Yld = gfc.GetFileUncached<YldFile>(clothFile);
-                while ((Yld != null) && (!Yld.Loaded))
+                if (!WaitForFileLoad(Yld, () => gfc.TryLoadEnqueue(Yld)))
                 {
-                    Thread.Sleep(1);//kinda hacky
-                    gfc.TryLoadEnqueue(Yld);
+                    Yld = null;
                 }
             }
 
 
 
-            while ((Ydd != null) && (!Ydd.Loaded))
+            if (!WaitForFileLoad(Ydd, () => Ydd = gfc.GetYdd(pedhash)))
             {
-                Thread.Sleep(1);//kinda hacky
-                Ydd = gfc.GetYdd(pedhash);
-                //if(Ydd != null) Ydd.Loaded = true;
+                Ydd = null;
             }
-            while ((Ytd != null) && (!Ytd.Loaded))
+            if (!WaitForFileLoad(Ytd, () => Ytd = gfc.GetYtd(pedhash)))
             {
-                Thread.Sleep(1);//kinda hacky
-                Ytd = gfc.GetYtd(pedhash);
-                //if (Ytd != null) Ytd.Loaded = true;
+                Ytd = null;
             }
-            //while ((Ycd != null) && (!Ycd.Loaded))
+            //if (!WaitForFileLoad(Ycd, () => Ycd = gfc.GetYcd(ycdhash)))
             //{
-            //    Thread.Sleep(1);//kinda hacky
-            //    Ycd = gfc.GetYcd(ycdhash);
-            //    //if (Ycd != null) Ycd.Loaded = true;
+            //    Ycd = null;
             //}
-            while ((Yed != null) && (!Yed.Loaded))
+            if (!WaitForFileLoad(Yed, () => Yed = gfc.GetYed(yedhash)))
             {
-                Thread.Sleep(1);//kinda hacky
-                Yed = gfc.GetYed(yedhash);
-                //if (Yed != null) Yed.Loaded = true;
+                Yed = null;
             }
-            while ((Yft != null) && (!Yft.Loaded))
+            if (!WaitForFileLoad(Yft, () => Yft = gfc.GetYft(pedhash)))
             {
-                Thread.Sleep(1);//kinda hacky
-                Yft = gfc.GetYft(pedhash);
-                //if (Yft != null) Yft.Loaded = true;
+                Yft = null;
             }
 
 
@@ -189,14 +180,12 @@ namespace CodeWalker.World
                 if (DrawableFilesDict.TryGetValue(namehash, out file))
                 {
                     var ydd = gfc.GetFileUncached<YddFile>(file);
-                    while ((ydd != null) && (!ydd.Loaded))
+                    if (WaitForFileLoad(ydd, () => gfc.TryLoadEnqueue(ydd)))
                     {
-                        Thread.Sleep(1);//kinda hacky
-                        gfc.TryLoadEnqueue(ydd);
-                    }
-                    if (ydd?.Drawables?.Length > 0)
-                    {
-                        d = ydd.Drawables[0];//should only be one in this dict
+                        if (ydd?.Drawables?.Length > 0)
+                        {
+                            d = ydd.Drawables[0];//should only be one in this dict
+                        }
                     }
                 }
             }
@@ -213,14 +202,12 @@ namespace CodeWalker.World
                 if (TextureFilesDict.TryGetValue(texhash, out file))
                 {
                     var ytd = gfc.GetFileUncached<YtdFile>(file);
-                    while ((ytd != null) && (!ytd.Loaded))
+                    if (WaitForFileLoad(ytd, () => gfc.TryLoadEnqueue(ytd)))
                     {
-                        Thread.Sleep(1);//kinda hacky
-                        gfc.TryLoadEnqueue(ytd);
-                    }
-                    if (ytd?.TextureDict?.Textures?.data_items.Length > 0)
-                    {
-                        t = ytd.TextureDict.Textures.data_items[0];//should only be one in this dict
+                        if (ytd?.TextureDict?.Textures?.data_items.Length > 0)
+                        {
+                            t = ytd.TextureDict.Textures.data_items[0];//should only be one in this dict
+                        }
                     }
                 }
             }
@@ -236,14 +223,12 @@ namespace CodeWalker.World
                 if (ClothFilesDict.TryGetValue(namehash, out file))
                 {
                     var yld = gfc.GetFileUncached<YldFile>(file);
-                    while ((yld != null) && (!yld.Loaded))
+                    if (WaitForFileLoad(yld, () => gfc.TryLoadEnqueue(yld)))
                     {
-                        Thread.Sleep(1);//kinda hacky
-                        gfc.TryLoadEnqueue(yld);
-                    }
-                    if (yld?.ClothDictionary?.Clothes?.data_items?.Length > 0)
-                    {
-                        cc = yld.ClothDictionary.Clothes.data_items[0];//should only be one in this dict
+                        if (yld?.ClothDictionary?.Clothes?.data_items?.Length > 0)
+                        {
+                            cc = yld.ClothDictionary.Clothes.data_items[0];//should only be one in this dict
+                        }
                     }
                 }
             }
@@ -303,6 +288,33 @@ namespace CodeWalker.World
         {
             RenderEntity.SetPosition(Position);
             RenderEntity.SetOrientation(Rotation);
+        }
+
+        private bool WaitForFileLoad(GameFile file, Action retryAction = null)
+        {
+            if (file == null) return false;
+            if (file.Loaded) return true;
+
+            const int retryIntervalMs = 50;
+            var sw = Stopwatch.StartNew();
+            long lastRetryTime = 0;
+
+            while (!file.Loaded)
+            {
+                if (sw.ElapsedMilliseconds > FileLoadTimeoutMs)
+                {
+                    return false;
+                }
+
+                if (retryAction != null && sw.ElapsedMilliseconds - lastRetryTime >= retryIntervalMs)
+                {
+                    retryAction.Invoke();
+                    lastRetryTime = sw.ElapsedMilliseconds;
+                }
+
+                Thread.Sleep(1);
+            }
+            return true;
         }
 
     }

@@ -1364,11 +1364,17 @@ namespace CodeWalker.GameFiles
 
         public void TryLoadEnqueue(GameFile gf)
         {
-            if (((!gf.Loaded)) && (requestQueue.Count < 10))// && (!gf.LoadQueued)
-            {
-                requestQueue.Enqueue(gf);
-                gf.LoadQueued = true;
-            }
+            if (gf.Loaded)
+                return;
+
+            if (gf.LoadQueued)
+                return;
+
+            if (requestQueue.Count >= 10)
+                return;
+
+            requestQueue.Enqueue(gf);
+            gf.LoadQueued = true;
         }
 
         public Archetype GetArchetype(uint hash)
