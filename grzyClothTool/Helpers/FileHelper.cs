@@ -285,43 +285,59 @@ public static class FileHelper
         var drawableRaceSuffix = Path.GetFileNameWithoutExtension(filePath)[^1..];
         var drawableHasSkin = drawableRaceSuffix == "r";
 
-        // Copy drawable file to project assets and get relative path
-        string drawableRelativePath;
-        try
+        string drawablePath;
+        bool copyToProject = SettingsHelper.Instance.CopyFilesToProject;
+        if (copyToProject)
         {
-            drawableRelativePath = await CopyToProjectAssetsAsync(filePath, drawableGuid.ToString());
-        }
-        catch (Exception ex)
-        {
-            LogHelper.Log($"Failed to copy drawable to project assets: {ex.Message}. Using original path.", LogType.Warning);
-            drawableRelativePath = filePath; // Fallback to original path
-        }
-
-        // Copy texture files to project assets
-        var texturesList = new List<(string relativePath, int txtNumber)>();
-        for (int txtNumber = 0; txtNumber < Math.Min(matchingTextures.Count, GlobalConstants.MAX_DRAWABLE_TEXTURES); txtNumber++)
-        {
-            var texturePath = matchingTextures[txtNumber];
-            var textureGuid = Guid.NewGuid();
-            
+            // Copy drawable file to project assets and get relative path
             try
             {
-                var textureRelativePath = await CopyToProjectAssetsAsync(texturePath, textureGuid.ToString());
-                texturesList.Add((textureRelativePath, txtNumber));
+                drawablePath = await CopyToProjectAssetsAsync(filePath, drawableGuid.ToString());
             }
             catch (Exception ex)
             {
-                LogHelper.Log($"Failed to copy texture to project assets: {ex.Message}. Using original path.", LogType.Warning);
-                texturesList.Add((texturePath, txtNumber)); // Fallback to original path
+                LogHelper.Log($"Failed to copy drawable to project assets: {ex.Message}. Using original path.", LogType.Warning);
+                drawablePath = filePath; // Fallback to original path
+            }
+        }
+        else
+        {
+            drawablePath = filePath;
+        }
+
+        // Process texture files
+        var texturesList = new List<(string path, int txtNumber)>();
+        for (int txtNumber = 0; txtNumber < Math.Min(matchingTextures.Count, GlobalConstants.MAX_DRAWABLE_TEXTURES); txtNumber++)
+        {
+            var texturePath = matchingTextures[txtNumber];
+            
+            if (copyToProject)
+            {
+                var textureGuid = Guid.NewGuid();
+                try
+                {
+                    var textureRelativePath = await CopyToProjectAssetsAsync(texturePath, textureGuid.ToString());
+                    texturesList.Add((textureRelativePath, txtNumber));
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Failed to copy texture to project assets: {ex.Message}. Using original path.", LogType.Warning);
+                    texturesList.Add((texturePath, txtNumber)); // Fallback to original path
+                }
+            }
+            else
+            {
+                texturesList.Add((texturePath, txtNumber));
             }
         }
 
-        // Create texture objects with relative paths
+        // Create texture objects
         var textures = new ObservableCollection<GTexture>(
-            texturesList.Select(t => new GTexture(Guid.Empty, t.relativePath, typeNumber, countOfType, t.txtNumber, drawableHasSkin, isProp))
+            texturesList.Select(t => new GTexture(Guid.Empty, t.path, typeNumber, countOfType, t.txtNumber, drawableHasSkin, isProp))
         );
 
-        return new GDrawable(drawableGuid, drawableRelativePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures);
+        var drawable = new GDrawable(drawableGuid, drawablePath, sex, isProp, typeNumber, countOfType, drawableHasSkin, textures);
+        return drawable;
     }
 
     public static async Task CopyAsync(string sourcePath, string destinationPath)

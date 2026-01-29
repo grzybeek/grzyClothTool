@@ -189,6 +189,13 @@
                                             Label="Mark new drawables"
                                             Text="When enabled, new drawables will be marked with a yellow dot"
                                             IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+
+                                        <c:SettingsLabelCheckBox
+                                            Margin="5"
+                                            Label="Copy files to project folder"
+                                            Text="Makes projects self-contained and portable. Uncheck to keep files in their original locations."
+                                            DisplayWarning="WARNING: Disabling this option makes projects NOT portable.&#x0a;&#x0a;Moving or deleting original files will break the project.&#x0a;&#x0a;Are you sure you want to disable this?"
+                                            IsChecked="{Binding Path=Instance.CopyFilesToProject, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
                                     </StackPanel>
                                 </ScrollViewer>
                             </GroupBox>

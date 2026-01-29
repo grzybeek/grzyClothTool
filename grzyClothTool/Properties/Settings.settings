@@ -32,5 +32,8 @@
     <Setting Name="TextureResolutionLimitSpecular" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">1024</Value>
     </Setting>
+    <Setting Name="CopyFilesToProject" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

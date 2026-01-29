@@ -66,6 +66,13 @@ public class SettingsHelper : INotifyPropertyChanged
         set => SetProperty(ref _textureResolutionLimitSpecular, value, nameof(TextureResolutionLimitSpecular), revalidateDrawables: true);
     }
 
+    private bool _copyFilesToProject;
+    public bool CopyFilesToProject
+    {
+        get => _copyFilesToProject;
+        set => SetProperty(ref _copyFilesToProject, value, nameof(CopyFilesToProject));
+    }
+
     public static bool Preview3DAvailable { get; set; } = true;
 
     private SettingsHelper()
@@ -79,6 +86,7 @@ public class SettingsHelper : INotifyPropertyChanged
         _textureResolutionLimitDiffuse = Properties.Settings.Default.TextureResolutionLimitDiffuse;
         _textureResolutionLimitNormal = Properties.Settings.Default.TextureResolutionLimitNormal;
         _textureResolutionLimitSpecular = Properties.Settings.Default.TextureResolutionLimitSpecular;
+        _copyFilesToProject = Properties.Settings.Default.CopyFilesToProject;
     }
 
     private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)

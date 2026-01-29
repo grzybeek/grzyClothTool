@@ -142,5 +142,17 @@ namespace grzyClothTool.Properties {
                 this["TextureResolutionLimitSpecular"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CopyFilesToProject {
+            get {
+                return ((bool)(this["CopyFilesToProject"]));
+            }
+            set {
+                this["CopyFilesToProject"] = value;
+            }
+        }
     }
 }
