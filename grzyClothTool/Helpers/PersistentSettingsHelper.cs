@@ -126,9 +126,9 @@ public class PersistentSettingsHelper
             IsExternal = isExternal
         });
         
-        if (recentProjects.Count > 3)
+        if (recentProjects.Count > 10)
         {
-            recentProjects = [.. recentProjects.Take(3)];
+            recentProjects = [.. recentProjects.Take(10)];
         }
         
         RecentlyOpenedProjects = recentProjects;
