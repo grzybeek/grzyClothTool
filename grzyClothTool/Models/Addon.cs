@@ -1,5 +1,6 @@
 ﻿using grzyClothTool.Collections;
 using grzyClothTool.Constants;
+using grzyClothTool.Helpers;
 using grzyClothTool.Models.Drawable;
 using grzyClothTool.Models.Other;
 using grzyClothTool.Models.Texture;
@@ -315,7 +316,7 @@ public class Addon : INotifyPropertyChanged
             var countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == typeNumeric && x.IsProp == isProp && x.Sex == sex);
 
             // If the number of drawables of this type has reached 128, move to the next addon
-            if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+            if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON && !SettingsHelper.Instance.DisableAddonLimit)
             {
                 currentAddonIndex++;
                 continue;
@@ -353,7 +354,7 @@ public class Addon : INotifyPropertyChanged
                 groupedDrawables[key] = newCount;
             }
 
-            if (groupedDrawables[key] > GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+            if (!SettingsHelper.Instance.DisableAddonLimit && groupedDrawables[key] > GlobalConstants.MAX_DRAWABLES_IN_ADDON)
             {
                 return false;
             }

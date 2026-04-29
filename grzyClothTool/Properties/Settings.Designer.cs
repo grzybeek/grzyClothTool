@@ -142,5 +142,17 @@ namespace grzyClothTool.Properties {
                 this["TextureResolutionLimitSpecular"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool DisableAddonLimit {
+            get {
+                return ((bool)(this["DisableAddonLimit"]));
+            }
+            set {
+                this["DisableAddonLimit"] = value;
+            }
+        }
     }
 }

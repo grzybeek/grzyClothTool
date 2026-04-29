@@ -676,7 +676,7 @@ namespace grzyClothTool.Models
                     int countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex);
 
                     // If the number of drawables of this type has reached 128, move to the next addon
-                    if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                    if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON && !SettingsHelper.Instance.DisableAddonLimit)
                     {
                         currentAddonIndex++;
                         continue;

@@ -79,6 +79,7 @@ public class SettingsHelper : INotifyPropertyChanged
         _textureResolutionLimitDiffuse = Properties.Settings.Default.TextureResolutionLimitDiffuse;
         _textureResolutionLimitNormal = Properties.Settings.Default.TextureResolutionLimitNormal;
         _textureResolutionLimitSpecular = Properties.Settings.Default.TextureResolutionLimitSpecular;
+        _disableAddonLimit = Properties.Settings.Default.DisableAddonLimit;
     }
 
     private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)
@@ -129,6 +130,13 @@ public class SettingsHelper : INotifyPropertyChanged
     {
         get => _markNewDrawables;
         set => SetProperty(ref _markNewDrawables, value, nameof(MarkNewDrawables));
+    }
+
+    private bool _disableAddonLimit;
+    public bool DisableAddonLimit
+    {
+        get => _disableAddonLimit;
+        set => SetProperty(ref _disableAddonLimit, value, nameof(DisableAddonLimit));
     }
 
     protected void OnPropertyChanged(string propertyName)

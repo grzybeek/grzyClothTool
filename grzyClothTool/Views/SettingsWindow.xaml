@@ -148,7 +148,7 @@
                             </GroupBox>
                         </StackPanel>
                         <StackPanel Margin="5" Grid.Column="1">
-                            <GroupBox Margin="0,5" Height="380" Style="{DynamicResource FixedGroupBox}">
+                            <GroupBox Margin="0,5" Height="480" Style="{DynamicResource FixedGroupBox}">
                                 <GroupBox.Header>
                                     <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="General settings" />
                                 </GroupBox.Header>
@@ -189,6 +189,13 @@
                                             Label="Mark new drawables"
                                             Text="When enabled, new drawables will be marked with a yellow dot"
                                             IsChecked="{Binding Path=Instance.MarkNewDrawables, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
+
+                                        <c:SettingsLabelCheckBox
+                                            Margin="5"
+                                            Label="Disable addon drawable limit (128)"
+                                            Text="When enabled, the 128 drawable per addon limit is not enforced — all drawables are placed in a single addon regardless of count. Only use this for SP or RageMP, not FiveM."
+                                            DisplayWarning="WARNING: FiveM enforces a hard limit of 128 drawables per addon type. Disabling this check will produce addons that exceed that limit and may cause issues on FiveM servers.&#x0a;&#x0a;Only enable this if you are targeting SP or RageMP. Are you sure?"
+                                            IsChecked="{Binding Path=Instance.DisableAddonLimit, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay}" />
                                     </StackPanel>
                                 </ScrollViewer>
                             </GroupBox>
