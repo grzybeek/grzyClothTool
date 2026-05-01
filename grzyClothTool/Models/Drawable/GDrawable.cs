@@ -199,7 +199,7 @@ public class GDrawable : INotifyPropertyChanged
             }
         }
     }
-    public string DisplayNumber => (Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
+    public string DisplayNumber => (SettingsHelper.Instance.DisableAddonLimit ? Number : Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON).ToString("D3");
 
     private GDrawableDetails _details;
     public GDrawableDetails Details
