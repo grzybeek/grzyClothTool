@@ -45,7 +45,9 @@ namespace grzyClothTool.Models
             PedAlternativeVariations PedAltVariations,
             Dictionary<(int, int), MCComponentInfo> CompInfoDict,
             Dictionary<(int, int), MCPedPropMetaData> PedPropMetaDataDict,
-            Dictionary<(int, bool), int> TypeNumericCounts
+            Dictionary<(int, bool), int> TypeNumericCounts,
+            bool IsProp,
+            int DrawableType
         ) : WorkItem;
         private record CompletionMarker(TaskCompletionSource Tcs) : WorkItem;
 
@@ -237,8 +239,9 @@ namespace grzyClothTool.Models
             await AddDrawables(mergedFiles, sex, ymt, dirPath, pedAltVariations);
         }
 
-        public Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null, PedAlternativeVariations pedAltVariations = null)
+        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null, PedAlternativeVariations pedAltVariations = null)
         {
+            var resolvedDrawableTypes = await FileHelper.ResolveDrawableTypes(filePaths);
             var tcs = new TaskCompletionSource();
 
             // We need to count how many drawables of each type we have added so far
@@ -274,6 +277,11 @@ namespace grzyClothTool.Models
 
             foreach (var filePath in filePaths)
             {
+                if (!resolvedDrawableTypes.TryGetValue(filePath, out var resolvedDrawableType))
+                {
+                    continue;
+                }
+
                 var workItem = new DrawableWorkItem(
                     filePath,
                     sex,
@@ -282,13 +290,15 @@ namespace grzyClothTool.Models
                     pedAltVariations,
                     compInfoDict,
                     pedPropMetaDataDict,
-                    typeNumericCounts
+                    typeNumericCounts,
+                    resolvedDrawableType.IsProp,
+                    resolvedDrawableType.DrawableType
                 );
                 _drawableQueue.Add(workItem);
             }
 
             _drawableQueue.Add(new CompletionMarker(tcs));
-            return tcs.Task;
+            await tcs.Task;
         }
 
         private async void ProcessDrawableQueue()
@@ -311,13 +321,7 @@ namespace grzyClothTool.Models
                     continue;
                 }
 
-                var (filePath, sex, basePath, ymt, pedAltVariations, compInfoDict, pedPropMetaDataDict, typeNumericCounts) = (DrawableWorkItem)workItem;
-
-                var (isProp, drawableType) = await FileHelper.ResolveDrawableType(filePath);
-                if (drawableType == -1)
-                {
-                    continue;
-                }
+                var (filePath, sex, basePath, ymt, pedAltVariations, compInfoDict, pedPropMetaDataDict, typeNumericCounts, isProp, drawableType) = (DrawableWorkItem)workItem;
 
                 await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
                 {

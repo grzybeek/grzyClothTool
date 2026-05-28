@@ -410,7 +410,7 @@ public static class FileHelper
         return allYtds;
     }
 
-    public static async Task<(bool, int)> ResolveDrawableType(string file)
+    private static (bool IsProp, int DrawableType)? TryResolveDrawableTypeFromFileName(string file)
     {
         string fileName = Path.GetFileNameWithoutExtension(file);
         if (fileName.Contains('^'))
@@ -436,17 +436,48 @@ public static class FileHelper
             return (true, value);
         }
 
+        return null;
+    }
+
+    public static async Task<Dictionary<string, (bool IsProp, int DrawableType)>> ResolveDrawableTypes(IEnumerable<string> files)
+    {
+        var resolvedTypes = new Dictionary<string, (bool IsProp, int DrawableType)>();
+        var unresolvedFiles = new List<string>();
+
+        foreach (var file in files)
+        {
+            var resolved = TryResolveDrawableTypeFromFileName(file);
+            if (resolved.HasValue)
+            {
+                resolvedTypes[file] = resolved.Value;
+            }
+            else
+            {
+                unresolvedFiles.Add(file);
+            }
+        }
+
+        if (unresolvedFiles.Count == 0)
+        {
+            return resolvedTypes;
+        }
+
         return await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var window = new DrawableSelectWindow(file);
+            var window = unresolvedFiles.Count == 1
+                ? new DrawableSelectWindow(unresolvedFiles[0])
+                : new DrawableSelectWindow(unresolvedFiles);
+
             var result = window.ShowDialog();
             if (result == true)
             {
-                var value = EnumHelper.GetValue(window.SelectedDrawableType, window.IsProp);
-                return (window.IsProp, value);
+                foreach (var selection in window.SelectedDrawableTypes)
+                {
+                    resolvedTypes[selection.Key] = selection.Value;
+                }
             }
 
-            return (false, -1);
+            return resolvedTypes;
         });
     }
 
