@@ -208,17 +208,24 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" 
-                   Orientation="Horizontal" 
-                   HorizontalAlignment="Right"
-                   Margin="0,16,0,0">
-            <Button Content="Refresh"
-                   Click="Refresh_Click"
-                   Style="{StaticResource ActionButton}"/>
-            <Button Content="Close"
-                   Click="Close_Click"
-                   Style="{StaticResource ActionButton}"
-                   Margin="0"/>
-        </StackPanel>
+        <Grid Grid.Row="2"
+              Margin="0,16,0,0">
+                <Button x:Name="DeleteAllDuplicatesButton"
+                        Content="Delete All Duplicates"
+                        Click="DeleteAllDuplicates_Click"
+                        Style="{StaticResource ActionButton}"
+                        HorizontalAlignment="Left"/>
+
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Right">
+                <Button Content="Refresh"
+                        Click="Refresh_Click"
+                        Style="{StaticResource ActionButton}"/>
+                <Button Content="Close"
+                        Click="Close_Click"
+                        Style="{StaticResource ActionButton}"
+                        Margin="0"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -71,6 +71,7 @@ namespace grzyClothTool.Views
             SubtitleText.Text = _groups.Count == 0 
                 ? "No duplicates found" 
                 : $"Found {_groups.Count} duplicate group{(_groups.Count > 1 ? "s" : "")}";
+            DeleteAllDuplicatesButton.IsEnabled = _groups.Any(g => g.Items.Count > 1);
         }
 
         private DuplicateGroupViewModel CreateDrawableGroup(string hash)
@@ -284,18 +285,95 @@ namespace grzyClothTool.Views
             }
         }
 
+        private void DeleteAllDuplicates_Click(object sender, RoutedEventArgs e)
+        {
+            var itemsToDelete = _groups
+                .Where(group => group.Items.Count > 1)
+                .SelectMany(group => group.Items.Skip(1))
+                .ToList();
+
+            if (itemsToDelete.Count == 0)
+            {
+                return;
+            }
+
+            var result = Controls.CustomMessageBox.Show(
+                $"This will delete {itemsToDelete.Count} duplicate item{(itemsToDelete.Count == 1 ? "" : "s")} across {_groups.Count} duplicate group{(_groups.Count == 1 ? "" : "s")}, keeping the first item in each group.\n\nAre you sure?",
+                "Confirm Delete All Duplicates",
+                Controls.CustomMessageBox.CustomMessageBoxButtons.OKCancel,
+                Controls.CustomMessageBox.CustomMessageBoxIcon.Warning);
+
+            if (result != Controls.CustomMessageBox.CustomMessageBoxResult.OK)
+            {
+                return;
+            }
+
+            DeleteItems(itemsToDelete);
+            SaveHelper.SetUnsavedChanges(true);
+            LoadAllDuplicates();
+
+            if (_groups.Count == 0)
+            {
+                Controls.CustomMessageBox.Show(
+                    $"Deleted {itemsToDelete.Count} duplicate item{(itemsToDelete.Count == 1 ? "" : "s")}!\n\nAll duplicates have been resolved!",
+                    "Success",
+                    Controls.CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                    Controls.CustomMessageBox.CustomMessageBoxIcon.Information);
+                Close();
+            }
+            else
+            {
+                Controls.CustomMessageBox.Show(
+                    $"Deleted {itemsToDelete.Count} duplicate item{(itemsToDelete.Count == 1 ? "" : "s")}!",
+                    "Success",
+                    Controls.CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                    Controls.CustomMessageBox.CustomMessageBoxIcon.Information);
+            }
+        }
+
         private static void DeleteSingleItem(DuplicateItemViewModel vm)
         {
-            if (vm.Item is GDrawable drawable)
+            DeleteItems([vm]);
+        }
+
+        private static void DeleteItems(IEnumerable<DuplicateItemViewModel> items)
+        {
+            var drawablesByAddon = new Dictionary<Models.Addon, List<GDrawable>>();
+
+            foreach (var vm in items)
             {
-                foreach (var addon in MainWindow.AddonManager.Addons)
+                if (vm.Item is not GDrawable drawable)
                 {
-                    if (addon.Drawables.Contains(drawable))
-                    {
-                        MainWindow.AddonManager.DeleteDrawables([drawable]);
-                        break;
-                    }
+                    continue;
                 }
+
+                foreach (var addon in MainWindow.AddonManager.Addons.ToList())
+                {
+                    if (!addon.Drawables.Contains(drawable))
+                    {
+                        continue;
+                    }
+
+                    if (!drawablesByAddon.TryGetValue(addon, out var addonDrawables))
+                    {
+                        addonDrawables = [];
+                        drawablesByAddon[addon] = addonDrawables;
+                    }
+
+                    addonDrawables.Add(drawable);
+                    break;
+                }
+            }
+
+            foreach (var (addon, drawables) in drawablesByAddon)
+            {
+                if (!MainWindow.AddonManager.Addons.Contains(addon))
+                {
+                    continue;
+                }
+
+                MainWindow.AddonManager.SelectedAddon = addon;
+                MainWindow.AddonManager.DeleteDrawables(drawables);
             }
         }
 
