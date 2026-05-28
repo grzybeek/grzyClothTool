@@ -1,0 +1,236 @@
+<Window x:Class="grzyClothTool.Views.DrawableImportResolveWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:c="clr-namespace:grzyClothTool.Controls"
+        mc:Ignorable="d"
+        Title="Resolve drawable import"
+        ResizeMode="NoResize"
+        Background="{DynamicResource Brush50}"
+        WindowStartupLocation="CenterOwner"
+        Height="680"
+        Width="780">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="50" />
+        </Grid.RowDefinitions>
+        <Grid.Resources>
+            <Style x:Key="DrawableImportResolveRowBorder" TargetType="Border">
+                <Setter Property="Margin" Value="4,2"/>
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Background" Value="{DynamicResource Brush50}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource Brush200}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="4"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsResolved}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource Brush75}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush300}"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource Brush200}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush400}"/>
+                    </DataTrigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="BorderBrush" Value="{DynamicResource Brush500}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Resources>
+
+        <StackPanel Grid.Row="0" Margin="15">
+            <TextBlock Text="{Binding HeaderText}" FontSize="16" Foreground="{DynamicResource Brush950}" FontWeight="Medium"/>
+            <TextBlock Text="{Binding HelpText}"
+                       FontSize="12"
+                       Foreground="{DynamicResource Brush500}"
+                       FontWeight="Light"
+                       Margin="0,0,0,14"
+                       TextWrapping="Wrap"/>
+
+            <Border BorderBrush="{DynamicResource Brush200}"
+                    BorderThickness="1"
+                    Background="{DynamicResource Brush100}"
+                    Margin="0,0,0,12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" Margin="8,6">
+                        <TextBlock Text="{Binding SelectionSummary}"
+                                   Foreground="{DynamicResource Brush600}"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <CheckBox Content="Show resolved"
+                                      IsChecked="{Binding ShowResolvedItems, Mode=TwoWay}"
+                                      VerticalAlignment="Center"
+                                      Margin="4,0,10,0"
+                                      Foreground="{DynamicResource Brush700}"/>
+                            <Button Content="Select All"
+                                    Width="80"
+                                    Height="26"
+                                    Margin="4,0,0,0"
+                                    Click="SelectAll_Click"/>
+                            <Button Content="Select None"
+                                    Width="86"
+                                    Height="26"
+                                    Margin="4,0,0,0"
+                                    Click="SelectNone_Click"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <ScrollViewer Grid.Row="1"
+                                  MaxHeight="325"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding VisibleItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource DrawableImportResolveRowBorder}"
+                                            MouseLeftButtonUp="ImportItem_Click">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <CheckBox Grid.Column="0"
+                                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                      VerticalAlignment="Center"
+                                                      IsHitTestVisible="False"
+                                                      Margin="0,0,8,0"/>
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding FileName}"
+                                                           Foreground="{DynamicResource Brush950}"
+                                                           FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding FilePath}"
+                                                           Foreground="{DynamicResource Brush500}"
+                                                           FontSize="11"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="2"
+                                                        Orientation="Horizontal"
+                                                        VerticalAlignment="Center"
+                                                        Margin="12,0,0,0">
+                                                <TextBlock Text="{Binding GenderText}"
+                                                           Visibility="{Binding DataContext.GenderTextVisibility, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           Foreground="{DynamicResource Brush600}"
+                                                           FontSize="11"
+                                                           Margin="0,0,10,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasGender}" Value="True">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource Brush900}"/>
+                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding DrawableText}"
+                                                           Visibility="{Binding DataContext.DrawableTextVisibility, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                           Foreground="{DynamicResource Brush600}"
+                                                           FontSize="11">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasDrawableType}" Value="True">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource Brush900}"/>
+                                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <StackPanel>
+                <Grid x:Name="GenderControls"
+                      Margin="0,0,0,8"
+                      Visibility="{Binding GenderControlsVisibility}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="210"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="170"/>
+                    </Grid.ColumnDefinitions>
+                    <c:ModernLabelComboBox
+                        Grid.Column="0"
+                        Label="Gender"
+                        ItemsSource="{Binding GenderTypes}"
+                        SelectedItem="{Binding SelectedGender}"
+                        Margin="0,0,0,5"/>
+                    <c:CustomButton
+                        Grid.Column="2"
+                        Label="Apply gender"
+                        CornerRadius="5"
+                        Height="40"
+                        VerticalAlignment="Top"
+                        Margin="0,5,0,5"
+                        IsEnabled="{Binding IsGenderApplyEnabled}"
+                        MyBtnClickEvent="ApplyGender_MyBtnClickEvent"/>
+                </Grid>
+
+                <Grid x:Name="DrawableControls"
+                      Visibility="{Binding DrawableControlsVisibility}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="210"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="210"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="170"/>
+                    </Grid.ColumnDefinitions>
+                    <c:ModernLabelComboBox
+                        Grid.Column="0"
+                        Label="Asset type"
+                        ItemsSource="{Binding AssetTypes}"
+                        SelectedItem="{Binding SelectedAssetType}"
+                        Margin="0,0,0,5"
+                        IsUpdated="AssetType_IsUpdated"/>
+                    <c:ModernLabelComboBox
+                        Grid.Column="2"
+                        Label="Drawable type"
+                        IsEnabled="{Binding IsAssetTypeSelected}"
+                        ItemsSource="{Binding DrawableTypes}"
+                        SelectedItem="{Binding SelectedDrawableType}"
+                        Margin="0,0,0,5"/>
+                    <c:CustomButton
+                        Grid.Column="4"
+                        Label="Apply properties"
+                        CornerRadius="5"
+                        Height="40"
+                        VerticalAlignment="Top"
+                        Margin="0,5,0,5"
+                        IsEnabled="{Binding IsDrawableApplyEnabled}"
+                        MyBtnClickEvent="ApplyDrawable_MyBtnClickEvent"/>
+                </Grid>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="5">
+            <c:CustomButton
+                HorizontalAlignment="Left"
+                CornerRadius="5"
+                Width="150"
+                Label="Cancel"
+                MyBtnClickEvent="Cancel_MyBtnClickEvent"/>
+            <c:CustomButton
+                HorizontalAlignment="Right"
+                CornerRadius="5"
+                Width="150"
+                Label="Continue"
+                IsEnabled="{Binding IsSubmitEnabled}"
+                MyBtnClickEvent="Select_MyBtnClickEvent"/>
+        </Grid>
+    </Grid>
+</Window>

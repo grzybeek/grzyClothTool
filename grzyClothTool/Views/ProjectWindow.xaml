@@ -264,39 +264,28 @@ mc:Ignorable="d">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
                     <c:CustomButton Grid.Column="0" 
-                                   Label="FEMALE" 
-                                   MyBtnClickEvent="Add_DrawableFile" 
+                                   Label="ADD DRAWABLES" 
+                                   MyBtnClickEvent="Add_DrawableAutoFile" 
                                    Padding="2,8" 
                                    CornerRadius="5" 
                                    Margin="0,0,4,0"
                                    DropdownEnabled="True">
                         <c:CustomButton.DropdownContent>
                             <StackPanel>
-                                <c:CustomButton Tag="FEMALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
+                                <c:CustomButton Label="Select Folder (auto)" Height="32" FontSize="13" CornerRadius="5" Margin="0,0,0,2" MyBtnClickEvent="Add_DrawableAutoFolder" />
+                                <c:CustomButton Label="Select Files as Female" Height="32" FontSize="13" CornerRadius="5" Margin="0,2,0,0" MyBtnClickEvent="Add_DrawableFemaleFile" />
+                                <c:CustomButton Label="Select Folder as Female" Height="32" FontSize="13" CornerRadius="5" Margin="0,0,0,2" MyBtnClickEvent="Add_DrawableFemaleFolder" />
+                                <c:CustomButton Label="Select Files as Male" Height="32" FontSize="13" CornerRadius="5" Margin="0,2,0,0" MyBtnClickEvent="Add_DrawableMaleFile" />
+                                <c:CustomButton Label="Select Folder as Male" Height="32" FontSize="13" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableMaleFolder" />
                             </StackPanel>
                         </c:CustomButton.DropdownContent>
                     </c:CustomButton>
-                    
+
                     <c:CustomButton Grid.Column="1" 
-                                   Label="MALE" 
-                                   MyBtnClickEvent="Add_DrawableFile" 
-                                   Padding="2,8" 
-                                   CornerRadius="5" 
-                                   Margin="0,0,4,0"
-                                   DropdownEnabled="True">
-                        <c:CustomButton.DropdownContent>
-                            <StackPanel>
-                                <c:CustomButton Tag="MALE" Label="Select Folder" CornerRadius="5" Margin="0,0,0,0" MyBtnClickEvent="Add_DrawableFolder" />
-                            </StackPanel>
-                        </c:CustomButton.DropdownContent>
-                    </c:CustomButton>
-                    
-                    <c:CustomButton Grid.Column="2" 
                                    Image="TrashCanOutline" 
                                    Tooltip="Delete selected drawable" 
                                    ToolTipService.InitialShowDelay="0" 

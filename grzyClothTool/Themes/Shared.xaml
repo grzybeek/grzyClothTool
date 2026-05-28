@@ -139,6 +139,11 @@
     <!-- ContextMenu Style -->
     <Style TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource BaseMenuStyle}"/>
 
+    <Style TargetType="{x:Type ComboBoxItem}">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
     <Style TargetType="{x:Type MenuItem}">
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>

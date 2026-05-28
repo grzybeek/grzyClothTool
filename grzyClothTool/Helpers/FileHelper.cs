@@ -410,7 +410,7 @@ public static class FileHelper
         return allYtds;
     }
 
-    private static (bool IsProp, int DrawableType)? TryResolveDrawableTypeFromFileName(string file)
+    public static (bool IsProp, int DrawableType)? TryResolveDrawableTypeFromFileName(string file)
     {
         string fileName = Path.GetFileNameWithoutExtension(file);
         if (fileName.Contains('^'))
@@ -464,9 +464,13 @@ public static class FileHelper
 
         return await Application.Current.Dispatcher.InvokeAsync(() =>
         {
-            var window = unresolvedFiles.Count == 1
-                ? new DrawableSelectWindow(unresolvedFiles[0])
-                : new DrawableSelectWindow(unresolvedFiles);
+            var detectedTypes = unresolvedFiles.ToDictionary(
+                file => file,
+                _ => ((bool IsProp, int DrawableType)?)null);
+            var window = new DrawableImportResolveWindow(
+                unresolvedFiles,
+                detectedDrawableTypes: detectedTypes,
+                showDrawableProperties: true);
 
             var result = window.ShowDialog();
             if (result == true)

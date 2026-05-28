@@ -239,9 +239,15 @@ namespace grzyClothTool.Models
             await AddDrawables(mergedFiles, sex, ymt, dirPath, pedAltVariations);
         }
 
-        public async Task AddDrawables(string[] filePaths, Enums.SexType sex, PedFile ymt = null, string basePath = null, PedAlternativeVariations pedAltVariations = null)
+        public async Task AddDrawables(
+            string[] filePaths,
+            Enums.SexType sex,
+            PedFile ymt = null,
+            string basePath = null,
+            PedAlternativeVariations pedAltVariations = null,
+            Dictionary<string, (bool IsProp, int DrawableType)> resolvedDrawableTypes = null)
         {
-            var resolvedDrawableTypes = await FileHelper.ResolveDrawableTypes(filePaths);
+            resolvedDrawableTypes ??= await FileHelper.ResolveDrawableTypes(filePaths);
             var tcs = new TaskCompletionSource();
 
             // We need to count how many drawables of each type we have added so far

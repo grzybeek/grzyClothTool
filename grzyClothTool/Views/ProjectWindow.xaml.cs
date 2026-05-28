@@ -176,6 +176,224 @@ namespace grzyClothTool.Views
             }
         }
 
+        private async void Add_DrawableAutoFile(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFilesAsync(null);
+        }
+
+        private async void Add_DrawableFemaleFile(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFilesAsync(Enums.SexType.female);
+        }
+
+        private async void Add_DrawableMaleFile(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFilesAsync(Enums.SexType.male);
+        }
+
+        private async Task SelectDrawableFilesAsync(Enums.SexType? forcedGender)
+        {
+            OpenFileDialog files = new()
+            {
+                Title = forcedGender.HasValue
+                    ? $"Select drawable files ({GetGenderDisplayName(forcedGender.Value)})"
+                    : "Select drawable files",
+                Filter = "Drawable files (*.ydd)|*.ydd",
+                Multiselect = true
+            };
+
+            if (files.ShowDialog() != true)
+            {
+                return;
+            }
+
+            await AddDrawablesByDetectedGenderAsync(files.FileNames, forcedGender);
+        }
+
+        private async void Add_DrawableAutoFolder(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFoldersAsync(null);
+        }
+
+        private async void Add_DrawableFemaleFolder(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFoldersAsync(Enums.SexType.female);
+        }
+
+        private async void Add_DrawableMaleFolder(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            await SelectDrawableFoldersAsync(Enums.SexType.male);
+        }
+
+        private async Task SelectDrawableFoldersAsync(Enums.SexType? forcedGender)
+        {
+            OpenFolderDialog folder = new()
+            {
+                Title = forcedGender.HasValue
+                    ? $"Select folder(s) containing drawable files ({GetGenderDisplayName(forcedGender.Value)})"
+                    : "Select folder(s) containing drawable files",
+                Multiselect = true
+            };
+
+            if (folder.ShowDialog() != true)
+            {
+                return;
+            }
+
+            ProgressHelper.Start();
+
+            try
+            {
+                LogHelper.Log("Scanning files to add...", LogType.Info);
+
+                var allFiles = await Task.Run(() =>
+                {
+                    var fileList = new List<string>();
+                    foreach (var fldr in folder.FolderNames)
+                    {
+                        var files = Directory.GetFiles(fldr, "*.ydd", SearchOption.AllDirectories);
+                        fileList.AddRange(files);
+                    }
+
+                    return fileList
+                        .OrderBy(f =>
+                        {
+                            var number = FileHelper.GetDrawableNumberFromFileName(Path.GetFileName(f));
+                            return number ?? int.MaxValue;
+                        })
+                        .ThenBy(Path.GetFileName)
+                        .ToArray();
+                });
+
+                if (allFiles.Length == 0)
+                {
+                    ProgressHelper.Stop("No drawable files found", false);
+                    return;
+                }
+
+                ProgressHelper.Stop($"Found {allFiles.Length} drawable files in {{0}}", true);
+
+                await AddDrawablesByDetectedGenderAsync(allFiles, forcedGender);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Error adding drawables: {ex.Message}", LogType.Error);
+                ProgressHelper.Stop("Failed to add drawables", false);
+            }
+        }
+
+        private static async Task AddDrawablesByDetectedGenderAsync(IEnumerable<string> filePaths, Enums.SexType? forcedGender = null)
+        {
+            var files = filePaths.Distinct().ToList();
+            if (files.Count == 0)
+            {
+                return;
+            }
+
+            var resolution = ResolveDrawableImport(files, forcedGender);
+            if (resolution == null)
+            {
+                LogHelper.Log("Adding drawables cancelled while resolving import settings.", LogType.Info);
+                return;
+            }
+
+            var maleFiles = resolution.Genders
+                .Where(x => x.Value == Enums.SexType.male)
+                .Select(x => x.Key)
+                .ToArray();
+            var femaleFiles = resolution.Genders
+                .Where(x => x.Value == Enums.SexType.female)
+                .Select(x => x.Key)
+                .ToArray();
+
+            ProgressHelper.Start();
+            LogHelper.Log($"Adding {files.Count} drawable file(s): {maleFiles.Length} male, {femaleFiles.Length} female.", LogType.Info);
+
+            if (maleFiles.Length > 0)
+            {
+                var maleTypes = resolution.DrawableTypes
+                    .Where(x => maleFiles.Contains(x.Key))
+                    .ToDictionary(x => x.Key, x => x.Value);
+                await MainWindow.AddonManager.AddDrawables(maleFiles, Enums.SexType.male, resolvedDrawableTypes: maleTypes);
+            }
+
+            if (femaleFiles.Length > 0)
+            {
+                var femaleTypes = resolution.DrawableTypes
+                    .Where(x => femaleFiles.Contains(x.Key))
+                    .ToDictionary(x => x.Key, x => x.Value);
+                await MainWindow.AddonManager.AddDrawables(femaleFiles, Enums.SexType.female, resolvedDrawableTypes: femaleTypes);
+            }
+
+            ProgressHelper.Stop("Added drawables in {0}", true);
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
+        private sealed class DrawableImportResolution
+        {
+            public Dictionary<string, Enums.SexType> Genders { get; init; }
+            public Dictionary<string, (bool IsProp, int DrawableType)> DrawableTypes { get; init; }
+        }
+
+        private static string GetGenderDisplayName(Enums.SexType gender)
+        {
+            return gender == Enums.SexType.male ? "Male" : "Female";
+        }
+
+        private static DrawableImportResolution ResolveDrawableImport(IEnumerable<string> files, Enums.SexType? forcedGender)
+        {
+            var fileList = files.ToList();
+            var detectedGenders = fileList.ToDictionary(
+                file => file,
+                file => forcedGender ?? DetermineGenderFromFilename(file));
+            var detectedDrawableTypes = fileList.ToDictionary(
+                file => file,
+                file => FileHelper.TryResolveDrawableTypeFromFileName(file));
+
+            var needsGender = !forcedGender.HasValue && detectedGenders.Values.Any(x => !x.HasValue);
+            var needsDrawableProperties = detectedDrawableTypes.Values.Any(x => !x.HasValue);
+
+            if (!needsGender && !needsDrawableProperties)
+            {
+                return new DrawableImportResolution
+                {
+                    Genders = detectedGenders.ToDictionary(x => x.Key, x => x.Value.GetValueOrDefault()),
+                    DrawableTypes = detectedDrawableTypes.ToDictionary(x => x.Key, x => x.Value.GetValueOrDefault())
+                };
+            }
+
+            var window = new DrawableImportResolveWindow(
+                fileList,
+                detectedGenders,
+                detectedDrawableTypes,
+                needsGender,
+                needsDrawableProperties)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (window.ShowDialog() != true)
+            {
+                return null;
+            }
+
+            return new DrawableImportResolution
+            {
+                Genders = needsGender
+                    ? window.SelectedGenders
+                    : detectedGenders.ToDictionary(x => x.Key, x => x.Value.GetValueOrDefault()),
+                DrawableTypes = needsDrawableProperties
+                    ? window.SelectedDrawableTypes
+                    : detectedDrawableTypes.ToDictionary(x => x.Key, x => x.Value.GetValueOrDefault())
+            };
+        }
+
         public void SelectedDrawable_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key != Key.Delete || Addon.SelectedDrawables.Count == 0)
@@ -499,59 +717,7 @@ namespace grzyClothTool.Views
                     return;
                 }
 
-                var maleFiles = new List<string>();
-                var femaleFiles = new List<string>();
-                var undeterminedFiles = new List<string>();
-
-                foreach (var file in accessibleFiles)
-                {
-                    var detectedGender = DetermineGenderFromFilename(file);
-                    
-                    if (detectedGender == Enums.SexType.male)
-                    {
-                        maleFiles.Add(file);
-                    }
-                    else if (detectedGender == Enums.SexType.female)
-                    {
-                        femaleFiles.Add(file);
-                    }
-                    else
-                    {
-                        undeterminedFiles.Add(file);
-                    }
-                }
-
-                ProgressHelper.Start();
-
-                if (maleFiles.Count > 0)
-                {
-                    await MainWindow.AddonManager.AddDrawables(maleFiles.ToArray(), Enums.SexType.male);
-                }
-
-                if (femaleFiles.Count > 0)
-                {
-                    await MainWindow.AddonManager.AddDrawables(femaleFiles.ToArray(), Enums.SexType.female);
-                }
-
-                if (undeterminedFiles.Count > 0)
-                {
-                    var result = CustomMessageBox.Show(
-                        $"{undeterminedFiles.Count} drawable(s) could not have gender automatically determined. Please select the gender for these files:",
-                        "Select Gender",
-                        CustomMessageBox.CustomMessageBoxButtons.MaleFemaleCancel);
-
-                    if (result == CustomMessageBox.CustomMessageBoxResult.Male)
-                    {
-                        await MainWindow.AddonManager.AddDrawables(undeterminedFiles.ToArray(), Enums.SexType.male);
-                    }
-                    else if (result == CustomMessageBox.CustomMessageBoxResult.Female)
-                    {
-                        await MainWindow.AddonManager.AddDrawables(undeterminedFiles.ToArray(), Enums.SexType.female);
-                    }
-                }
-
-                ProgressHelper.Stop("Added drawables in {0}", true);
-                SaveHelper.SetUnsavedChanges(true);
+                await AddDrawablesByDetectedGenderAsync(accessibleFiles);
             }
             catch (Exception ex)
             {
@@ -569,15 +735,22 @@ namespace grzyClothTool.Views
 
         private static Enums.SexType? DetermineGenderFromFilename(string filePath)
         {
-            var filename = Path.GetFileName(filePath).ToLowerInvariant();
-            if (filename.Contains("mp_m_freemode") || filename.Contains("_m_") || filename.Contains("male"))
-            {
-                return Enums.SexType.male;
-            }
+            var filename = Path.GetFileNameWithoutExtension(filePath).ToLowerInvariant();
 
-            if (filename.Contains("mp_f_freemode") || filename.Contains("_f_") || filename.Contains("female"))
+            if (filename.StartsWith("mp_f") ||
+                filename.Contains("mp_f_freemode") ||
+                filename.Contains("_f_") ||
+                filename.Contains("female"))
             {
                 return Enums.SexType.female;
+            }
+
+            if (filename.StartsWith("mp_m") ||
+                filename.Contains("mp_m_freemode") ||
+                filename.Contains("_m_") ||
+                filename.Contains("male"))
+            {
+                return Enums.SexType.male;
             }
 
             return null;
