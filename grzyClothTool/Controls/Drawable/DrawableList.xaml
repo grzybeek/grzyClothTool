@@ -638,6 +638,33 @@
                                             </ItemsPresenter>
                                         </StackPanel>
                                         <ControlTemplate.Triggers>
+                                            <!-- TypeName grouping uses a quieter tag header instead of the larger group folder header. -->
+                                            <DataTrigger Binding="{Binding IsPrimaryGroupingByTypeName, ElementName=MyDrawableList}" Value="True">
+                                                <Setter TargetName="GroupExpander" Property="Margin" Value="0,2,0,0" />
+                                                <Setter TargetName="GroupShadow" Property="Visibility" Value="Collapsed" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush75}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="BorderBrush" Value="{DynamicResource Brush250}" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="CornerRadius" Value="3" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="Padding" Value="6,4" />
+                                                <Setter TargetName="GroupHeaderBorder" Property="Margin" Value="0,0,6,1" />
+                                                <Setter TargetName="GroupIcon" Property="Kind" Value="TagOutline" />
+                                                <Setter TargetName="GroupIcon" Property="Height" Value="13" />
+                                                <Setter TargetName="GroupIcon" Property="Width" Value="13" />
+                                                <Setter TargetName="GroupIcon" Property="Foreground" Value="{DynamicResource Brush600}" />
+                                                <Setter TargetName="ExpandArrow" Property="Data" Value="M 0 0 L 3 3 L 6 0 Z" />
+                                                <Setter TargetName="ExpandArrow" Property="Fill" Value="{DynamicResource Brush500}" />
+                                                <Setter TargetName="GroupNameText" Property="FontWeight" Value="Medium" />
+                                                <Setter TargetName="GroupNameText" Property="FontSize" Value="11" />
+                                                <Setter TargetName="GroupNameText" Property="Foreground" Value="{DynamicResource Brush700}" />
+                                                <Setter TargetName="CountPill" Property="Background" Value="{DynamicResource Brush150}" />
+                                                <Setter TargetName="CountPill" Property="BorderBrush" Value="{DynamicResource Brush300}" />
+                                                <Setter TargetName="CountPill" Property="CornerRadius" Value="8" />
+                                                <Setter TargetName="CountPill" Property="Padding" Value="5,1" />
+                                                <Setter TargetName="CountPill" Property="Margin" Value="5,0,0,0" />
+                                                <Setter TargetName="GroupCountText" Property="FontSize" Value="9" />
+                                                <Setter TargetName="GroupCountText" Property="Foreground" Value="{DynamicResource Brush600}" />
+                                            </DataTrigger>
+
                                             <!-- Hover -->
                                             <Trigger SourceName="HeaderWrapper" Property="IsMouseOver" Value="True">
                                                 <Setter TargetName="GroupHeaderBorder" Property="Background" Value="{DynamicResource Brush100}" />
@@ -702,6 +729,14 @@
                                             <Trigger SourceName="GroupExpander" Property="IsExpanded" Value="False">
                                                 <Setter TargetName="GroupHeaderBorder" Property="Margin" Value="0,0,6,10" />
                                             </Trigger>
+
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsPrimaryGroupingByTypeName, ElementName=MyDrawableList}" Value="True" />
+                                                    <Condition Binding="{Binding IsExpanded, ElementName=GroupExpander}" Value="False" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter TargetName="GroupHeaderBorder" Property="Margin" Value="0,0,6,5" />
+                                            </MultiDataTrigger>
                                         </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </Setter.Value>
@@ -712,6 +747,246 @@
                         <ItemsPanelTemplate>
                             <VirtualizingStackPanel 
                                 IsVirtualizing="True" 
+                                VirtualizationMode="Recycling"
+                                IsVirtualizingWhenGrouping="True"
+                                CacheLength="10,10"
+                                CacheLengthUnit="Item"
+                                ScrollUnit="Pixel" />
+                        </ItemsPanelTemplate>
+                    </GroupStyle.Panel>
+                </GroupStyle>
+
+                <!-- Inner group style (TypeName level, used in Both mode) -->
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="GroupItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="GroupItem">
+                                        <StackPanel>
+                                            <Expander Margin="20,2,0,0" x:Name="InnerGroupExpander">
+                                                <Expander.IsExpanded>
+                                                    <MultiBinding Converter="{StaticResource GroupExpandedStateConverter}" Mode="OneWay">
+                                                        <Binding Path="Name" />
+                                                        <Binding ElementName="MyDrawableList" />
+                                                    </MultiBinding>
+                                                </Expander.IsExpanded>
+                                                <Expander.Style>
+                                                    <Style TargetType="Expander">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="Expander">
+                                                                    <DockPanel>
+                                                                        <ToggleButton x:Name="InnerExpanderToggle"
+                                                                                    DockPanel.Dock="Top"
+                                                                                    IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                                                    Background="Transparent"
+                                                                                    BorderThickness="0"
+                                                                                    Cursor="Hand">
+                                                                            <ToggleButton.Template>
+                                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                                    <ContentPresenter Content="{Binding Header, RelativeSource={RelativeSource AncestorType=Expander}}"
+                                                                                                    RecognizesAccessKey="True"/>
+                                                                                </ControlTemplate>
+                                                                            </ToggleButton.Template>
+                                                                        </ToggleButton>
+                                                                        <ContentPresenter x:Name="InnerExpanderContent"
+                                                                                        DockPanel.Dock="Top"
+                                                                                        Visibility="Collapsed"/>
+                                                                    </DockPanel>
+                                                                    <ControlTemplate.Triggers>
+                                                                        <Trigger Property="IsExpanded" Value="True">
+                                                                            <Setter TargetName="InnerExpanderContent" Property="Visibility" Value="Visible"/>
+                                                                        </Trigger>
+                                                                    </ControlTemplate.Triggers>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Expander.Style>
+                                                <Expander.Header>
+                                                    <Grid x:Name="InnerHeaderWrapper" Background="Transparent" HorizontalAlignment="Stretch">
+                                                        <!-- Left accent line indicating nesting -->
+                                                        <Border x:Name="InnerAccentLine"
+                                                                Width="2"
+                                                                Background="{DynamicResource Brush350}"
+                                                                HorizontalAlignment="Left"
+                                                                Margin="-14,3,0,3"
+                                                                CornerRadius="1" />
+
+                                                        <Border x:Name="InnerGroupHeaderBorder"
+                                                                Background="{DynamicResource Brush75}"
+                                                                BorderBrush="{DynamicResource Brush250}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="3"
+                                                                Padding="6,4"
+                                                                Margin="0,0,6,1"
+                                                                SnapsToDevicePixels="True"
+                                                                HorizontalAlignment="Stretch">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <Path Grid.Column="0"
+                                                                      x:Name="InnerExpandArrow"
+                                                                      Data="M 0 0 L 3 3 L 6 0 Z"
+                                                                      Fill="{DynamicResource Brush500}"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center"
+                                                                      Margin="0,0,5,0"
+                                                                      RenderTransformOrigin="0.5, 0.5">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform x:Name="InnerArrowRotation" Angle="0"/>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+
+                                                                <icons:MaterialIcon Grid.Column="1"
+                                                                                  Kind="TagOutline"
+                                                                                  Height="13"
+                                                                                  Width="13"
+                                                                                  Margin="0,0,5,0"
+                                                                                  Foreground="{DynamicResource Brush600}"
+                                                                                  x:Name="InnerGroupIcon" />
+
+                                                                <TextBlock Grid.Column="2"
+                                                                         x:Name="InnerGroupNameText"
+                                                                         FontWeight="Medium"
+                                                                         FontSize="11"
+                                                                         Foreground="{DynamicResource Brush700}"
+                                                                         Text="{Binding Name}"
+                                                                         VerticalAlignment="Center" />
+
+                                                                <Border Grid.Column="3"
+                                                                       x:Name="InnerCountPill"
+                                                                       Background="{DynamicResource Brush150}"
+                                                                       BorderBrush="{DynamicResource Brush300}"
+                                                                       BorderThickness="1"
+                                                                       CornerRadius="8"
+                                                                       Padding="5,1"
+                                                                       Margin="5,0,0,0"
+                                                                       VerticalAlignment="Center">
+                                                                    <TextBlock x:Name="InnerGroupCountText"
+                                                                             Text="{Binding ItemCount}"
+                                                                             FontSize="9"
+                                                                             FontWeight="SemiBold"
+                                                                             Foreground="{DynamicResource Brush600}" />
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </Grid>
+                                                </Expander.Header>
+                                                <Expander.Content>
+                                                    <ItemsPresenter Margin="0,1,0,2" />
+                                                </Expander.Content>
+                                            </Expander>
+
+                                            <ItemsPresenter>
+                                                <ItemsPresenter.Style>
+                                                    <Style TargetType="ItemsPresenter">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ItemsPresenter.Style>
+                                            </ItemsPresenter>
+                                        </StackPanel>
+                                        <ControlTemplate.Triggers>
+                                            <!-- When parent group name is null, keep TypeName compact but remove the nested indent. -->
+                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=GroupItem, AncestorLevel=1}, Path=DataContext.Name}" Value="{x:Null}">
+                                                <Setter TargetName="InnerGroupExpander" Property="Margin" Value="0,2,0,0"/>
+                                                <Setter TargetName="InnerAccentLine" Property="Visibility" Value="Collapsed"/>
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="Background" Value="{DynamicResource Brush75}"/>
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="BorderBrush" Value="{DynamicResource Brush250}"/>
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="CornerRadius" Value="3"/>
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="Padding" Value="6,4"/>
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="Margin" Value="0,0,6,1"/>
+                                                <Setter TargetName="InnerGroupIcon" Property="Kind" Value="TagOutline"/>
+                                                <Setter TargetName="InnerGroupIcon" Property="Height" Value="13"/>
+                                                <Setter TargetName="InnerGroupIcon" Property="Width" Value="13"/>
+                                                <Setter TargetName="InnerGroupIcon" Property="Foreground" Value="{DynamicResource Brush600}"/>
+                                                <Setter TargetName="InnerExpandArrow" Property="Data" Value="M 0 0 L 3 3 L 6 0 Z"/>
+                                                <Setter TargetName="InnerExpandArrow" Property="Fill" Value="{DynamicResource Brush500}"/>
+                                                <Setter TargetName="InnerGroupNameText" Property="FontWeight" Value="Medium"/>
+                                                <Setter TargetName="InnerGroupNameText" Property="FontSize" Value="11"/>
+                                                <Setter TargetName="InnerGroupNameText" Property="Foreground" Value="{DynamicResource Brush700}"/>
+                                                <Setter TargetName="InnerCountPill" Property="Background" Value="{DynamicResource Brush150}"/>
+                                                <Setter TargetName="InnerCountPill" Property="BorderBrush" Value="{DynamicResource Brush300}"/>
+                                                <Setter TargetName="InnerCountPill" Property="CornerRadius" Value="8"/>
+                                                <Setter TargetName="InnerCountPill" Property="Padding" Value="5,1"/>
+                                                <Setter TargetName="InnerCountPill" Property="Margin" Value="5,0,0,0"/>
+                                                <Setter TargetName="InnerGroupCountText" Property="FontSize" Value="9"/>
+                                                <Setter TargetName="InnerGroupCountText" Property="Foreground" Value="{DynamicResource Brush600}"/>
+                                            </DataTrigger>
+
+                                            <!-- Hover -->
+                                            <Trigger SourceName="InnerHeaderWrapper" Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="Background" Value="{DynamicResource Brush100}" />
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="BorderBrush" Value="#93c5fd" />
+                                                <Setter TargetName="InnerGroupIcon" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="InnerGroupNameText" Property="Foreground" Value="#3b82f6" />
+                                                <Setter TargetName="InnerExpandArrow" Property="Fill" Value="#3b82f6" />
+                                                <Setter TargetName="InnerAccentLine" Property="Background" Value="#93c5fd" />
+                                            </Trigger>
+
+                                            <!-- Expand animation -->
+                                            <Trigger SourceName="InnerGroupExpander" Property="IsExpanded" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="InnerArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="180"
+                                                                           Duration="0:0:0.2">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="InnerArrowRotation"
+                                                                           Storyboard.TargetProperty="Angle"
+                                                                           To="0"
+                                                                           Duration="0:0:0.2">
+                                                                <DoubleAnimation.EasingFunction>
+                                                                    <CubicEase EasingMode="EaseOut"/>
+                                                                </DoubleAnimation.EasingFunction>
+                                                            </DoubleAnimation>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+
+                                            <!-- Collapsed inner group -->
+                                            <Trigger SourceName="InnerGroupExpander" Property="IsExpanded" Value="False">
+                                                <Setter TargetName="InnerGroupHeaderBorder" Property="Margin" Value="0,0,6,5" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                    <GroupStyle.Panel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel
+                                IsVirtualizing="True"
                                 VirtualizationMode="Recycling"
                                 IsVirtualizingWhenGrouping="True"
                                 CacheLength="10,10"

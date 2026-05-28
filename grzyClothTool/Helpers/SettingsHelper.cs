@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using static grzyClothTool.Enums;
 
 namespace grzyClothTool.Helpers;
 
@@ -76,6 +77,7 @@ public class SettingsHelper : INotifyPropertyChanged
         _polygonLimitLow = Properties.Settings.Default.PolygonLimitLow;
         _autoDeleteFiles = Properties.Settings.Default.AutoDeleteFiles;
         _markNewDrawables = Properties.Settings.Default.MarkNewDrawables;
+        _drawableGroupingMode = (GroupingMode)Properties.Settings.Default.DrawableGroupingMode;
         _textureResolutionLimitDiffuse = Properties.Settings.Default.TextureResolutionLimitDiffuse;
         _textureResolutionLimitNormal = Properties.Settings.Default.TextureResolutionLimitNormal;
         _textureResolutionLimitSpecular = Properties.Settings.Default.TextureResolutionLimitSpecular;
@@ -129,6 +131,22 @@ public class SettingsHelper : INotifyPropertyChanged
     {
         get => _markNewDrawables;
         set => SetProperty(ref _markNewDrawables, value, nameof(MarkNewDrawables));
+    }
+
+    private GroupingMode _drawableGroupingMode;
+    public GroupingMode DrawableGroupingMode
+    {
+        get => _drawableGroupingMode;
+        set
+        {
+            if (!Equals(_drawableGroupingMode, value))
+            {
+                _drawableGroupingMode = value;
+                Properties.Settings.Default.DrawableGroupingMode = (int)value;
+                Properties.Settings.Default.Save();
+                OnPropertyChanged(nameof(DrawableGroupingMode));
+            }
+        }
     }
 
     protected void OnPropertyChanged(string propertyName)

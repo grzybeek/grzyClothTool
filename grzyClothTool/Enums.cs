@@ -2,6 +2,14 @@
 
 public class Enums
 {
+    public enum GroupingMode
+    {
+        None = 0,
+        ByType = 1,
+        GroupDefined = 2,
+        Both = 3
+    }
+
     public enum SexType
     {
         female = 0,

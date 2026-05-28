@@ -19,6 +19,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using static grzyClothTool.Controls.CustomMessageBox;
+using static grzyClothTool.Enums;
 
 namespace grzyClothTool.Controls
 {
@@ -85,12 +86,30 @@ namespace grzyClothTool.Controls
         private readonly Dictionary<string, bool> _groupExpandedStates = value;
         private bool _isBatchUpdating = false;
 
+        public bool IsPrimaryGroupingByTypeName => SettingsHelper.Instance.DrawableGroupingMode == GroupingMode.ByType;
+
         public DrawableList()
         {
             InitializeComponent();
-            
+
             MyListBox.MouseLeave += MyListBox_MouseLeave;
             MyListBox.Loaded += MyListBox_Loaded;
+
+            SettingsHelper.Instance.PropertyChanged += OnSettingsPropertyChanged;
+        }
+
+        private void OnSettingsPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SettingsHelper.DrawableGroupingMode))
+            {
+                OnPropertyChanged(nameof(IsPrimaryGroupingByTypeName));
+                SetupGrouping();
+            }
+        }
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void MyListBox_Loaded(object sender, RoutedEventArgs e)
@@ -248,13 +267,24 @@ namespace grzyClothTool.Controls
             if (ItemsSource == null) return;
 
             DrawablesView = CollectionViewSource.GetDefaultView(ItemsSource);
-            
-            if (DrawablesView.GroupDescriptions.Count == 0 || 
-                !(DrawablesView.GroupDescriptions[0] is PropertyGroupDescription pgd) ||
-                pgd.PropertyName != "Group")
+
+            var mode = SettingsHelper.Instance.DrawableGroupingMode;
+
+            DrawablesView.GroupDescriptions.Clear();
+
+            switch (mode)
             {
-                DrawablesView.GroupDescriptions.Clear();
-                DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription("Group"));
+                case GroupingMode.ByType:
+                    DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(GDrawable.TypeName)));
+                    break;
+                case GroupingMode.GroupDefined:
+                    DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(GDrawable.Group)));
+                    break;
+                case GroupingMode.Both:
+                    DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(GDrawable.Group)));
+                    DrawablesView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(GDrawable.TypeName)));
+                    break;
+                // None: no grouping
             }
 
             DrawablesView.SortDescriptions.Clear();
@@ -265,24 +295,25 @@ namespace grzyClothTool.Controls
 
             if (DrawablesView is ICollectionViewLiveShaping liveView && liveView.CanChangeLiveGrouping)
             {
-                if (liveView.IsLiveGrouping != true)
-                {
-                    liveView.LiveGroupingProperties.Clear();
+                liveView.LiveGroupingProperties.Clear();
+                if (mode == GroupingMode.GroupDefined || mode == GroupingMode.Both)
                     liveView.LiveGroupingProperties.Add(nameof(GDrawable.Group));
-                    liveView.IsLiveGrouping = true;
-                }
-                
+                if (mode == GroupingMode.ByType || mode == GroupingMode.Both)
+                    liveView.LiveGroupingProperties.Add(nameof(GDrawable.TypeName));
+                liveView.IsLiveGrouping = liveView.LiveGroupingProperties.Count > 0;
+
                 if (liveView.CanChangeLiveSorting)
                 {
                     liveView.LiveSortingProperties.Clear();
                     liveView.LiveSortingProperties.Add(nameof(GDrawable.Group));
+                    liveView.LiveSortingProperties.Add(nameof(GDrawable.TypeName));
                     liveView.LiveSortingProperties.Add(nameof(GDrawable.Number));
                     liveView.IsLiveSorting = true;
                 }
             }
-            
+
             ApplySearchFilter();
-            
+
             // update filtered count when collection changes
             if (ItemsSource is System.Collections.Specialized.INotifyCollectionChanged notifyCollection)
             {
