@@ -1,5 +1,6 @@
 ﻿using grzyClothTool.Models;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -18,10 +19,18 @@ public class SaveFile
     public DateTime SaveDate { get; set; }
 }
 
+public class SaveBackupFile
+{
+    public string FilePath { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
     public static class SaveHelper
     {
         public const string AutoSaveFileName = "autosave.json";
         public const string AutoSaveExternalFileName = "autosave.external.json";
+        private const string BackupFolderName = "save-backups";
+        private const int MaxBackupVersions = 5;
         public static string GetSaveFileName(bool isExternalProject)
         {
             return isExternalProject ? AutoSaveExternalFileName : AutoSaveFileName;
@@ -135,6 +144,7 @@ public class SaveFile
                 json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
             }
 
+            var saveSucceeded = false;
             try
             {
                 var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
@@ -150,9 +160,11 @@ public class SaveFile
 
                     var saveFileName = GetSaveFileName(isExternalProject);
                     var autoSavePath = Path.Combine(projectFolder, saveFileName);
-                    await File.WriteAllTextAsync(autoSavePath, json);
+                    await RotateSaveBackupAsync(autoSavePath);
+                    await WriteSaveFileAtomicallyAsync(autoSavePath, json);
 
                     LogHelper.Log($"Auto-saved to {autoSavePath} in {timer.ElapsedMilliseconds}ms");
+                    saveSucceeded = true;
                 }
                 else
                 {
@@ -164,8 +176,11 @@ public class SaveFile
                 LogHelper.Log($"Auto-save failed: {ex.Message}", Views.LogType.Error);
             }
 
-            SaveCreated?.Invoke();
-            SetUnsavedChanges(false);
+            if (saveSucceeded)
+            {
+                SaveCreated?.Invoke();
+                SetUnsavedChanges(false);
+            }
         }
         finally
         {
@@ -211,6 +226,68 @@ public class SaveFile
 
 
     public static async Task LoadSaveFileAsync(string filePath)
+    {
+        try
+        {
+            await LoadSaveFileCoreAsync(filePath);
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Failed to load save from {filePath}: {ex.Message}", Views.LogType.Error);
+
+            var backupFiles = GetBackupSaveFiles(filePath);
+            if (backupFiles.Count == 0)
+            {
+                throw;
+            }
+
+            var useBackup = false;
+            MainWindow.Instance.Dispatcher.Invoke(() =>
+            {
+                var newestBackup = backupFiles[0];
+                var message =
+                    $"This save file could not be loaded and is probably broken.\n\n" +
+                    $"Save file:\n{filePath}\n\n" +
+                    $"Error:\n{ex.Message}\n\n" +
+                    $"Found {backupFiles.Count} backup save(s). The newest backup was created on {newestBackup.CreatedAt:g}.\n\n" +
+                    "Do you want to load the newest working backup instead?";
+
+                var result = Show(message, "Broken Save File", CustomMessageBoxButtons.YesNo, CustomMessageBoxIcon.Warning);
+                useBackup = result == CustomMessageBoxResult.Yes;
+            });
+
+            if (!useBackup)
+            {
+                throw;
+            }
+
+            Exception lastBackupException = null;
+            foreach (var backupFile in backupFiles)
+            {
+                try
+                {
+                    await LoadSaveFileCoreAsync(backupFile.FilePath, filePath);
+                    LogHelper.Log($"Recovered project from backup save: {backupFile.FilePath}", Views.LogType.Warning);
+
+                    MainWindow.Instance.Dispatcher.Invoke(() =>
+                    {
+                        Show($"Loaded backup save:\n{backupFile.FilePath}", "Backup Loaded", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Information);
+                    });
+
+                    return;
+                }
+                catch (Exception backupException)
+                {
+                    lastBackupException = backupException;
+                    LogHelper.Log($"Backup save failed to load ({backupFile.FilePath}): {backupException.Message}", Views.LogType.Error);
+                }
+            }
+
+            throw new InvalidOperationException("The original save file and all available backups failed to load.", lastBackupException ?? ex);
+        }
+    }
+
+    private static async Task LoadSaveFileCoreAsync(string filePath, string recentProjectFilePath = null)
     {
         try
         {
@@ -266,7 +343,7 @@ public class SaveFile
             int addonCount = addonManager.Addons.Count;
 
             PersistentSettingsHelper.Instance.AddRecentProject(
-                filePath,
+                recentProjectFilePath ?? filePath,
                 addonManager.ProjectName ?? Path.GetFileNameWithoutExtension(filePath),
                 drawableCount,
                 addonCount,
@@ -291,5 +368,105 @@ public class SaveFile
         {
             FileHelper.ClearLoadContext();
         }
+    }
+
+    private static async Task RotateSaveBackupAsync(string saveFilePath)
+    {
+        if (!File.Exists(saveFilePath))
+        {
+            return;
+        }
+
+        try
+        {
+            var backupFolder = GetBackupFolder(saveFilePath);
+            Directory.CreateDirectory(backupFolder);
+
+            var timestamp = DateTime.Now.ToString("yyyyMMdd-HHmmss-fff");
+            var backupFileName = $"{Path.GetFileNameWithoutExtension(saveFilePath)}.{timestamp}.json";
+            var backupPath = Path.Combine(backupFolder, backupFileName);
+
+            File.Copy(saveFilePath, backupPath, overwrite: false);
+            await Task.Run(() => PruneOldBackups(saveFilePath));
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Could not create save backup: {ex.Message}", Views.LogType.Warning);
+        }
+    }
+
+    private static async Task WriteSaveFileAtomicallyAsync(string saveFilePath, string json)
+    {
+        var projectFolder = Path.GetDirectoryName(saveFilePath) ?? throw new InvalidOperationException("Save file has no parent folder.");
+        var tempPath = Path.Combine(projectFolder, $"{Path.GetFileName(saveFilePath)}.{Guid.NewGuid():N}.tmp");
+
+        try
+        {
+            await File.WriteAllTextAsync(tempPath, json);
+
+            _ = JsonSerializer.Deserialize<AddonManager>(json, SerializerOptions)
+                ?? throw new InvalidOperationException("Generated save data could not be validated.");
+
+            if (File.Exists(saveFilePath))
+            {
+                File.Replace(tempPath, saveFilePath, null);
+            }
+            else
+            {
+                File.Move(tempPath, saveFilePath);
+            }
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
+    }
+
+    public static List<SaveBackupFile> GetBackupSaveFiles(string saveFilePath)
+    {
+        var backupFolder = GetBackupFolder(saveFilePath);
+        if (!Directory.Exists(backupFolder))
+        {
+            return [];
+        }
+
+        var saveName = Path.GetFileNameWithoutExtension(saveFilePath);
+        return Directory
+            .GetFiles(backupFolder, $"{saveName}.*.json")
+            .Select(path => new SaveBackupFile
+            {
+                FilePath = path,
+                CreatedAt = File.GetCreationTime(path)
+            })
+            .OrderByDescending(file => file.CreatedAt)
+            .ToList();
+    }
+
+    private static void PruneOldBackups(string saveFilePath)
+    {
+        var backupsToDelete = GetBackupSaveFiles(saveFilePath)
+            .Skip(MaxBackupVersions)
+            .ToList();
+
+        foreach (var backupFile in backupsToDelete)
+        {
+            try
+            {
+                File.Delete(backupFile.FilePath);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Could not delete old save backup {backupFile.FilePath}: {ex.Message}", Views.LogType.Warning);
+            }
+        }
+    }
+
+    private static string GetBackupFolder(string saveFilePath)
+    {
+        var projectFolder = Path.GetDirectoryName(saveFilePath) ?? SavesPath;
+        return Path.Combine(projectFolder, BackupFolderName);
     }
 }

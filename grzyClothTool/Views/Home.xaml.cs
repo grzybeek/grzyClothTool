@@ -523,6 +523,13 @@ namespace grzyClothTool.Views
                     }
                 }
 
+                var backupFolder = Path.Combine(projectFolder, "save-backups");
+                if (Directory.Exists(backupFolder))
+                {
+                    Directory.Delete(backupFolder, recursive: true);
+                    LogHelper.Log($"Deleted old save backups folder: {backupFolder}");
+                }
+
                 var assetsFolder = Path.Combine(projectFolder, GlobalConstants.ASSETS_FOLDER_NAME);
                 if (Directory.Exists(assetsFolder))
                 {
