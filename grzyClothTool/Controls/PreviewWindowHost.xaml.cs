@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace grzyClothTool.Controls
 {
@@ -19,6 +20,12 @@ namespace grzyClothTool.Controls
     {
         private CustomPedsForm _customPedsForm;
         private bool _isInitialized = false;
+        private const int MaxPendingPreviewUpdateAttempts = 120;
+        private List<GDrawable> _pendingSelectedDrawables;
+        private GTexture _pendingSelectedTexture;
+        private Dictionary<string, string> _pendingUpdateDict;
+        private DispatcherTimer _pendingPreviewUpdateTimer;
+        private int _pendingPreviewUpdateAttempts;
 
         public static event EventHandler Preview3DAvailabilityChanged;
 
@@ -33,8 +40,7 @@ namespace grzyClothTool.Controls
         {
             if (_isInitialized && _customPedsForm != null && !_customPedsForm.IsDisposed && PreviewHost.Child == null)
             {
-                PreviewHost.Child = _customPedsForm;
-                PlaceholderText.Visibility = Visibility.Collapsed;
+                AttachPreviewForm();
             }
             else if (!_isInitialized)
             {
@@ -55,23 +61,15 @@ namespace grzyClothTool.Controls
         {
             if (_isInitialized && _customPedsForm != null && !_customPedsForm.IsDisposed)
             {
-                PlaceholderText.Visibility = Visibility.Collapsed;
+                AttachPreviewForm();
                 return;
             }
 
             try
             {
-                _customPedsForm = new CustomPedsForm
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
+                CreatePreviewForm();
+                AttachPreviewForm();
 
-                PreviewHost.Child = _customPedsForm;
-                _customPedsForm.Show();
-
-                PlaceholderText.Visibility = Visibility.Collapsed;
                 _isInitialized = true;
                 SettingsHelper.Preview3DAvailable = true;
                 Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
@@ -96,20 +94,14 @@ namespace grzyClothTool.Controls
         {
             if (_isInitialized)
             {
+                AttachPreviewForm();
                 return;
             }
 
             try
             {
-                _customPedsForm = new CustomPedsForm
-                {
-                    TopLevel = false,
-                    FormBorderStyle = FormBorderStyle.None,
-                    Dock = DockStyle.Fill
-                };
-
-                PreviewHost.Child = _customPedsForm;
-                _customPedsForm.Show();
+                CreatePreviewForm();
+                AttachPreviewForm();
 
                 _isInitialized = true;
                 SettingsHelper.Preview3DAvailable = true;
@@ -123,6 +115,37 @@ namespace grzyClothTool.Controls
                 SettingsHelper.Preview3DAvailable = false;
                 Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             }
+        }
+
+        private void CreatePreviewForm()
+        {
+            _customPedsForm = new CustomPedsForm
+            {
+                TopLevel = false,
+                FormBorderStyle = FormBorderStyle.None,
+                Dock = DockStyle.Fill
+            };
+        }
+
+        private void AttachPreviewForm()
+        {
+            if (_customPedsForm == null || _customPedsForm.IsDisposed)
+            {
+                _isInitialized = false;
+                return;
+            }
+
+            if (PreviewHost.Child != _customPedsForm)
+            {
+                PreviewHost.Child = _customPedsForm;
+            }
+
+            if (!_customPedsForm.Visible)
+            {
+                _customPedsForm.Show();
+            }
+
+            PlaceholderText.Visibility = Visibility.Collapsed;
         }
 
         public void ClosePreview()
@@ -149,7 +172,7 @@ namespace grzyClothTool.Controls
         {
             try
             {
-                if (_customPedsForm != null && !_customPedsForm.IsDisposed && _customPedsForm.formopen)
+                if (_customPedsForm != null && !_customPedsForm.IsDisposed)
                 {
                     _customPedsForm.PedModel = pedModel;
                 }
@@ -164,11 +187,103 @@ namespace grzyClothTool.Controls
         {
             try
             {
-                if (_customPedsForm == null || _customPedsForm.IsDisposed || !_customPedsForm.formopen || _customPedsForm.isLoading)
+                var selectedDrawableList = selectedDrawables?.ToList() ?? [];
+                var updates = updateDict != null
+                    ? new Dictionary<string, string>(updateDict)
+                    : [];
+
+                if (!IsPreviewReady())
                 {
+                    QueuePendingDrawableUpdate(selectedDrawableList, selectedTexture, updates);
                     return;
                 }
 
+                UpdateDrawablesNow(selectedDrawableList, selectedTexture, updates);
+            }
+            catch (Exception ex)
+            {
+                HandlePreviewError("Failed to update drawables in 3D preview", ex);
+            }
+        }
+
+        private bool IsPreviewReady()
+        {
+            return _customPedsForm != null &&
+                   !_customPedsForm.IsDisposed &&
+                   _customPedsForm.formopen &&
+                   !_customPedsForm.isLoading;
+        }
+
+        private void QueuePendingDrawableUpdate(List<GDrawable> selectedDrawables, GTexture selectedTexture, Dictionary<string, string> updateDict)
+        {
+            _pendingSelectedDrawables = selectedDrawables;
+            _pendingSelectedTexture = selectedTexture;
+            _pendingUpdateDict = updateDict;
+            _pendingPreviewUpdateAttempts = 0;
+
+            if (_pendingPreviewUpdateTimer == null)
+            {
+                _pendingPreviewUpdateTimer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromMilliseconds(250)
+                };
+                _pendingPreviewUpdateTimer.Tick += PendingPreviewUpdateTimer_Tick;
+            }
+
+            if (!_pendingPreviewUpdateTimer.IsEnabled)
+            {
+                _pendingPreviewUpdateTimer.Start();
+            }
+        }
+
+        private void PendingPreviewUpdateTimer_Tick(object sender, EventArgs e)
+        {
+            if (_pendingSelectedDrawables == null)
+            {
+                _pendingPreviewUpdateTimer.Stop();
+                return;
+            }
+
+            if (!IsPreviewReady())
+            {
+                _pendingPreviewUpdateAttempts++;
+                if (_pendingPreviewUpdateAttempts >= MaxPendingPreviewUpdateAttempts)
+                {
+                    _pendingPreviewUpdateTimer.Stop();
+                    LogHelper.Log("3D Preview did not finish loading in time; selected drawable update was skipped.", Views.LogType.Warning);
+                }
+                return;
+            }
+
+            var selectedDrawables = _pendingSelectedDrawables;
+            var selectedTexture = _pendingSelectedTexture;
+            var updateDict = _pendingUpdateDict ?? [];
+
+            _pendingSelectedDrawables = null;
+            _pendingSelectedTexture = null;
+            _pendingUpdateDict = null;
+            _pendingPreviewUpdateTimer.Stop();
+
+            try
+            {
+                UpdateDrawablesNow(selectedDrawables, selectedTexture, updateDict);
+            }
+            catch (Exception ex)
+            {
+                HandlePreviewError("Failed to apply pending drawable update in 3D preview", ex);
+            }
+        }
+
+        private void UpdateDrawablesNow(List<GDrawable> selectedDrawables, GTexture selectedTexture, Dictionary<string, string> updateDict)
+        {
+            if (_customPedsForm?.Renderer == null)
+            {
+                QueuePendingDrawableUpdate(selectedDrawables, selectedTexture, updateDict);
+                return;
+            }
+
+            lock (_customPedsForm.Renderer.RenderSyncRoot)
+            {
                 var selectedNames = selectedDrawables.Select(d => d.Name).ToHashSet();
                 var removedDrawables = _customPedsForm.LoadedDrawables.Keys.Where(name => !selectedNames.Contains(name)).ToList();
                 foreach (var removed in removedDrawables)
@@ -176,8 +291,23 @@ namespace grzyClothTool.Controls
                     if (_customPedsForm.LoadedDrawables.TryGetValue(removed, out var removedDrawable))
                     {
                         _customPedsForm.LoadedTextures.Remove(removedDrawable);
+                        if (_customPedsForm.Renderer?.SelDrawable == removedDrawable)
+                        {
+                            _customPedsForm.Renderer.SelDrawable = null;
+                            _customPedsForm.Renderer.SelectedDrawable = null;
+                            _customPedsForm.Renderer.renderfloor = false;
+                            _customPedsForm.Renderer.SelectedDrawableChanged = false;
+                        }
                     }
                     _customPedsForm.LoadedDrawables.Remove(removed);
+                }
+
+                if (selectedDrawables.Count == 0 && _customPedsForm.Renderer != null)
+                {
+                    _customPedsForm.Renderer.SelDrawable = null;
+                    _customPedsForm.Renderer.SelectedDrawable = null;
+                    _customPedsForm.Renderer.renderfloor = false;
+                    _customPedsForm.Renderer.SelectedDrawableChanged = false;
                 }
 
                 foreach (var drawable in selectedDrawables)
@@ -187,27 +317,45 @@ namespace grzyClothTool.Controls
                         continue;
                     }
 
-                    var ydd = CWHelper.CreateYddFile(drawable);
-                    if (ydd == null || ydd.Drawables.Length == 0) continue;
-
-                    var firstDrawable = ydd.Drawables.First();
-                    _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
-
+                    CodeWalker.GameFiles.Drawable firstDrawable;
                     CodeWalker.GameFiles.YtdFile ytd = null;
-                    if (selectedTexture != null)
+
+                    try
                     {
-                        ytd = CWHelper.CreateYtdFile(selectedTexture, selectedTexture.DisplayName);
-                        _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
+                        var ydd = CWHelper.CreateYddFile(drawable);
+                        if (ydd == null || ydd.Drawables.Length == 0)
+                        {
+                            RemoveLoadedDrawable(drawable.Name);
+                            continue;
+                        }
+
+                        firstDrawable = ydd.Drawables.First();
+
+                        var textureForDrawable = selectedTexture != null && drawable.Textures.Contains(selectedTexture)
+                            ? selectedTexture
+                            : drawable.Textures.FirstOrDefault();
+
+                        if (textureForDrawable != null)
+                        {
+                            ytd = CWHelper.CreateYtdFile(textureForDrawable, textureForDrawable.DisplayName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        RemoveLoadedDrawable(drawable.Name);
+                        LogHelper.Log($"Skipped drawable '{drawable.Name}' in 3D preview: {ex.Message}", Views.LogType.Warning);
+                        continue;
                     }
 
-                    if (selectedTexture == null && selectedDrawables.Count > 1)
+                    if (_customPedsForm.LoadedDrawables.TryGetValue(drawable.Name, out var existingDrawable))
                     {
-                        var firstTexture = drawable.Textures.FirstOrDefault();
-                        if (firstTexture != null)
-                        {
-                            ytd = CWHelper.CreateYtdFile(firstTexture, firstTexture.DisplayName);
-                            _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
-                        }
+                        _customPedsForm.LoadedTextures.Remove(existingDrawable);
+                    }
+
+                    _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
+                    if (ytd?.TextureDict != null)
+                    {
+                        _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
                     }
 
                     _customPedsForm.UpdateSelectedDrawable(
@@ -219,10 +367,28 @@ namespace grzyClothTool.Controls
 
                 _customPedsForm.Refresh();
             }
-            catch (Exception ex)
+        }
+
+        private void RemoveLoadedDrawable(string drawableName)
+        {
+            if (_customPedsForm?.Renderer == null)
             {
-                HandlePreviewError("Failed to update drawables in 3D preview", ex);
+                return;
             }
+
+            if (_customPedsForm.LoadedDrawables.TryGetValue(drawableName, out var loadedDrawable))
+            {
+                _customPedsForm.LoadedTextures.Remove(loadedDrawable);
+                if (_customPedsForm.Renderer.SelDrawable == loadedDrawable)
+                {
+                    _customPedsForm.Renderer.SelDrawable = null;
+                    _customPedsForm.Renderer.SelectedDrawable = null;
+                    _customPedsForm.Renderer.renderfloor = false;
+                    _customPedsForm.Renderer.SelectedDrawableChanged = false;
+                }
+            }
+
+            _customPedsForm.LoadedDrawables.Remove(drawableName);
         }
 
         private void HandlePreviewError(string context, Exception ex)

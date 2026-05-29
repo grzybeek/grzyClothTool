@@ -561,8 +561,7 @@ namespace grzyClothTool.Views
         {
             if (!Addon.TriggerSelectedDrawableUpdatedEvent ||
                 !MainWindow.AddonManager.IsPreviewEnabled ||
-                (Addon.SelectedDrawable is null && Addon.SelectedDrawables.Count == 0) ||
-                Addon.SelectedDrawables.All(d => d.Textures.Count == 0))
+                (Addon.SelectedDrawable is null && Addon.SelectedDrawables.Count == 0))
             {
                 return;
             }

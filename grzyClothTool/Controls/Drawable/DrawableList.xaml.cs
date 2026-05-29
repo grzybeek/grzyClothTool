@@ -468,6 +468,38 @@ namespace grzyClothTool.Controls
             }
         }
 
+        private void IgnoreWarnings_Click(object sender, RoutedEventArgs e)
+        {
+            if (DrawableListSelectedValue is not GDrawable drawable)
+            {
+                return;
+            }
+
+            var shouldIgnoreWarnings = !drawable.IgnoreWarnings;
+
+            if (shouldIgnoreWarnings)
+            {
+                var result = Show(
+                    "Ignoring warnings only hides warning indicators for this drawable. The asset may still need fixing, and warnings will show again if you disable this option.\n\nDo you want to ignore warnings for this drawable?",
+                    "Ignore warnings",
+                    CustomMessageBoxButtons.OKCancel,
+                    CustomMessageBoxIcon.Warning);
+
+                if (result != CustomMessageBoxResult.OK)
+                {
+                    if (sender is MenuItem menuItem)
+                    {
+                        menuItem.IsChecked = drawable.IgnoreWarnings;
+                    }
+
+                    return;
+                }
+            }
+
+            drawable.IgnoreWarnings = shouldIgnoreWarnings;
+            SaveHelper.SetUnsavedChanges(true);
+        }
+
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
         {
             var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();

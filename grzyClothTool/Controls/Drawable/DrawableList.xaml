@@ -58,6 +58,11 @@
             <MenuItem Header="Export as YDD with textures" Click="ExportDrawable_Click" Tag="YTD" />
             <MenuItem Header="Export only textures as DDS" Click="ExportDrawable_Click" Tag="DDS" />
             <MenuItem Header="Export only textures as PNG" Click="ExportDrawable_Click" Tag="PNG" />
+            <Separator />
+            <MenuItem Header="Ignore warnings"
+                      IsCheckable="True"
+                      IsChecked="{Binding PlacementTarget.SelectedItem.IgnoreWarnings, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"
+                      Click="IgnoreWarnings_Click" />
         </ContextMenu>
         <ContextMenu x:Key="MultipleSelectionContextMenu">
             <MenuItem Header="Delete" Click="DeleteDrawable_Click" />

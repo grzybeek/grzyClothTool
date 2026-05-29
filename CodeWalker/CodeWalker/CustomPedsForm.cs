@@ -339,7 +339,7 @@ namespace CodeWalker
             {
                 if (LoadedTextures.TryGetValue(drawable, out var texture))
                 {
-                    RenderSelectedItem(drawable, texture);
+                    TryRenderSelectedItem(drawable, texture);
                 }
             }
 
@@ -357,10 +357,34 @@ namespace CodeWalker
                         continue;
                     }
 
-                    RenderSelectedItem(drawable, SavedTextures[drawable]);
+                    TryRenderSelectedItem(drawable, SavedTextures[drawable]);
                 }
             }
         }
+
+        private void TryRenderSelectedItem(Drawable d, TextureDictionary t)
+        {
+            try
+            {
+                RenderSelectedItem(d, t);
+            }
+            catch (Exception ex)
+            {
+                LoadedTextures.Remove(d);
+                SavedTextures.Remove(d);
+
+                if (Renderer.SelDrawable == d)
+                {
+                    Renderer.SelDrawable = null;
+                    Renderer.SelectedDrawable = null;
+                    Renderer.renderfloor = false;
+                    Renderer.SelectedDrawableChanged = false;
+                }
+
+                LogError($"Skipped drawable '{d?.Name ?? "unknown"}' in 3D preview: {ex.Message}");
+            }
+        }
+
         private void RenderSelectedItem(Drawable d, TextureDictionary t)
         {
             // dirty hack to render drawable only when all other drawables are rendered, it fixes issue that props sometimes are not rendered attached to the head
@@ -1087,9 +1111,11 @@ namespace CodeWalker
                         break;
                     case "EnableHighHeels":
                         Renderer.SelDrawable.IsHighHeelsEnabled = bool.Parse(value);
+                        Renderer.renderfloor = Renderer.SelDrawable.IsHighHeelsEnabled;
                         break;
                     case "HighHeelsValue":
                         Renderer.SelDrawable.HighHeelsValue = Convert.ToSingle(value) / 10;
+                        Renderer.renderfloor = Renderer.SelDrawable.IsHighHeelsEnabled;
                         highheelvaluechanged = true;
                         break;
                     case "GenderChanged":

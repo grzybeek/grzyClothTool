@@ -110,7 +110,7 @@ public class SettingsHelper : INotifyPropertyChanged
                                 embeddedTexture?.Details?.Validate();
                             }
                             
-                            drawable.Details.Validate(drawable.Textures);
+                            drawable.ValidateDetails();
                         }
                     }
                     

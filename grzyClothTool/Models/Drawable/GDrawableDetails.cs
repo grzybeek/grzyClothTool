@@ -86,13 +86,31 @@ public class GDrawableDetails : INotifyPropertyChanged
         }
     }
 
-    public void Validate(ObservableCollection<GTexture>? textures = null)
+    private bool _hasHighHeelsWarning;
+    public bool HasHighHeelsWarning
+    {
+        get => _hasHighHeelsWarning;
+        set
+        {
+            _hasHighHeelsWarning = value;
+            OnPropertyChanged(nameof(HasHighHeelsWarning));
+        }
+    }
+
+    public bool ShouldCheckHighHeels { get; set; }
+
+    public void Validate(
+        ObservableCollection<GTexture>? textures = null,
+        bool enableHighHeels = false,
+        float highHeelsValue = 0,
+        bool ignoreWarnings = false)
     {
         // reset values
         Tooltip = string.Empty;
         IsWarning = false;
         HasTextureWarnings = false;
         HasEmbeddedTextureWarnings = false;
+        HasHighHeelsWarning = false;
 
         foreach (var detailLevel in AllModels.Keys)
         {
@@ -169,8 +187,24 @@ public class GDrawableDetails : INotifyPropertyChanged
             IsWarning = true;
         }
 
+        if (ShouldCheckHighHeels && !enableHighHeels)
+        {
+            HasHighHeelsWarning = true;
+            IsWarning = true;
+            Tooltip += "Shoes might be under floor. Consider enabling High heels and validating manually in the 3D preview.\n";
+        }
+
         // Remove trailing newline character
         Tooltip = Tooltip.TrimEnd('\n');
+
+        if (ignoreWarnings && IsWarning)
+        {
+            Tooltip = string.Empty;
+            IsWarning = false;
+            HasTextureWarnings = false;
+            HasEmbeddedTextureWarnings = false;
+            HasHighHeelsWarning = false;
+        }
     }
 
     public void OnPropertyChanged(string propertyName)
