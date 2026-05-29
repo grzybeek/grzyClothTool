@@ -371,7 +371,7 @@ namespace CodeWalker
 
             if(d.Skeleton == null || d.Skeleton.Bones == null || d.Skeleton.Bones.Items.Length == 0)
             {
-                var pedSkeleton = SelectedPed?.Skeleton;
+                var pedSkeleton = GetSelectedPedSkeleton();
                 if (pedSkeleton == null)
                 {
                     return;
@@ -407,6 +407,29 @@ namespace CodeWalker
             }
 
             Renderer.RenderDrawable(d, null, SelectedPed.RenderEntity, 0, t, t.Textures.data_items[0], SelectedPed.AnimClip, null, null, isProp, true);
+        }
+
+        private Skeleton GetSelectedPedSkeleton()
+        {
+            if (SelectedPed?.Skeleton?.Bones?.Items != null)
+            {
+                return SelectedPed.Skeleton;
+            }
+
+            if (SelectedPed?.Drawables == null)
+            {
+                return null;
+            }
+
+            foreach (var drawable in SelectedPed.Drawables)
+            {
+                if (drawable?.Skeleton?.Bones?.Items != null)
+                {
+                    return drawable.Skeleton;
+                }
+            }
+
+            return null;
         }
 
         private void RenderFloor()
