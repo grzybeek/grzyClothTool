@@ -104,6 +104,7 @@ namespace CodeWalker
         private List<string> CustomAnimationPaths = new List<string>();
         private Dictionary<string, YcdFile> CustomAnimations = new Dictionary<string, YcdFile>();
         private bool _suppressClipDictEvent = false;
+        private readonly HashSet<string> _hiddenComponentNodeNames = new HashSet<string>();
 
 
         private System.Windows.Forms.Timer autoRotateTimer;
@@ -370,7 +371,13 @@ namespace CodeWalker
 
             if(d.Skeleton == null || d.Skeleton.Bones == null || d.Skeleton.Bones.Items.Length == 0)
             {
-                d.Skeleton = SelectedPed.Skeleton.Clone();
+                var pedSkeleton = SelectedPed?.Skeleton;
+                if (pedSkeleton == null)
+                {
+                    return;
+                }
+
+                d.Skeleton = pedSkeleton.Clone();
             }
 
             if(liveTexturePath != null)
@@ -732,6 +739,7 @@ namespace CodeWalker
                     {
                         foreach (var node in sameName)
                         {
+                            if (_hiddenComponentNodeNames.Contains(node.Text)) continue;
                             node.Checked = !node.Checked;
                         }
                     }
@@ -905,7 +913,7 @@ namespace CodeWalker
 
                     if (drawable != null)
                     {
-                        AddDrawableTreeNode(drawable, drawablename, true);
+                        AddDrawableTreeNode(drawable, drawablename, !_hiddenComponentNodeNames.Contains(drawablename));
                     }
                 }
             }
@@ -1444,7 +1452,30 @@ namespace CodeWalker
         {
             if (e.Node != null)
             {
+                UpdatePersistedComponentVisibility(e.Node, e.Action);
                 UpdateSelectionDrawFlags(e.Node);
+            }
+        }
+
+        private bool IsPersistableComponentNode(TreeNode node)
+        {
+            return (node?.Parent == null) &&
+                   !node.Text.StartsWith("Selected (") &&
+                   !node.Text.StartsWith("Saved (");
+        }
+
+        private void UpdatePersistedComponentVisibility(TreeNode node, TreeViewAction action)
+        {
+            if (!IsPersistableComponentNode(node)) return;
+            if ((action != TreeViewAction.ByMouse) && (action != TreeViewAction.ByKeyboard)) return;
+
+            if (node.Checked)
+            {
+                _hiddenComponentNodeNames.Remove(node.Text);
+            }
+            else
+            {
+                _hiddenComponentNodeNames.Add(node.Text);
             }
         }
 
@@ -1453,6 +1484,7 @@ namespace CodeWalker
             if (e.Node != null)
             {
                 e.Node.Checked = !e.Node.Checked;
+                UpdatePersistedComponentVisibility(e.Node, TreeViewAction.ByMouse);
                 //UpdateSelectionDrawFlags(e.Node);
             }
         }
