@@ -140,7 +140,7 @@ public class GDrawableDetails : INotifyPropertyChanged
         foreach (var key in EmbeddedTextures.Keys)
         {
             var txt = EmbeddedTextures[key];
-            if (txt == null || txt.TextureData == null)
+            if (txt == null || !txt.HasOriginalTexture)
             {
                 IsWarning = true;
                 Tooltip += $"Missing {key} texture.\n";
@@ -173,7 +173,7 @@ public class GDrawableDetails : INotifyPropertyChanged
         }
         
         var embeddedTexturesWithWarnings = EmbeddedTextures.Values
-            .Where(et => et != null && et.TextureData != null && et.Details.IsOptimizeNeeded)
+            .Where(et => et != null && et.HasOriginalTexture && et.Details.IsOptimizeNeeded)
             .Any();
             
         if (embeddedTexturesWithWarnings)

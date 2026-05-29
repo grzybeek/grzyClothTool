@@ -840,7 +840,7 @@ public class GDrawable : INotifyPropertyChanged
                 _ => null
             };
 
-            details.EmbeddedTextures[txtType] = new GTextureEmbedded(texture, txtType.ToString());
+            details.EmbeddedTextures[txtType] = new GTextureEmbedded(texture, txtType.ToString(), FullFilePath);
         }
 
         var drawableModels = yddFile.Drawables.First().DrawableModels;

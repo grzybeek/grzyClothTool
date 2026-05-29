@@ -1,13 +1,18 @@
+using CodeWalker.GameFiles;
 using CodeWalker.Utils;
 using grzyClothTool.Helpers;
+using grzyClothTool.Views;
 using ImageMagick;
 using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
@@ -19,9 +24,13 @@ namespace grzyClothTool.Models.Texture;
 
 public class GTextureEmbedded : INotifyPropertyChanged
 {
+    private readonly SemaphoreSlim _textureDataSemaphore = new(1, 1);
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public string OriginalName;
+    public bool HasOriginalTexture { get; set; }
+    public string? SourceDrawablePath { get; set; }
 
     public GTextureDetails Details { get; set; } = new GTextureDetails();
     public GTextureDetails? OptimizeDetails { get; set; }
@@ -48,6 +57,7 @@ public class GTextureEmbedded : INotifyPropertyChanged
             OnPropertyChanged(nameof(HasReplacement));
             OnPropertyChanged(nameof(DisplayTextureData));
             OnPropertyChanged(nameof(IsOptimizedDuringBuild));
+            OnPropertyChanged(nameof(IsPreviewDisabled));
         }
     }
 
@@ -106,9 +116,11 @@ public class GTextureEmbedded : INotifyPropertyChanged
         Details = new GTextureDetails();
     }
 
-    public GTextureEmbedded(CodeWalker.GameFiles.Texture? textureData, string type)
+    public GTextureEmbedded(CodeWalker.GameFiles.Texture? textureData, string type, string? sourceDrawablePath = null, bool keepTextureData = false)
     {
-        TextureData = textureData;
+        SourceDrawablePath = sourceDrawablePath;
+        TextureData = keepTextureData ? textureData : CreateMetadataOnlyTexture(textureData);
+        HasOriginalTexture = textureData != null;
 
         if (textureData == null)
         {
@@ -132,7 +144,79 @@ public class GTextureEmbedded : INotifyPropertyChanged
             Details.Compression = textureData.Format.ToString();
             
             Details.Validate();
-            LoadThumbnailAsync();
+        }
+    }
+
+    private static CodeWalker.GameFiles.Texture? CreateMetadataOnlyTexture(CodeWalker.GameFiles.Texture? textureData)
+    {
+        if (textureData == null)
+        {
+            return null;
+        }
+
+        return new CodeWalker.GameFiles.Texture
+        {
+            Name = textureData.Name,
+            NameHash = textureData.NameHash,
+            Width = textureData.Width,
+            Height = textureData.Height,
+            Depth = textureData.Depth,
+            Stride = textureData.Stride,
+            Format = textureData.Format,
+            Levels = textureData.Levels
+        };
+    }
+
+    public async Task<bool> EnsureTextureDataLoadedAsync()
+    {
+        if (DisplayTextureData?.Data?.FullData?.Length > 0)
+        {
+            return true;
+        }
+
+        if (!HasOriginalTexture || string.IsNullOrWhiteSpace(SourceDrawablePath) || !File.Exists(SourceDrawablePath))
+        {
+            return false;
+        }
+
+        await _textureDataSemaphore.WaitAsync();
+        try
+        {
+            if (DisplayTextureData?.Data?.FullData?.Length > 0)
+            {
+                return true;
+            }
+
+            var fileBytes = await FileHelper.ReadAllBytesAsync(SourceDrawablePath);
+            var yddFile = new YddFile();
+            await yddFile.LoadAsync(fileBytes);
+
+            var texture = yddFile.Drawables?
+                .FirstOrDefault()?
+                .ShaderGroup?
+                .TextureDictionary?
+                .Textures?
+                .data_items?
+                .FirstOrDefault(x => x?.Name == OriginalName);
+
+            if (texture == null)
+            {
+                return false;
+            }
+
+            TextureData = texture;
+            OnPropertyChanged(nameof(DisplayTextureData));
+            OnPropertyChanged(nameof(IsPreviewDisabled));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Could not load embedded texture data for {Details.Name}: {ex.Message}", LogType.Warning);
+            return false;
+        }
+        finally
+        {
+            _textureDataSemaphore.Release();
         }
     }
 
@@ -164,7 +248,7 @@ public class GTextureEmbedded : INotifyPropertyChanged
 
     public async void LoadThumbnailAsync()
     {
-        if (ImageThumbnail != null || DisplayTextureData?.Data?.FullData == null)
+        if (ImageThumbnail != null)
             return;
 
         IsLoading = true;
@@ -174,10 +258,14 @@ public class GTextureEmbedded : INotifyPropertyChanged
         {
             try
             {
-                if (DisplayTextureData.Data.FullData.Length == 0)
+                if (!EnsureTextureDataLoadedAsync().GetAwaiter().GetResult())
                     return;
 
-                var dds = DDSIO.GetDDSFile(DisplayTextureData);
+                var textureData = DisplayTextureData;
+                if (textureData?.Data?.FullData == null || textureData.Data.FullData.Length == 0)
+                    return;
+
+                var dds = DDSIO.GetDDSFile(textureData);
                 using var img = new MagickImage(dds);
                 
                 img.Resize(90, 90);
