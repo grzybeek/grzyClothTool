@@ -150,7 +150,7 @@ public class SaveFile
 
                     var saveFileName = GetSaveFileName(isExternalProject);
                     var autoSavePath = Path.Combine(projectFolder, saveFileName);
-                    await File.WriteAllTextAsync(autoSavePath, json);
+                    await WriteAutoSaveWithBackupAsync(autoSavePath, json);
 
                     LogHelper.Log($"Auto-saved to {autoSavePath} in {timer.ElapsedMilliseconds}ms");
                 }
@@ -170,6 +170,62 @@ public class SaveFile
         finally
         {
             _semaphore.Release();
+        }
+    }
+
+    private static async Task WriteAutoSaveWithBackupAsync(string autoSavePath, string json)
+    {
+        var directory = Path.GetDirectoryName(autoSavePath);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            throw new InvalidOperationException("Auto-save path directory is invalid.");
+        }
+
+        var fileName = Path.GetFileName(autoSavePath);
+        var tempPath = Path.Combine(directory, $"{fileName}.{Guid.NewGuid():N}.tmp");
+        var backupPath = $"{autoSavePath}.bak";
+        var hadOriginal = false;
+
+        try
+        {
+            await File.WriteAllTextAsync(tempPath, json);
+
+            if (File.Exists(autoSavePath))
+            {
+                hadOriginal = true;
+
+                if (File.Exists(backupPath))
+                {
+                    File.Delete(backupPath);
+                }
+
+                File.Move(autoSavePath, backupPath);
+            }
+
+            // Atomic rename in same directory.
+            File.Move(tempPath, autoSavePath, overwrite: true);
+        }
+        catch
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+
+            // If rotation already happened and new write failed, restore the previous autosave.
+            if (hadOriginal && !File.Exists(autoSavePath) && File.Exists(backupPath))
+            {
+                File.Move(backupPath, autoSavePath, overwrite: true);
+            }
+
+            throw;
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
         }
     }
 
