@@ -1704,6 +1704,7 @@ namespace CodeWalker
 
             if (EnableAnimationCheckBox.Checked)
             {
+                LoadPed(PedNameComboBox.Text); //hacky reload ped to make it work
                 LoadAnimsForModel(SelectedPed.Name);
             } 
             else
