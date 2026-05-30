@@ -528,10 +528,30 @@ public static class FileHelper
              
             if (fileExtension == ".ytd") 
             {
-                // For YTD, simply copy the file
                 try
                 {
-                    await CopyAsync(texture.FullFilePath, filePath);
+                    byte[] textureBytes;
+
+                    if (texture.IsOptimizedDuringBuild)
+                    {
+                        textureBytes = await ImgHelper.Optimize(texture);
+                    }
+                    else if (string.Equals(texture.Extension, ".ytd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        textureBytes = await ReadAllBytesAsync(texture.FullFilePath);
+                    }
+                    else
+                    {
+                        textureBytes = await ImgHelper.Optimize(texture, true);
+                    }
+
+                    if (textureBytes == null)
+                    {
+                        LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: Texture is corrupted.", LogType.Error);
+                        return;
+                    }
+
+                    await File.WriteAllBytesAsync(filePath, textureBytes);
                     successfulExports++;
                 } 
                 catch (Exception ex)
