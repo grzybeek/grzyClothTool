@@ -16,7 +16,9 @@
              Foreground="{DynamicResource Brush950}"
              VerticalContentAlignment="Bottom"
              HorizontalContentAlignment="{Binding HorizontalAlignment, ElementName=MyModernLabelTextBox}" 
-             Text="{Binding Text, ElementName=MyModernLabelTextBox}" 
+             Text="{Binding Text, ElementName=MyModernLabelTextBox, UpdateSourceTrigger=PropertyChanged}" 
+             PreviewTextInput="MyText_PreviewTextInput"
+             TextChanged="MyText_TextChanged"
              FontSize="{Binding FontSize, ElementName=MyModernLabelTextBox}">
         <TextBox.Style>
             <Style>

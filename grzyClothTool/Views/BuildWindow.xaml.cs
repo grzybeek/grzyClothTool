@@ -27,7 +27,20 @@ namespace grzyClothTool.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public string ProjectName { get; set; } = MainWindow.AddonManager.ProjectName;
+        private string _projectName = MainWindow.AddonManager.ProjectName;
+        public string ProjectName
+        {
+            get => _projectName;
+            set
+            {
+                if (_projectName != value)
+                {
+                    _projectName = value;
+                    OnPropertyChanged(nameof(ProjectName));
+                    RefreshBuildState();
+                }
+            }
+        }
 
         private bool _isBuilding;
         public bool IsBuilding
@@ -141,15 +154,16 @@ namespace grzyClothTool.Views
         {
             split_addons.IsEnabled = MainWindow.AddonManager.Addons.Count > 1;
 
-            CheckAddons();
+            RefreshBuildState();
         }
 
-        private void CheckAddons()
+        private void RefreshBuildState()
         {
-            if (string.IsNullOrEmpty(ProjectName))
+            var projectNameError = ValidateProjectName();
+            if (projectNameError != null)
             {
                 IsWarningVisible = true;
-                WarningMessage = "No project loaded. Please create or open a project first.";
+                WarningMessage = projectNameError;
                 CanBuild = false;
                 return;
             }
@@ -168,7 +182,12 @@ namespace grzyClothTool.Views
                 IsWarningVisible = true;
                 WarningMessage = "No drawables found. Add drawables to be able to build resource.";
                 CanBuild = false;
+                return;
             }
+
+            IsWarningVisible = false;
+            WarningMessage = null;
+            CanBuild = true;
         }
 
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
@@ -201,10 +220,9 @@ namespace grzyClothTool.Views
 
         private async void build_MyBtnClickEvent(object sender, RoutedEventArgs e)
         {
-            var error = ValidateProjectName();
-            if (error != null)
+            RefreshBuildState();
+            if (!CanBuild)
             {
-                MessageBox.Show(error);
                 return;
             }
 
@@ -307,7 +325,6 @@ namespace grzyClothTool.Views
             else if (!Regex.IsMatch(ProjectName, @"^[a-z0-9_]+$"))
             {
                 result = "Project name can only contain lowercase letters, numbers, and underscores";
-
             }
 
             return result;

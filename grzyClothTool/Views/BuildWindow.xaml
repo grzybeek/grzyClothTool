@@ -51,7 +51,8 @@
                 Margin="15,15,15,0"
                 VerticalAlignment="Top"
                 HorizontalAlignment="Stretch"
-                Text="{Binding ProjectName}" />
+                FilterMode="ProjectName"
+                Text="{Binding ProjectName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
             <c:ModernLabelTextBox 
                 x:Name="output"
