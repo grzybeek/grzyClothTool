@@ -1090,6 +1090,7 @@ namespace grzyClothTool.Controls
                 // Replace reserved drawable with new drawable
                 var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(SelectedDraw);
                 MainWindow.AddonManager.SelectedAddon.Drawables[index] = newDrawable;
+                DuplicateDetector.RegisterDrawable(newDrawable);
                 SaveHelper.SetUnsavedChanges(true);
             }
         }

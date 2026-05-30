@@ -603,6 +603,8 @@ public class GDrawable : INotifyPropertyChanged
         var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
 
+        DuplicateDetector.UnregisterDrawable(this);
+
         // change drawable to new type
         TypeNumeric = newTypeNumeric;
 
@@ -621,6 +623,8 @@ public class GDrawable : INotifyPropertyChanged
         var reserved = new GDrawableReserved(Sex, IsProp, TypeNumeric, Number);
         var index = MainWindow.AddonManager.SelectedAddon.Drawables.IndexOf(this);
     
+        DuplicateDetector.UnregisterDrawable(this);
+
         // change drawable sex
         Sex = newSexEnum;
 

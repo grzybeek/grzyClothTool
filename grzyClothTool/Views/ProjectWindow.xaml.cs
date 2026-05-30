@@ -450,6 +450,7 @@ namespace grzyClothTool.Views
             foreach(var drawable in drawables)
             {
                 var reserved = new GDrawableReserved(drawable.Sex, drawable.IsProp, drawable.TypeNumeric, drawable.Number);
+                DuplicateDetector.UnregisterDrawable(drawable);
 
                 //replace drawable with reserved in the same place
                 Addon.Drawables[Addon.Drawables.IndexOf(drawable)] = reserved;
