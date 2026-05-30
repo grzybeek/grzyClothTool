@@ -1299,9 +1299,6 @@ namespace grzyClothTool.Controls
 
             if (menuItem.DataContext is GTextureEmbedded texture)
             {
-                if (texture?.HasOriginalTexture != true)
-                    return;
-                    
                 embeddedTexture = texture;
                 if (Enum.TryParse<GDrawableDetails.EmbeddedTextureType>(texture.Details.Type, out var parsedType))
                 {
