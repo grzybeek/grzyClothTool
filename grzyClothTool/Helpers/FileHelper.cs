@@ -542,7 +542,7 @@ public static class FileHelper
                     }
                     else
                     {
-                        textureBytes = await ImgHelper.Optimize(texture, true);
+                        textureBytes = ImgHelper.GetDDSBytes(texture);
                     }
 
                     if (textureBytes == null)
@@ -560,12 +560,30 @@ public static class FileHelper
                     LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}.", LogType.Error);
                 } 
             }
+            else if (fileExtension == ".dds")
+            {
+                try
+                {
+                    byte[] textureBytes = ImgHelper.GetDDSFileBytes(texture);
+                    if (textureBytes.Length == 0)
+                    {
+                        LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: Texture is empty.", LogType.Error);
+                        return;
+                    }
+
+                    await File.WriteAllBytesAsync(filePath, textureBytes);
+                    successfulExports++;
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Could not save texture: {texture.DisplayName}. Error: {ex.Message}.", LogType.Error);
+                }
+            }
             else
             {
                 using var image = ImgHelper.GetImage(texture.FullFilePath);
                 image.Format = format.ToUpper() switch
                 {
-                    "DDS" => MagickFormat.Dds,
                     "PNG" => MagickFormat.Png,
                     _ => throw new ArgumentException($"Unsupported format for MagickImage: {format}", nameof(format))
                 };

@@ -2029,6 +2029,15 @@ namespace CodeWalker.Utils
                     // Check for D3DFORMAT enums being set here
                     switch (dwFourCC)
                     {
+                        case 21: // D3DFMT_A8R8G8B8
+                            return DXGI_FORMAT.DXGI_FORMAT_B8G8R8A8_UNORM;
+
+                        case 22: // D3DFMT_X8R8G8B8
+                            return DXGI_FORMAT.DXGI_FORMAT_B8G8R8X8_UNORM;
+
+                        case 32: // D3DFMT_A8B8G8R8
+                            return DXGI_FORMAT.DXGI_FORMAT_R8G8B8A8_UNORM;
+
                         case 36: // D3DFMT_A16B16G16R16
                             return DXGI_FORMAT.DXGI_FORMAT_R16G16B16A16_UNORM;
 

@@ -1347,6 +1347,13 @@ namespace grzyClothTool.Controls
 
         private CodeWalker.GameFiles.Texture LoadTextureAsEmbedded(string filePath, string textureType)
         {
+            if (string.Equals(Path.GetExtension(filePath), ".dds", StringComparison.OrdinalIgnoreCase))
+            {
+                var ddsTxt = DDSIO.GetTexture(File.ReadAllBytes(filePath));
+                ddsTxt.Name = Path.GetFileNameWithoutExtension(filePath);
+                return ddsTxt;
+            }
+
             var img = ImgHelper.GetImage(filePath);
             if (img == null)
             {

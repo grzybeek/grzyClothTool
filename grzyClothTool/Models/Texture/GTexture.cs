@@ -1,4 +1,5 @@
 ﻿using CodeWalker.GameFiles;
+using CodeWalker.Utils;
 using grzyClothTool.Helpers;
 using ImageMagick;
 using System;
@@ -338,7 +339,31 @@ public class GTexture : INotifyPropertyChanged
                 Type = "diffuse"
             };
         }
-        else if (extension == ".jpg" || extension == ".png" || extension == ".dds")
+        else if (extension == ".dds")
+        {
+            try
+            {
+                var txt = DDSIO.GetTexture(bytes);
+                if (txt != null)
+                {
+                    return new GTextureDetails
+                    {
+                        MipMapCount = txt.Levels,
+                        Compression = txt.Format.ToString(),
+                        Width = txt.Width,
+                        Height = txt.Height,
+                        Name = Path.GetFileNameWithoutExtension(path),
+                        Type = "diffuse"
+                    };
+                }
+            }
+            catch
+            {
+                // Fall back to ImageMagick so partially supported DDS files can still show basic details.
+            }
+        }
+
+        if (extension == ".jpg" || extension == ".png" || extension == ".dds")
         {
             using var img = new MagickImage(bytes);
 
@@ -356,4 +381,3 @@ public class GTexture : INotifyPropertyChanged
         return null;
     }
 }
-

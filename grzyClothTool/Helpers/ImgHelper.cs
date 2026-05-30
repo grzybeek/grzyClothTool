@@ -67,6 +67,11 @@ public static class ImgHelper
     {
         try
         {
+            if (shouldSkipOptimization && gtxt.Extension == ".dds")
+            {
+                return GetDDSBytes(gtxt);
+            }
+
             var ytd = new YtdFile
             {
                 TextureDict = new TextureDictionary()
@@ -156,6 +161,39 @@ public static class ImgHelper
         ytd.TextureDict.BuildFromTextureList([newTxt]);
 
         return ytd.Save();
+    }
+
+    public static byte[] GetDDSFileBytes(GTexture gtxt)
+    {
+        if (gtxt.Extension == ".dds")
+        {
+            return File.ReadAllBytes(gtxt.FullFilePath);
+        }
+
+        if (gtxt.Extension == ".ytd")
+        {
+            var ytd = new YtdFile();
+            ytd.Load(File.ReadAllBytes(gtxt.FullFilePath));
+            if (ytd.TextureDict.Textures.Count == 0)
+            {
+                return [];
+            }
+
+            return CodeWalker.Utils.DDSIO.GetDDSFile(ytd.TextureDict.Textures[0]);
+        }
+
+        if (gtxt.Extension == ".jpg" || gtxt.Extension == ".png")
+        {
+            using var img = GetImage(gtxt.FullFilePath);
+            img.Format = MagickFormat.Dds;
+
+            var stream = new MemoryStream();
+            img.Write(stream);
+
+            return stream.ToArray();
+        }
+
+        throw new NotSupportedException($"Unsupported file extension: {gtxt.Extension}");
     }
 
     private static string GetCompressionString(string cwCompression)
