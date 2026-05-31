@@ -176,7 +176,8 @@
             <RadioButton x:Name="SelfContainedRadio"
                          IsChecked="{Binding IsSelfContained}"
                          Style="{StaticResource ProjectTypeCard}"
-                         GroupName="ProjectType">
+                         GroupName="ProjectType"
+                         AutomationProperties.Name="Self-contained">
                 <StackPanel>
                     <TextBlock Text="Self-contained"
                                FontSize="14"
@@ -193,7 +194,8 @@
             <RadioButton x:Name="ExternalRadio"
                          IsChecked="{Binding IsExternal}"
                          Style="{StaticResource ProjectTypeCard}"
-                         GroupName="ProjectType">
+                         GroupName="ProjectType"
+                         AutomationProperties.Name="External">
                 <StackPanel>
                     <TextBlock Text="External"
                                FontSize="14"

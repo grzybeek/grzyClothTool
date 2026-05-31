@@ -81,7 +81,7 @@ public class SaveBackupFile
 
     static SaveHelper()
     {
-        var appdataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var appdataPath = AppDataHelper.GetLocalAppDataPath();
         var exeName = Assembly.GetExecutingAssembly().GetName().Name;
 
         SavesPath = Path.Combine(appdataPath, exeName, "saves");

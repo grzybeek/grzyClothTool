@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="grzyClothTool.Views.ProjectWindow"
+<UserControl x:Class="grzyClothTool.Views.ProjectWindow"
 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -268,7 +268,7 @@ mc:Ignorable="d">
                     </Grid.ColumnDefinitions>
 
                     <c:CustomButton Grid.Column="0" 
-                                   Label="ADD DRAWABLES" 
+                                   Label="ADD DRAWABLES" AutomationProperties.AutomationId="ADD DRAWABLES" 
                                    MyBtnClickEvent="Add_DrawableAutoFile" 
                                    Padding="2,8" 
                                    CornerRadius="5" 

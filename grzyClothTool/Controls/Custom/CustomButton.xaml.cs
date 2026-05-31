@@ -104,14 +104,12 @@ namespace grzyClothTool.Controls
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Button clickedBtn = sender as Button;
-
-            BtnClickEventArgs args = new(BtnClickEvent);
-            RaiseEvent(args);
+            RaiseButtonClick();
         }
 
-        public class BtnClickEventArgs(RoutedEvent routedEvent) : RoutedEventArgs(routedEvent)
+        internal void RaiseButtonClick()
         {
+            RaiseEvent(new RoutedEventArgs(BtnClickEvent));
         }
     }
 }

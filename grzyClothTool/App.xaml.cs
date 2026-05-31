@@ -31,7 +31,7 @@ namespace grzyClothTool
         private Thread SplashThread;
         private static readonly SentryHttpMessageHandler httpHandler = new();
         public static readonly HttpClient httpClient = new(httpHandler);
-        private static readonly string pluginsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "grzyClothTool", "plugins");
+        private static readonly string pluginsPath = Path.Combine(Helpers.AppDataHelper.GetLocalAppDataPath(), "grzyClothTool", "plugins");
 
         [ImportMany]
         public IEnumerable<Lazy<IPlugin, IPluginMetadata>> plugins;

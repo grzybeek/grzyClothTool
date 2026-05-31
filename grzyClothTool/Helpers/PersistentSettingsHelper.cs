@@ -22,10 +22,7 @@ public class PersistentSettingsHelper
 
     private PersistentSettingsHelper()
     {
-        _settingsDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "grzyClothTool"
-        );
+        _settingsDirectory = Path.Combine(AppDataHelper.GetLocalAppDataPath(), "grzyClothTool");
         _settingsFilePath = Path.Combine(_settingsDirectory, "settings.json");
         
         LoadSettings();
