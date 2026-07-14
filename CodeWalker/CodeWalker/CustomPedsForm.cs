@@ -1072,8 +1072,8 @@ namespace CodeWalker
             {
                 return Convert.ToInt32(settings[index]);
             }
-            return 0;
-        }
+                return 0;
+            }
 
         public void UpdateSelectedDrawable(Drawable d, TextureDictionary t, Dictionary<string, string> updates)
         {
@@ -1133,14 +1133,18 @@ namespace CodeWalker
             {
                 int polycount = 0;
                 int vertcount = 0;
-                foreach (var model in Renderer.SelDrawable.DrawableModels.High)
+                var highModels = Renderer.SelDrawable.DrawableModels?.High;
+                if (highModels != null)
                 {
-                    if (model.Geometries != null)
+                    foreach (var model in highModels)
                     {
-                        foreach (var geom in model.Geometries)
+                        if (model.Geometries != null)
                         {
-                            polycount += (int)(geom.IndicesCount / 3);
-                            vertcount += geom.VerticesCount;
+                            foreach (var geom in model.Geometries)
+                            {
+                                polycount += (int)(geom.IndicesCount / 3);
+                                vertcount += geom.VerticesCount;
+                            }
                         }
                     }
                 }

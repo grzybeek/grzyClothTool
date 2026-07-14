@@ -320,6 +320,7 @@ namespace grzyClothTool.Controls
                     CodeWalker.GameFiles.Drawable firstDrawable;
                     CodeWalker.GameFiles.YtdFile ytd = null;
 
+                    // Load the geometry (YDD). If this fails there is nothing to render, so skip it.
                     try
                     {
                         var ydd = CWHelper.CreateYddFile(drawable);
@@ -330,7 +331,19 @@ namespace grzyClothTool.Controls
                         }
 
                         firstDrawable = ydd.Drawables.First();
+                    }
+                    catch (Exception ex)
+                    {
+                        RemoveLoadedDrawable(drawable.Name);
+                        LogHelper.Log($"Skipped drawable '{drawable.Name}' in 3D preview: {ex.Message}", Views.LogType.Warning);
+                        continue;
+                    }
 
+                    // Load the texture separately. A missing/broken texture (e.g. the source image
+                    // was moved or deleted in an external project) must NOT drop the whole drawable -
+                    // it should still render, just untextured, with a clear warning.
+                    try
+                    {
                         var textureForDrawable = selectedTexture != null && drawable.Textures.Contains(selectedTexture)
                             ? selectedTexture
                             : drawable.Textures.FirstOrDefault();
@@ -342,27 +355,36 @@ namespace grzyClothTool.Controls
                     }
                     catch (Exception ex)
                     {
+                        ytd = null;
+                        LogHelper.Log($"Could not load texture for '{drawable.Name}' in 3D preview; it will show untextured: {ex.Message}", Views.LogType.Warning);
+                    }
+
+                   
+                    try
+                    {
+                        if (_customPedsForm.LoadedDrawables.TryGetValue(drawable.Name, out var existingDrawable))
+                        {
+                            _customPedsForm.LoadedTextures.Remove(existingDrawable);
+                        }
+
+                        _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
+                        if (ytd?.TextureDict != null)
+                        {
+                            _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
+                        }
+
+                        _customPedsForm.UpdateSelectedDrawable(
+                            firstDrawable,
+                            ytd?.TextureDict,
+                            updateDict
+                        );
+                    }
+                    catch (Exception ex)
+                    {
                         RemoveLoadedDrawable(drawable.Name);
                         LogHelper.Log($"Skipped drawable '{drawable.Name}' in 3D preview: {ex.Message}", Views.LogType.Warning);
                         continue;
                     }
-
-                    if (_customPedsForm.LoadedDrawables.TryGetValue(drawable.Name, out var existingDrawable))
-                    {
-                        _customPedsForm.LoadedTextures.Remove(existingDrawable);
-                    }
-
-                    _customPedsForm.LoadedDrawables[drawable.Name] = firstDrawable;
-                    if (ytd?.TextureDict != null)
-                    {
-                        _customPedsForm.LoadedTextures[firstDrawable] = ytd.TextureDict;
-                    }
-
-                    _customPedsForm.UpdateSelectedDrawable(
-                        firstDrawable,
-                        ytd?.TextureDict,
-                        updateDict
-                    );
                 }
 
                 _customPedsForm.Refresh();

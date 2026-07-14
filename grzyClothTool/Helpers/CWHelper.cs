@@ -15,9 +15,7 @@ public static class CWHelper
     public static PreviewWindowHost DockedPreviewHost;
     public static string GTAVPath => GTAFolder.GetCurrentGTAFolderWithTrailingSlash();
 
-    private static readonly YtdFile _ytdFile = new();
-
-    private static Enums.SexType PrevDrawableSex;
+    private static Enums.SexType? PrevDrawableSex;
 
     public static void Init()
     {
@@ -39,12 +37,30 @@ public static class CWHelper
 
     public static YtdFile GetYtdFile(string path)
     {
-        _ytdFile.Load(File.ReadAllBytes(path));
-        return _ytdFile;
+        if (!File.Exists(path))
+        {
+            throw new FileNotFoundException(
+                $"YTD file not found: '{path}'. It may have been moved, renamed, or deleted.",
+                path);
+        }
+
+        var ytdFile = new YtdFile();
+        ytdFile.Load(File.ReadAllBytes(path));
+        return ytdFile;
     }
 
     public static YtdFile CreateYtdFile(GTexture texture, string name)
     {
+        // Give a clear, actionable error when the source file is gone (common for external
+        // projects when the user moves/renames/deletes the original image). Without this the
+        // caller only sees a cryptic native ImageMagick "unable to open" error.
+        if (!File.Exists(texture.FullFilePath))
+        {
+            throw new FileNotFoundException(
+                $"Texture file not found: '{texture.FullFilePath}'. It may have been moved, renamed, or deleted.",
+                texture.FullFilePath);
+        }
+
         byte[] data = texture.Extension switch
         {
             ".ytd" => File.ReadAllBytes(texture.FullFilePath), // Read existing YTD file directly
