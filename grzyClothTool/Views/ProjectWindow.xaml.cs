@@ -107,12 +107,21 @@ namespace grzyClothTool.Views
             if (files.ShowDialog() == true)
             {
                 ProgressHelper.Start();
-                LogHelper.Log($"Scanning files to add...", LogType.Info);
 
-                await MainWindow.AddonManager.AddDrawables(files.FileNames, sexBtn);
+                try
+                {
+                    LogHelper.Log($"Scanning files to add...", LogType.Info);
 
-                ProgressHelper.Stop("Added drawables in {0}", true);
-                SaveHelper.SetUnsavedChanges(true);
+                    await MainWindow.AddonManager.AddDrawables(files.FileNames, sexBtn);
+
+                    ProgressHelper.Stop("Added drawables in {0}", true);
+                    SaveHelper.SetUnsavedChanges(true);
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Error adding drawables: {ex.Message}", LogType.Error);
+                    ProgressHelper.Stop("Failed to add drawables", false);
+                }
             }
         }
 
@@ -313,26 +322,35 @@ namespace grzyClothTool.Views
                 .ToArray();
 
             ProgressHelper.Start();
-            LogHelper.Log($"Adding {files.Count} drawable file(s): {maleFiles.Length} male, {femaleFiles.Length} female.", LogType.Info);
 
-            if (maleFiles.Length > 0)
+            try
             {
-                var maleTypes = resolution.DrawableTypes
-                    .Where(x => maleFiles.Contains(x.Key))
-                    .ToDictionary(x => x.Key, x => x.Value);
-                await MainWindow.AddonManager.AddDrawables(maleFiles, Enums.SexType.male, resolvedDrawableTypes: maleTypes);
-            }
+                LogHelper.Log($"Adding {files.Count} drawable file(s): {maleFiles.Length} male, {femaleFiles.Length} female.", LogType.Info);
 
-            if (femaleFiles.Length > 0)
+                if (maleFiles.Length > 0)
+                {
+                    var maleTypes = resolution.DrawableTypes
+                        .Where(x => maleFiles.Contains(x.Key))
+                        .ToDictionary(x => x.Key, x => x.Value);
+                    await MainWindow.AddonManager.AddDrawables(maleFiles, Enums.SexType.male, resolvedDrawableTypes: maleTypes);
+                }
+
+                if (femaleFiles.Length > 0)
+                {
+                    var femaleTypes = resolution.DrawableTypes
+                        .Where(x => femaleFiles.Contains(x.Key))
+                        .ToDictionary(x => x.Key, x => x.Value);
+                    await MainWindow.AddonManager.AddDrawables(femaleFiles, Enums.SexType.female, resolvedDrawableTypes: femaleTypes);
+                }
+
+                ProgressHelper.Stop("Added drawables in {0}", true);
+                SaveHelper.SetUnsavedChanges(true);
+            }
+            catch (Exception ex)
             {
-                var femaleTypes = resolution.DrawableTypes
-                    .Where(x => femaleFiles.Contains(x.Key))
-                    .ToDictionary(x => x.Key, x => x.Value);
-                await MainWindow.AddonManager.AddDrawables(femaleFiles, Enums.SexType.female, resolvedDrawableTypes: femaleTypes);
+                LogHelper.Log($"Error adding drawables: {ex.Message}", LogType.Error);
+                ProgressHelper.Stop("Failed to add drawables", false);
             }
-
-            ProgressHelper.Stop("Added drawables in {0}", true);
-            SaveHelper.SetUnsavedChanges(true);
         }
 
         private sealed class DrawableImportResolution

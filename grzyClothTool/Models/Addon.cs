@@ -284,7 +284,7 @@ public class Addon : INotifyPropertyChanged
             OnPropertyChanged(nameof(IsMultipleDrawablesSelected));
         };
 
-        MainWindow.AddonManager.MoveMenuItems.Add(new MoveMenuItem() { Header = name, IsEnabled = true });
+        MainWindow.AddonManager?.MoveMenuItems.Add(new MoveMenuItem() { Header = name, IsEnabled = true });
 
         if (name == "design")
         {

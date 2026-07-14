@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -71,13 +72,10 @@ public class SaveBackupFile
     public static bool HasUnsavedChanges { get; set; }
     public static bool SavingPaused { get; set; }
 
-    public static JsonSerializerOptions SerializerOptions
-    {
-        get 
-        { 
-            return new JsonSerializerOptions { WriteIndented = true };
-        }
-    }
+   
+    private static readonly JsonSerializerOptions _serializerOptions = new() { WriteIndented = false };
+
+    public static JsonSerializerOptions SerializerOptions => _serializerOptions;
 
     static SaveHelper()
     {
@@ -95,15 +93,36 @@ public class SaveBackupFile
         _timer.Start();
     }
 
+    private static int _pausedWithChangesTime = 0;
+    private static bool _pausedWarningLogged = false;
+
     private static async void OnAutoSaveTick(object sender, System.Timers.ElapsedEventArgs e)
     {
         if (SavingPaused || !HasUnsavedChanges)
         {
+            if (SavingPaused && HasUnsavedChanges)
+            {
+                _pausedWithChangesTime += (int)_timer.Interval;
+                if (!_pausedWarningLogged && _pausedWithChangesTime >= _autoSaveInterval)
+                {
+                    _pausedWarningLogged = true;
+                    LogHelper.Log("Auto-save has been paused for over a minute while changes are pending. It will resume when the current operation finishes.", Views.LogType.Warning);
+                }
+            }
+            else
+            {
+                _pausedWithChangesTime = 0;
+                _pausedWarningLogged = false;
+            }
+
             _elapsedTime = 0;
             AutoSaveProgress?.Invoke(0);
             RemainingSecondsChanged?.Invoke(0);
             return;
         }
+
+        _pausedWithChangesTime = 0;
+        _pausedWarningLogged = false;
 
         _elapsedTime += (int)_timer.Interval;
         double percentage = ((double)_elapsedTime / _autoSaveInterval) * 75.0;
@@ -132,54 +151,35 @@ public class SaveBackupFile
             timer.Start();
             LogHelper.Log("Started saving...");
 
-            string json;
-            lock (AddonManager.AddonsLock)
-            {
-                MainWindow.AddonManager.Groups.Clear();
-                foreach (var group in GroupManager.Instance.Groups)
-                {
-                    MainWindow.AddonManager.Groups.Add(group);
-                }
-
-                json = JsonSerializer.Serialize(MainWindow.AddonManager, SerializerOptions);
-            }
-
-            var saveSucceeded = false;
             try
             {
                 var mainProjectsFolder = PersistentSettingsHelper.Instance.MainProjectsFolder;
                 var projectName = MainWindow.AddonManager.ProjectName;
                 var isExternalProject = MainWindow.AddonManager.IsExternalProject;
 
-                if (!string.IsNullOrEmpty(mainProjectsFolder) && 
-                    !string.IsNullOrEmpty(projectName) && 
-                    Directory.Exists(mainProjectsFolder))
-                {
-                    var projectFolder = Path.Combine(mainProjectsFolder, projectName);
-                    Directory.CreateDirectory(projectFolder);
-
-                    var saveFileName = GetSaveFileName(isExternalProject);
-                    var autoSavePath = Path.Combine(projectFolder, saveFileName);
-                    await RotateSaveBackupAsync(autoSavePath);
-                    await WriteSaveFileAtomicallyAsync(autoSavePath, json);
-
-                    LogHelper.Log($"Auto-saved to {autoSavePath} in {timer.ElapsedMilliseconds}ms");
-                    saveSucceeded = true;
-                }
-                else
+                if (string.IsNullOrEmpty(mainProjectsFolder) ||
+                    string.IsNullOrEmpty(projectName) ||
+                    !Directory.Exists(mainProjectsFolder))
                 {
                     LogHelper.Log("Could not auto-save: Project folder not configured or project name not set", Views.LogType.Warning);
+                    return;
                 }
+
+                var projectFolder = Path.Combine(mainProjectsFolder, projectName);
+                Directory.CreateDirectory(projectFolder);
+
+                var saveFileName = GetSaveFileName(isExternalProject);
+                var autoSavePath = Path.Combine(projectFolder, saveFileName);
+                await RotateSaveBackupAsync(autoSavePath);
+                await WriteSaveFileAtomicallyAsync(autoSavePath);
+
+                LogHelper.Log($"Auto-saved to {autoSavePath} in {timer.ElapsedMilliseconds}ms");
+                SaveCreated?.Invoke();
+                SetUnsavedChanges(false);
             }
             catch (Exception ex)
             {
                 LogHelper.Log($"Auto-save failed: {ex.Message}", Views.LogType.Error);
-            }
-
-            if (saveSucceeded)
-            {
-                SaveCreated?.Invoke();
-                SetUnsavedChanges(false);
             }
         }
         finally
@@ -293,8 +293,13 @@ public class SaveBackupFile
         {
             FileHelper.SetLoadContext(filePath);
 
-            var json = await File.ReadAllTextAsync(filePath);
-            var addonManager = JsonSerializer.Deserialize<AddonManager>(json, SerializerOptions) ?? throw new InvalidOperationException("Failed to deserialize save file.");
+            AddonManager addonManager;
+            await using (var stream = File.OpenRead(filePath))
+            {
+                addonManager = await Task.Run(async () =>
+                    await JsonSerializer.DeserializeAsync<AddonManager>(stream, SerializerOptions))
+                    ?? throw new InvalidOperationException("Failed to deserialize save file.");
+            }
 
             var fileName = Path.GetFileName(filePath);
             var isExternalFromFileName = fileName.Equals(AutoSaveExternalFileName, StringComparison.OrdinalIgnoreCase);
@@ -350,18 +355,46 @@ public class SaveBackupFile
                 isExternal: isExternalProject
             );
 
-            LogHelper.Log("Scanning project for duplicate drawables...");
+            LogHelper.Log("Scanning project for duplicate drawables in the background...");
             DuplicateDetector.Clear();
+            var scanVersion = DuplicateDetector.Version;
+            var drawablesToScan = MainWindow.AddonManager.Addons.SelectMany(a => a.Drawables).ToList();
+
             
-            foreach (var addon in MainWindow.AddonManager.Addons)
+            _ = Task.Run(async () =>
             {
-                foreach (var drawable in addon.Drawables)
+                try
                 {
-                    DuplicateDetector.RegisterDrawable(drawable);
+                    var loadTasks = drawablesToScan.Where(d => !d.IsReserved).Select(d => d.DetailsLoaded).ToArray();
+                    var allLoaded = Task.WhenAll(loadTasks);
+                    await Task.WhenAny(allLoaded, Task.Delay(TimeSpan.FromMinutes(5)));
+
+                    await MainWindow.Instance.Dispatcher.InvokeAsync(() =>
+                    {
+                        if (DuplicateDetector.Version != scanVersion)
+                        {
+                            return;
+                        }
+
+                        foreach (var drawable in drawablesToScan)
+                        {
+                            DuplicateDetector.RegisterDrawable(drawable);
+                        }
+
+                        LogHelper.Log($"Duplicate scan complete. Found {DuplicateDetector.GetDuplicateGroupCount()} duplicate drawable groups.");
+                    }, System.Windows.Threading.DispatcherPriority.Background);
+
+                    // Loading parses many YDD files whose buffers land on the large object heap;
+                    // compact it once so the freed memory is actually returned to the OS.
+                    GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+                    GC.Collect();
                 }
-            }
-            
-            LogHelper.Log($"Duplicate scan complete. Found {DuplicateDetector.GetDuplicateGroupCount()} duplicate drawable groups.");
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Background duplicate scan failed: {ex.Message}", Views.LogType.Warning);
+                }
+            });
+
             LogHelper.Log($"Loaded save from: {filePath}");
         }
         finally
@@ -395,17 +428,33 @@ public class SaveBackupFile
         }
     }
 
-    private static async Task WriteSaveFileAtomicallyAsync(string saveFilePath, string json)
+    private static async Task WriteSaveFileAtomicallyAsync(string saveFilePath)
     {
         var projectFolder = Path.GetDirectoryName(saveFilePath) ?? throw new InvalidOperationException("Save file has no parent folder.");
         var tempPath = Path.Combine(projectFolder, $"{Path.GetFileName(saveFilePath)}.{Guid.NewGuid():N}.tmp");
 
         try
         {
-            await File.WriteAllTextAsync(tempPath, json);
+            // Serialize straight to the temp file instead of building a multi-MB string first.
+            using (var stream = File.Create(tempPath))
+            {
+                lock (AddonManager.AddonsLock)
+                {
+                    MainWindow.AddonManager.Groups.Clear();
+                    foreach (var group in GroupManager.Instance.Groups)
+                    {
+                        MainWindow.AddonManager.Groups.Add(group);
+                    }
 
-            _ = JsonSerializer.Deserialize<AddonManager>(json, SerializerOptions)
-                ?? throw new InvalidOperationException("Generated save data could not be validated.");
+                    JsonSerializer.Serialize(stream, MainWindow.AddonManager, SerializerOptions);
+                }
+            }
+
+            
+            await using (var validationStream = File.OpenRead(tempPath))
+            {
+                using var _ = await JsonDocument.ParseAsync(validationStream);
+            }
 
             if (File.Exists(saveFilePath))
             {

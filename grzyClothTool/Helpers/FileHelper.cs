@@ -620,9 +620,16 @@ public static class FileHelper
             }
         });
 
-        await Task.WhenAll(tasks);
-
-        ProgressHelper.Stop($"Exported {successfulExports} texture(s) in {{0}}", true);
+        try
+        {
+            await Task.WhenAll(tasks);
+            ProgressHelper.Stop($"Exported {successfulExports} texture(s) in {{0}}", true);
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Texture export failed: {ex.Message}", LogType.Error);
+            ProgressHelper.Stop("Texture export failed", false);
+        }
     }
 
     public static async Task SaveDrawablesAsync(List<GDrawable> drawables, string folderPath)
@@ -656,8 +663,15 @@ public static class FileHelper
             }
         });
 
-        await Task.WhenAll(tasks);
-
-        ProgressHelper.Stop($"Exported {successfulExports} drawable(s) in {{0}}", true);
+        try
+        {
+            await Task.WhenAll(tasks);
+            ProgressHelper.Stop($"Exported {successfulExports} drawable(s) in {{0}}", true);
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Drawable export failed: {ex.Message}", LogType.Error);
+            ProgressHelper.Stop("Drawable export failed", false);
+        }
     }
 }

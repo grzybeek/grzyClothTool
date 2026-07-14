@@ -415,21 +415,30 @@ namespace grzyClothTool
 
             ProgressHelper.Start("Started loading addon");
 
-            AddonManager.Addons = [];
-            AddonManager.IsExternalProject = !dialog.IsSelfContained;
-            DuplicateDetector.Clear();
-
-            foreach (var metaFile in validMetaFiles)
+            try
             {
-                await AddonManager.LoadAddon(metaFile, shouldSetProjectName);
+                AddonManager.Addons = [];
+                AddonManager.IsExternalProject = !dialog.IsSelfContained;
+                DuplicateDetector.Clear();
+
+                foreach (var metaFile in validMetaFiles)
+                {
+                    await AddonManager.LoadAddon(metaFile, shouldSetProjectName);
+                }
+
+                AddonManager.ProjectName = dialog.ProjectName;
+
+                var projectType = dialog.IsSelfContained ? "Self-contained" : "External";
+                ProgressHelper.Stop($"{projectType} addon loaded in {{0}}", true);
+                SaveHelper.SetUnsavedChanges(true);
+                return true;
             }
-
-            AddonManager.ProjectName = dialog.ProjectName;
-
-            var projectType = dialog.IsSelfContained ? "Self-contained" : "External";
-            ProgressHelper.Stop($"{projectType} addon loaded in {{0}}", true);
-            SaveHelper.SetUnsavedChanges(true);
-            return true;
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to load addon: {ex.Message}", Views.LogType.Error);
+                ProgressHelper.Stop("Failed to load addon", false);
+                return false;
+            }
         }
 
         public async Task AddAddonAsync(bool shouldSetProjectName = false)
@@ -445,28 +454,36 @@ namespace grzyClothTool
             {
                 ProgressHelper.Start("Started adding addon");
 
-                // Import addon - add to existing addons instead of replacing
-                foreach (var dir in metaFiles.FileNames)
+                try
                 {
-                    using (var reader = new StreamReader(dir))
+                    // Import addon - add to existing addons instead of replacing
+                    foreach (var dir in metaFiles.FileNames)
                     {
-                        string firstLine = await reader.ReadLineAsync();
-                        string secondLine = await reader.ReadLineAsync();
-
-                        //Check two first lines if it contains "ShopPedApparel"
-                        if ((firstLine == null || !firstLine.Contains("ShopPedApparel")) &&
-                            (secondLine == null || !secondLine.Contains("ShopPedApparel")))
+                        using (var reader = new StreamReader(dir))
                         {
-                            LogHelper.Log($"Skipped file {dir} as it is probably not a correct .meta file");
-                            return;
+                            string firstLine = await reader.ReadLineAsync();
+                            string secondLine = await reader.ReadLineAsync();
+
+                            //Check two first lines if it contains "ShopPedApparel"
+                            if ((firstLine == null || !firstLine.Contains("ShopPedApparel")) &&
+                                (secondLine == null || !secondLine.Contains("ShopPedApparel")))
+                            {
+                                LogHelper.Log($"Skipped file {dir} as it is probably not a correct .meta file");
+                                continue;
+                            }
                         }
+
+                        await AddonManager.LoadAddon(dir, shouldSetProjectName);
                     }
 
-                    await AddonManager.LoadAddon(dir, shouldSetProjectName);
+                    ProgressHelper.Stop("Addon added in {0}", true);
+                    SaveHelper.SetUnsavedChanges(true);
                 }
-
-                ProgressHelper.Stop("Addon added in {0}", true);
-                SaveHelper.SetUnsavedChanges(true);
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Failed to add addon: {ex.Message}", Views.LogType.Error);
+                    ProgressHelper.Stop("Failed to add addon", false);
+                }
             }
         }
 
@@ -489,48 +506,58 @@ namespace grzyClothTool
             {
                 ProgressHelper.Start($"Started importing {openFileDialog.SafeFileName}");
 
-                var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["import"]);
-                Directory.CreateDirectory(tempPath);
-
-                var selectedPath = openFileDialog.FileName;
-                var projectName = Path.GetFileNameWithoutExtension(selectedPath);
-
-                if (shouldSetProjectName)
+                try
                 {
-                    AddonManager.ProjectName = projectName;
+                    var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["import"]);
+                    Directory.CreateDirectory(tempPath);
+
+                    var selectedPath = openFileDialog.FileName;
+                    var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+
+                    if (shouldSetProjectName)
+                    {
+                        AddonManager.ProjectName = projectName;
+                    }
+
+                    var buildPath = Path.Combine(tempPath, projectName + "_" + DateTime.UtcNow.Ticks.ToString());
+
+                    var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
+
+                    await ObfuscationHelper.XORFile(selectedPath, zipPath);
+                    await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, buildPath));
+
+                    if (File.Exists(zipPath))
+                    {
+                        //delete zip after extract
+                        File.Delete(zipPath);
+                    }
+
+                    var metaFiles = Directory.GetFiles(buildPath, "*.meta", SearchOption.TopDirectoryOnly)
+                             .Where(file => file.Contains("mp_m_freemode") || file.Contains("mp_f_freemode"))
+                             .ToList();
+
+                    if (metaFiles.Count == 0)
+                    {
+                        LogHelper.Log("No meta files found in project file, this shouldn't happen, please report it to developer on discord");
+                        ProgressHelper.Stop("Project import failed", false);
+                        return false;
+                    }
+
+                    foreach (var metaFile in metaFiles)
+                    {
+                        await AddonManager.LoadAddon(metaFile);
+                    }
+
+                    ProgressHelper.Stop("Project imported in {0}", true);
+                    SaveHelper.SetUnsavedChanges(true);
+                    return true;
                 }
-
-                var buildPath = Path.Combine(tempPath, projectName + "_" + DateTime.UtcNow.Ticks.ToString());
-
-                var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
-
-                await ObfuscationHelper.XORFile(selectedPath, zipPath);
-                await Task.Run(() => ZipFile.ExtractToDirectory(zipPath, buildPath));
-
-                if (File.Exists(zipPath))
+                catch (Exception ex)
                 {
-                    //delete zip after extract
-                    File.Delete(zipPath);
-                }
-
-                var metaFiles = Directory.GetFiles(buildPath, "*.meta", SearchOption.TopDirectoryOnly)
-                         .Where(file => file.Contains("mp_m_freemode") || file.Contains("mp_f_freemode"))
-                         .ToList();
-
-                if (metaFiles.Count == 0)
-                {
-                    LogHelper.Log("No meta files found in project file, this shouldn't happen, please report it to developer on discord");
+                    LogHelper.Log($"Failed to import project: {ex.Message}", Views.LogType.Error);
+                    ProgressHelper.Stop("Failed to import project", false);
                     return false;
                 }
-
-                foreach (var metaFile in metaFiles)
-                {
-                    await AddonManager.LoadAddon(metaFile);
-                }
-
-                ProgressHelper.Stop("Project imported in {0}", true);
-                SaveHelper.SetUnsavedChanges(true);
-                return true;
             }
 
             return false;
@@ -553,30 +580,38 @@ namespace grzyClothTool
             {
                 ProgressHelper.Start("Started exporting project");
 
-                var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["export"]);
-
-                var selectedPath = saveFileDialog.FileName;
-                var projectName = Path.GetFileNameWithoutExtension(selectedPath);
-                var buildPath = Path.Combine(tempPath, projectName);
-
-                var bHelper = new BuildResourceHelper(projectName, buildPath, new Progress<int>(), BuildResourceType.FiveM, false);
-                await bHelper.BuildFiveMResource();
-
-                var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
-
-                if (File.Exists(zipPath))
+                try
                 {
-                    File.Delete(zipPath);
+                    var tempPath = Path.Combine(Path.GetTempPath(), TempFoldersNames["export"]);
+
+                    var selectedPath = saveFileDialog.FileName;
+                    var projectName = Path.GetFileNameWithoutExtension(selectedPath);
+                    var buildPath = Path.Combine(tempPath, projectName);
+
+                    var bHelper = new BuildResourceHelper(projectName, buildPath, new Progress<int>(), BuildResourceType.FiveM, false);
+                    await bHelper.BuildFiveMResource();
+
+                    var zipPath = Path.Combine(tempPath, $"{projectName}.zip");
+
+                    if (File.Exists(zipPath))
+                    {
+                        File.Delete(zipPath);
+                    }
+                    if (File.Exists(selectedPath))
+                    {
+                        File.Delete(selectedPath);
+                    }
+
+                    await Task.Run(() => ZipFile.CreateFromDirectory(buildPath, zipPath, CompressionLevel.Fastest, false));
+                    await ObfuscationHelper.XORFile(zipPath, selectedPath);
+
+                    ProgressHelper.Stop("Project exported in {0}", true);
                 }
-                if (File.Exists(selectedPath))
+                catch (Exception ex)
                 {
-                    File.Delete(selectedPath);
+                    LogHelper.Log($"Failed to export project: {ex.Message}", Views.LogType.Error);
+                    ProgressHelper.Stop("Failed to export project", false);
                 }
-
-                await Task.Run(() => ZipFile.CreateFromDirectory(buildPath, zipPath, CompressionLevel.Fastest, false));
-                await ObfuscationHelper.XORFile(zipPath, selectedPath);
-
-                ProgressHelper.Stop("Project exported in {0}", true);
             }
         }
 

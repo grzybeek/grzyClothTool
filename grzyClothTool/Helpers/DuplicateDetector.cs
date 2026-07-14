@@ -181,9 +181,12 @@ public static class DuplicateDetector
         return _drawableDuplicateGroups.TryGetValue(hash, out var group) ? group : null;
     }
 
+    public static long Version { get; private set; }
+
     public static void Clear()
     {
         _drawableDuplicateGroups.Clear();
+        Version++;
     }
 
     public static int GetDuplicateGroupCount()
