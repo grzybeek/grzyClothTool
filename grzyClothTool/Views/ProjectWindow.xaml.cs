@@ -436,6 +436,12 @@ namespace grzyClothTool.Views
             }
         }
 
+        private void DrawableList_DeleteRequested(object sender, EventArgs e)
+        {
+            // Right-click "Delete" routes here so it uses the same confirmation popup as the trash-bin button.
+            Delete_SelectedDrawable(sender, new RoutedEventArgs());
+        }
+
         private void Delete_SelectedDrawable(object sender, RoutedEventArgs e)
         {
             var count = Addon.SelectedDrawables.Count;

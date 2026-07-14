@@ -247,8 +247,9 @@ mc:Ignorable="d">
                                     <c:DrawableList x:Name="DrawableListControl"
                                                    ItemsSource="{Binding Drawables, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                    SearchText="{Binding Text, ElementName=HeaderSearchBox, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                   DrawableListKeyDown="SelectedDrawable_KeyDown" 
-                                                   DrawableListSelectedValueChanged="SelectedDrawable_Changed" />
+                                                   DrawableListKeyDown="SelectedDrawable_KeyDown"
+                                                   DrawableListSelectedValueChanged="SelectedDrawable_Changed"
+                                                   DrawableDeleteRequested="DrawableList_DeleteRequested" />
                                 </Border>
                             </Grid>
                         </DataTemplate>

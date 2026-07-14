@@ -30,6 +30,8 @@ namespace grzyClothTool.Controls
     {
         public event EventHandler DrawableListSelectedValueChanged;
         public event KeyEventHandler DrawableListKeyDown;
+
+        public event EventHandler DrawableDeleteRequested;
         public event PropertyChangedEventHandler PropertyChanged;
 
         public static readonly DependencyProperty ItemsSourceProperty =
@@ -510,6 +512,12 @@ namespace grzyClothTool.Controls
 
         private void DeleteDrawable_Click(object sender, RoutedEventArgs e)
         {
+            if (DrawableDeleteRequested != null)
+            {
+                DrawableDeleteRequested.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             var selectedDrawables = MainWindow.AddonManager.SelectedAddon.SelectedDrawables.ToList();
             MainWindow.AddonManager.DeleteDrawables(selectedDrawables);
         }
