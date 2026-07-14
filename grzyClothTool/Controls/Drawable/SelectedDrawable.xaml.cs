@@ -1233,6 +1233,73 @@ namespace grzyClothTool.Controls
             SaveHelper.SetUnsavedChanges(true);
         }
 
+        private async void ExportEmbeddedTexture_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not MenuItem menuItem)
+            {
+                return;
+            }
+
+            var format = menuItem.Tag?.ToString();
+            if (string.IsNullOrWhiteSpace(format))
+            {
+                return;
+            }
+
+            var embeddedTexture = GetEmbeddedTextureFromMenuItem(menuItem);
+            if (embeddedTexture == null)
+            {
+                return;
+            }
+
+            // Missing embedded textures (no original data and no replacement) have nothing to export
+            if (!embeddedTexture.HasOriginalTexture && !embeddedTexture.HasReplacement)
+            {
+                Show("This embedded texture is missing, so there is no image data to export.", "Nothing to export", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Warning);
+                return;
+            }
+
+            OpenFolderDialog folder = new()
+            {
+                Title = $"Select the folder to export embedded texture as {format.ToUpperInvariant()}",
+                Multiselect = false
+            };
+
+            if (folder.ShowDialog() != true)
+            {
+                return;
+            }
+
+            try
+            {
+                await FileHelper.SaveEmbeddedTexturesAsync([embeddedTexture], folder.FolderName, format);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to export embedded texture: {ex.Message}", LogType.Error);
+                Show($"An error occurred during export: {ex.Message}", "Export Error", CustomMessageBoxButtons.OKOnly, CustomMessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Resolves the <see cref="GTextureEmbedded"/> a context-menu item was opened on, supporting
+        /// both a direct binding and the legacy KeyValuePair binding.
+        /// </summary>
+        private static GTextureEmbedded GetEmbeddedTextureFromMenuItem(MenuItem menuItem)
+        {
+            if (menuItem.DataContext is GTextureEmbedded embeddedTexture)
+            {
+                return embeddedTexture;
+            }
+
+            if (menuItem.DataContext is KeyValuePair<GDrawableDetails.EmbeddedTextureType, GTextureEmbedded> entry)
+            {
+                return entry.Value;
+            }
+
+            return null;
+        }
+
         private void OptimizeEmbeddedTexture(GTextureEmbedded embeddedTexture)
         {
             var optimizeWindow = new OptimizeWindow([embeddedTexture]);

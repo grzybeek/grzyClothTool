@@ -1246,6 +1246,9 @@
                                                                     </MenuItem>
                                                                     <MenuItem Header="Rename" Click="RenameEmbeddedTexture_Click"/>
                                                                     <MenuItem Header="Replace" Click="ReplaceEmbeddedTexture_Click"/>
+                                                                    <Separator />
+                                                                    <MenuItem Header="Export as DDS" Click="ExportEmbeddedTexture_Click" Tag="DDS"/>
+                                                                    <MenuItem Header="Export as PNG" Click="ExportEmbeddedTexture_Click" Tag="PNG"/>
                                                                 </ContextMenu>
                                                             </Grid.ContextMenu>
                                                         </Grid>

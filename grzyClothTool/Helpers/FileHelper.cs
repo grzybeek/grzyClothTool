@@ -632,6 +632,96 @@ public static class FileHelper
         }
     }
 
+    /// <summary>
+    /// Exports embedded (in-drawable) textures to a folder as DDS or PNG. Unlike normal textures
+    /// these have no source file on disk - the pixel data lives inside the parent YDD, so the
+    /// data is loaded on demand and converted straight from the in-memory texture.
+    /// </summary>
+    public static async Task SaveEmbeddedTexturesAsync(List<GTextureEmbedded> textures, string folderPath, string format)
+    {
+        Directory.CreateDirectory(folderPath);
+
+        string fileExtension = format.ToUpperInvariant() switch
+        {
+            "DDS" => ".dds",
+            "PNG" => ".png",
+            _ => throw new ArgumentException($"Unsupported format: {format}", nameof(format))
+        };
+
+        ProgressHelper.Start("Started exporting embedded textures");
+
+        int successfulExports = 0;
+
+        try
+        {
+            foreach (var texture in textures)
+            {
+                var textureName = texture.Details?.Name ?? texture.OriginalName ?? "embedded_texture";
+
+                try
+                {
+                    var loaded = await texture.EnsureTextureDataLoadedAsync();
+                    var textureData = texture.DisplayTextureData;
+
+                    if (!loaded || textureData?.Data?.FullData == null || textureData.Data.FullData.Length == 0)
+                    {
+                        LogHelper.Log($"Could not export embedded texture: {textureName}. Error: no texture data available (missing or encrypted).", LogType.Error);
+                        continue;
+                    }
+
+                    var baseName = RemoveInvalidFileNameChars(textureName);
+                    var filePath = GetAvailableFilePath(folderPath, baseName, fileExtension);
+
+                    var ddsBytes = CodeWalker.Utils.DDSIO.GetDDSFile(textureData);
+
+                    if (fileExtension == ".dds")
+                    {
+                        await File.WriteAllBytesAsync(filePath, ddsBytes);
+                    }
+                    else
+                    {
+                        using var image = new MagickImage(ddsBytes) { Format = MagickFormat.Png };
+                        await File.WriteAllBytesAsync(filePath, image.ToByteArray());
+                    }
+
+                    successfulExports++;
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Log($"Could not export embedded texture: {textureName}. Error: {ex.Message}.", LogType.Error);
+                }
+            }
+
+            ProgressHelper.Stop($"Exported {successfulExports} embedded texture(s) in {{0}}", true);
+        }
+        catch (Exception ex)
+        {
+            LogHelper.Log($"Embedded texture export failed: {ex.Message}", LogType.Error);
+            ProgressHelper.Stop("Embedded texture export failed", false);
+        }
+    }
+
+    private static string RemoveInvalidFileNameChars(string name)
+    {
+        return string.Concat(name.Split(Path.GetInvalidFileNameChars()));
+    }
+
+    /// <summary>
+    /// Returns a file path in <paramref name="folderPath"/> for the given base name and extension,
+    /// appending a numeric suffix if a file with that name already exists.
+    /// </summary>
+    private static string GetAvailableFilePath(string folderPath, string baseName, string extension)
+    {
+        var candidate = Path.Combine(folderPath, $"{baseName}{extension}");
+        int counter = 1;
+        while (File.Exists(candidate))
+        {
+            candidate = Path.Combine(folderPath, $"{baseName}_{counter}{extension}");
+            counter++;
+        }
+        return candidate;
+    }
+
     public static async Task SaveDrawablesAsync(List<GDrawable> drawables, string folderPath)
     {
         Directory.CreateDirectory(folderPath);
