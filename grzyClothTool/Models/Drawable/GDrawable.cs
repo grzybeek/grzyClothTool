@@ -24,7 +24,7 @@ namespace grzyClothTool.Models.Drawable;
 public class GDrawable : INotifyPropertyChanged
 {
     private static readonly BlockingCollection<GDrawable> _loadQueue = new();
-    private readonly static SemaphoreSlim _semaphore = new(3);
+    private readonly static SemaphoreSlim _semaphore = new(Math.Clamp(Environment.ProcessorCount - 1, 3, 8));
 
     static GDrawable()
     {
@@ -359,6 +359,11 @@ public class GDrawable : INotifyPropertyChanged
         }
     }
 
+    private readonly TaskCompletionSource _detailsLoadedTcs = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    [JsonIgnore]
+    public Task DetailsLoaded => _isLoading ? _detailsLoadedTcs.Task : Task.CompletedTask;
+
     private bool _isLoading;
     public bool IsLoading
     {
@@ -366,6 +371,10 @@ public class GDrawable : INotifyPropertyChanged
         set
         {
             _isLoading = value;
+            if (!value)
+            {
+                _detailsLoadedTcs.TrySetResult();
+            }
             OnPropertyChanged(nameof(IsLoading));
         }
     }

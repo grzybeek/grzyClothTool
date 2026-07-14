@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -269,7 +270,7 @@ public static class FileHelper
         }
     }
 
-    public static async Task<GDrawable> CreateDrawableAsync(string filePath, Enums.SexType sex, bool isProp, int typeNumber, int countOfType)
+    public static async Task<GDrawable> CreateDrawableAsync(string filePath, Enums.SexType sex, bool isProp, int typeNumber, int countOfType, bool useFolderCache = false)
     {
         var isReserved = await IsReservedDrawable(filePath);
         if (isReserved)
@@ -279,7 +280,7 @@ public static class FileHelper
 
         var name = EnumHelper.GetName(typeNumber, isProp);
 
-        var matchingTextures = FindMatchingTextures(filePath, name, isProp);
+        var matchingTextures = FindMatchingTextures(filePath, name, isProp, useFolderCache);
 
         var drawableGuid = Guid.NewGuid();
         var drawableRaceSuffix = Path.GetFileNameWithoutExtension(filePath)[^1..];
@@ -339,11 +340,12 @@ public static class FileHelper
         return drawable;
     }
 
-    public static async Task CopyAsync(string sourcePath, string destinationPath)
+    public static Task CopyAsync(string sourcePath, string destinationPath)
     {
-        using var sourceStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        using var destinationStream = new FileStream(destinationPath, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-        await sourceStream.CopyToAsync(destinationStream);
+        // File.Copy uses the OS fast-path (CopyFileEx) which is dramatically faster than
+        // streaming with small buffers. overwrite: false preserves the previous
+        // FileMode.CreateNew behavior (throws IOException if destination exists).
+        return Task.Run(() => File.Copy(sourcePath, destinationPath, overwrite: false));
     }
 
     /// <summary>
@@ -369,7 +371,15 @@ public static class FileHelper
         }
     }
 
-    public static List<string> FindMatchingTextures(string filePath, string name, bool isProp)
+    /// <summary>
+    /// Per-folder cache of .ytd file paths, used during batch drawable imports so each folder
+    /// is enumerated once instead of once per drawable. Cleared after every batch.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, string[]> _ytdFolderCache = new(StringComparer.OrdinalIgnoreCase);
+
+    public static void ClearTextureSearchCache() => _ytdFolderCache.Clear();
+
+    public static List<string> FindMatchingTextures(string filePath, string name, bool isProp, bool useFolderCache = false)
     {
         var folderPath = Path.GetDirectoryName(filePath);
         var fileName = Path.GetFileName(filePath);
@@ -402,12 +412,21 @@ public static class FileHelper
             regexToSearch = $"^{Regex.Escape(addonName)}\\^{regexToSearch.TrimStart('^')}";
         }
 
-        var allYtds = Directory.EnumerateFiles(folderPath)
-            .Where(x => Path.GetExtension(x) == ".ytd" &&
-                Regex.IsMatch(Path.GetFileNameWithoutExtension(x), regexToSearch, RegexOptions.IgnoreCase))
-            .ToList();
+        static string[] EnumerateYtds(string path) => Directory.EnumerateFiles(path)
+            .Where(x => Path.GetExtension(x).Equals(".ytd", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
 
-        return allYtds;
+        var ytds = useFolderCache
+            ? _ytdFolderCache.GetOrAdd(folderPath, EnumerateYtds)
+            : EnumerateYtds(folderPath);
+
+        // One regex instance for the whole folder scan; the static Regex.IsMatch cache is small
+        // and every drawable uses a different pattern, so it constantly missed during batch imports.
+        var regex = new Regex(regexToSearch, RegexOptions.IgnoreCase);
+
+        return ytds
+            .Where(x => regex.IsMatch(Path.GetFileNameWithoutExtension(x)))
+            .ToList();
     }
 
     public static (bool IsProp, int DrawableType)? TryResolveDrawableTypeFromFileName(string file)

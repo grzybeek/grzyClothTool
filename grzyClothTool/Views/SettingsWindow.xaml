@@ -172,6 +172,16 @@
                                         IsChecked="{Binding Path=Instance.DrawableGroupingMode, Source={x:Static helpers:SettingsHelper.Instance}, Converter={StaticResource EnumToBoolConverter}, ConverterParameter=Both, Mode=TwoWay}" />
                                 </StackPanel>
                             </GroupBox>
+
+                            <GroupBox Margin="0,5" Height="150" Style="{DynamicResource FixedGroupBox}">
+                                <GroupBox.Header>
+                                    <TextBlock FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush950}" Text="Drawables per addon" />
+                                </GroupBox.Header>
+                                <StackPanel Margin="5">
+                                    <TextBlock Padding="5,2,5,5" FontStyle="Italic" FontWeight="Normal" Foreground="{DynamicResource Brush500}" TextWrapping="Wrap">Maximum number of drawables of each type kept in a single addon before a new one is created. Changing this reorganizes existing addons.</TextBlock>
+                                    <c:SettingsLabelTextBox Margin="5" Label="Max per addon (1-256)" LabelFontSize="12" Text="{Binding Path=Instance.MaxDrawablesPerAddon, Source={x:Static helpers:SettingsHelper.Instance}, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" ButtonVisible="False" />
+                                </StackPanel>
+                            </GroupBox>
                         </StackPanel>
                         <StackPanel Margin="5" Grid.Column="1">
                             <GroupBox Margin="0,5" Height="380" Style="{DynamicResource FixedGroupBox}">

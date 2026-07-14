@@ -1,4 +1,5 @@
-﻿using System;
+﻿using grzyClothTool.Constants;
+using System;
 using System.ComponentModel;
 using static grzyClothTool.Enums;
 
@@ -67,6 +68,34 @@ public class SettingsHelper : INotifyPropertyChanged
         set => SetProperty(ref _textureResolutionLimitSpecular, value, nameof(TextureResolutionLimitSpecular), revalidateDrawables: true);
     }
 
+    private int _maxDrawablesPerAddon;
+    public int MaxDrawablesPerAddon
+    {
+        get => _maxDrawablesPerAddon;
+        set
+        {
+            var clamped = Math.Clamp(value, 1, GlobalConstants.MAX_DRAWABLES_IN_ADDON_LIMIT);
+            if (_maxDrawablesPerAddon != clamped)
+            {
+                _maxDrawablesPerAddon = clamped;
+                Properties.Settings.Default.MaxDrawablesPerAddon = clamped;
+                Properties.Settings.Default.Save();
+                OnPropertyChanged(nameof(MaxDrawablesPerAddon));
+
+                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    MainWindow.AddonManager?.RedistributeDrawables();
+                }));
+            }
+            else if (!Equals(value, clamped))
+            {
+                // Value was out of range and got clamped to the current value;
+                // still notify so the UI snaps back to the clamped number.
+                OnPropertyChanged(nameof(MaxDrawablesPerAddon));
+            }
+        }
+    }
+
     public static bool Preview3DAvailable { get; set; } = true;
 
     private SettingsHelper()
@@ -81,6 +110,7 @@ public class SettingsHelper : INotifyPropertyChanged
         _textureResolutionLimitDiffuse = Properties.Settings.Default.TextureResolutionLimitDiffuse;
         _textureResolutionLimitNormal = Properties.Settings.Default.TextureResolutionLimitNormal;
         _textureResolutionLimitSpecular = Properties.Settings.Default.TextureResolutionLimitSpecular;
+        _maxDrawablesPerAddon = Math.Clamp(Properties.Settings.Default.MaxDrawablesPerAddon, 1, GlobalConstants.MAX_DRAWABLES_IN_ADDON_LIMIT);
     }
 
     private void SetProperty<T>(ref T field, T value, string propertyName, bool revalidateDrawables = false)

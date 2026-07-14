@@ -15,14 +15,29 @@ public static class ObservableCollectionExtensions
                               .ThenBy(x => x.Name)
                               .ToList();
 
+        if (shouldReassignNumbers)
+        {
+            // Running per-(type, prop, sex) counters instead of Take(i).Count(...) per item (O(n²))
+            var counters = new Dictionary<(int TypeNumeric, bool IsProp, Enums.SexType Sex), int>();
+            foreach (var drawable in sorted)
+            {
+                var key = (drawable.TypeNumeric, drawable.IsProp, drawable.Sex);
+                counters.TryGetValue(key, out var count);
+                drawable.Number = count;
+                drawable.SetDrawableName();
+                counters[key] = count + 1;
+            }
+        }
+
         for (int i = 0; i < sorted.Count; i++)
         {
-            if (shouldReassignNumbers)
+            var currentIndex = drawables.IndexOf(sorted[i]);
+            // Skip no-op moves - every Move fires CollectionChanged through grouped
+            // collection views, which is the expensive part with large lists
+            if (currentIndex != i)
             {
-                sorted[i].Number = sorted.Take(i).Count(x => x.TypeNumeric == sorted[i].TypeNumeric && x.IsProp == sorted[i].IsProp && x.Sex == sorted[i].Sex);
-                sorted[i].SetDrawableName();
+                drawables.Move(currentIndex, i);
             }
-            drawables.Move(drawables.IndexOf(sorted[i]), i);
         }
     }
 

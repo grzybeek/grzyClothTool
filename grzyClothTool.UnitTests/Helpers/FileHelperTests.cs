@@ -42,6 +42,13 @@ public class FileHelperTests
     [InlineData("JBIB_001_U.YDD", 1)]
     [InlineData("p_head_009.ydd", 9)]
     [InlineData("not-a-drawable.ydd", null)]
+    // Built-resource names (as produced by the tool's own build output) must parse to the same
+    // number, so re-importing a built resource keeps every item at its original index.
+    [InlineData("mp_m_freemode_01_myproject^jbib_005_u.ydd", 5)]
+    [InlineData("mp_m_freemode_01_myproject^jbib_005_u_1.ydd", 5)]
+    [InlineData("mp_f_freemode_01_myproject^accs_010_r.ydd", 10)]
+    [InlineData("mp_m_freemode_01_p_myproject^p_head_003.ydd", 3)]
+    [InlineData("mp_m_freemode_01_myproject^lowr_007_u.yld", 7)]
     public void GetDrawableNumberFromFileName_ParsesSupportedDrawableNames(string fileName, int? expected)
     {
         Assert.Equal(expected, FileHelper.GetDrawableNumberFromFileName(fileName));
