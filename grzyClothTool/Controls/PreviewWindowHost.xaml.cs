@@ -57,11 +57,36 @@ namespace grzyClothTool.Controls
             }
         }
 
+
+        private bool BlockPreviewIfGtaFolderInvalid()
+        {
+            if (CWHelper.IsGTAFolderValid())
+            {
+                return false;
+            }
+
+            LogHelper.Log("3D Preview unavailable: no valid GTA V folder is set. Set it in Settings to enable the preview.", Views.LogType.Warning);
+            if (PlaceholderText != null)
+            {
+                PlaceholderText.Text = "3D Preview unavailable - set a valid GTA V path in Settings";
+                PlaceholderText.Visibility = Visibility.Visible;
+            }
+
+            SettingsHelper.Preview3DAvailable = false;
+            Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        }
+
         public void InitializePreview()
         {
             if (_isInitialized && _customPedsForm != null && !_customPedsForm.IsDisposed)
             {
                 AttachPreviewForm();
+                return;
+            }
+
+            if (BlockPreviewIfGtaFolderInvalid())
+            {
                 return;
             }
 
@@ -95,6 +120,11 @@ namespace grzyClothTool.Controls
             if (_isInitialized)
             {
                 AttachPreviewForm();
+                return;
+            }
+
+            if (BlockPreviewIfGtaFolderInvalid())
+            {
                 return;
             }
 

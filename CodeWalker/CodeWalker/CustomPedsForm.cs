@@ -535,7 +535,8 @@ namespace CodeWalker
 
             MouseWheel += PedsForm_MouseWheel;
 
-            if (!GTAFolder.UpdateGTAFolder(true))
+  
+            if (!GTAFolder.IsCurrentGTAFolderValid())
             {
                 Close();
                 return;

@@ -35,6 +35,9 @@ public static class CWHelper
         GTAFolder.SetGTAFolder(path);
     }
 
+
+    public static bool IsGTAFolderValid() => GTAFolder.IsCurrentGTAFolderValid();
+
     public static YtdFile GetYtdFile(string path)
     {
         if (!File.Exists(path))
