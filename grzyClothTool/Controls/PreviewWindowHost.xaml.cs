@@ -60,12 +60,12 @@ namespace grzyClothTool.Controls
 
         private bool BlockPreviewIfGtaFolderInvalid()
         {
-            if (CWHelper.IsGTAFolderValid())
+            if (CWHelper.IsGTAFolderValid() || CWHelper.TryRecoverGTAFolder())
             {
                 return false;
             }
 
-            LogHelper.Log("3D Preview unavailable: no valid GTA V folder is set. Set it in Settings to enable the preview.", Views.LogType.Warning);
+            LogHelper.Log($"3D Preview unavailable: {CWHelper.GetGTAFolderInvalidReason()}. Set your GTA V folder in Settings to enable the preview.", Views.LogType.Warning);
             if (PlaceholderText != null)
             {
                 PlaceholderText.Text = "3D Preview unavailable - set a valid GTA V path in Settings";
@@ -75,6 +75,23 @@ namespace grzyClothTool.Controls
             SettingsHelper.Preview3DAvailable = false;
             Preview3DAvailabilityChanged?.Invoke(this, EventArgs.Empty);
             return true;
+        }
+
+
+        public void RetryInitialization()
+        {
+            if (_isInitialized && _customPedsForm != null && !_customPedsForm.IsDisposed)
+            {
+                return; // already running
+            }
+
+            if (!CWHelper.IsGTAFolderValid())
+            {
+                return; // still not valid; leave the placeholder as-is
+            }
+
+            _isInitialized = false;
+            InitializePreview();
         }
 
         public void InitializePreview()

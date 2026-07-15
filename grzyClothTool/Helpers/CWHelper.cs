@@ -30,13 +30,35 @@ public static class CWHelper
         }
     }
 
-    public static void SetGTAFolder(string path)
+    public static bool SetGTAFolder(string path)
     {
-        GTAFolder.SetGTAFolder(path);
+        return GTAFolder.SetGTAFolder(path);
     }
 
 
     public static bool IsGTAFolderValid() => GTAFolder.IsCurrentGTAFolderValid();
+
+    public static string GetGTAFolderInvalidReason()
+    {
+        GTAFolder.ValidateGTAFolder(GTAFolder.CurrentGTAFolder, out var reason);
+        return $"{reason} (path: '{GTAFolder.CurrentGTAFolder}')";
+    }
+
+    public static bool TryRecoverGTAFolder()
+    {
+        if (GTAFolder.IsCurrentGTAFolderValid())
+        {
+            return true;
+        }
+
+        var folder = GTAFolder.AutoDetectFolder();
+        if (folder != null)
+        {
+            GTAFolder.SetGTAFolder(folder);
+        }
+
+        return GTAFolder.IsCurrentGTAFolderValid();
+    }
 
     public static YtdFile GetYtdFile(string path)
     {

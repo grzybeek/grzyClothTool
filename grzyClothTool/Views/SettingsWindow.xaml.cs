@@ -86,9 +86,20 @@ namespace grzyClothTool.Views
                 var exeFilePath = selectedGTAPath.FolderName + "\\GTA5.exe";
                 var isPathValid = File.Exists(exeFilePath);
 
-                if (isPathValid)
+                if (isPathValid && CWHelper.SetGTAFolder(selectedGTAPath.FolderName))
                 {
-                    CWHelper.SetGTAFolder(selectedGTAPath.FolderName);
+                    OnPropertyChanged(nameof(GTAVPath));
+                    LogHelper.Log($"GTA V path set to: {selectedGTAPath.FolderName}", LogType.Info);
+W
+                    MainWindow.Instance?.PreviewHost?.RetryInitialization();
+                }
+                else
+                {
+                    CustomMessageBox.Show(
+                        "That folder doesn't look like a valid GTA V installation (GTA5.exe was not found in it).\n\nPlease select the folder that contains GTA5.exe.",
+                        "Invalid GTA V folder",
+                        CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                        CustomMessageBox.CustomMessageBoxIcon.Warning);
                 }
             }
         }
