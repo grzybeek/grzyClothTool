@@ -132,6 +132,25 @@ namespace grzyClothTool.Models
             OnPropertyChanged("Addons");
         }
 
+        // Reads the pedName/dlcName/fullDlcName declared inside a ShopPedApparel .meta file
+        private static async Task<(string pedName, string dlcName, string fullDlcName)> ReadShopPedApparelNamesAsync(string metaPath)
+        {
+            try
+            {
+                var metaDoc = await Task.Run(() => XDocument.Load(metaPath));
+                var root = metaDoc.Root;
+                var pedName = root?.Element("pedName")?.Value?.Trim();
+                var dlcName = root?.Element("dlcName")?.Value?.Trim();
+                var fullDlcName = root?.Element("fullDlcName")?.Value?.Trim();
+                return (pedName, dlcName, fullDlcName);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Could not read names from meta file '{Path.GetFileName(metaPath)}', falling back to file name: {ex.Message}", Views.LogType.Warning);
+                return (null, null, null);
+            }
+        }
+
         private async Task<PedAlternativeVariations> LoadPedAlternativeVariationsFileAsync(string dirPath, string addonName)
         {
             try
@@ -167,12 +186,22 @@ namespace grzyClothTool.Models
             var dirPath = Path.GetDirectoryName(path);
             var addonName = Path.GetFileNameWithoutExtension(path);
 
+            // The .meta file name can contain extra suffixes (e.g. "_shop") that don't
+            // appear in the streamed asset names, so prefer the names declared inside the
+            // ShopPedApparel meta itself (pedName/dlcName/fullDlcName) when available.
+            var (pedName, dlcName, fullDlcName) = await ReadShopPedApparelNamesAsync(path);
+
             // Determine if the addonName indicates male or female
-            Enums.SexType sex = addonName.Contains("mp_m_freemode_01") ? Enums.SexType.male : Enums.SexType.female;
+            Enums.SexType sex = (pedName ?? addonName).Contains("mp_m_freemode_01") ? Enums.SexType.male : Enums.SexType.female;
 
             // Build the appropriate regex pattern based on whether it's male or female
-            string genderSpecificPart = sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01";
-            string addonNameWithoutGender = addonName.Replace(genderSpecificPart, "").TrimStart('_');
+            string genderSpecificPart = !string.IsNullOrEmpty(pedName)
+                ? pedName
+                : (sex == Enums.SexType.male ? "mp_m_freemode_01" : "mp_f_freemode_01");
+
+            string addonNameWithoutGender = !string.IsNullOrEmpty(dlcName)
+                ? dlcName
+                : addonName.Replace(genderSpecificPart, "").TrimStart('_');
 
             if (shouldSetProjectName)
             {
@@ -197,9 +226,10 @@ namespace grzyClothTool.Models
                     .ThenBy(Path.GetFileName, StringComparer.Ordinal)
                     .ToArray();
 
+                var ymtMatch = !string.IsNullOrEmpty(fullDlcName) ? fullDlcName : addonName;
                 var ymt = allFiles
                     .Where(f => f.EndsWith(".ymt", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault(x => x.Contains(addonName));
+                    .FirstOrDefault(x => x.Contains(ymtMatch));
 
                 var ylds = allFiles
                     .Where(f => f.EndsWith(".yld", StringComparison.OrdinalIgnoreCase))
