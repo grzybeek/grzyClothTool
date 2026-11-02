@@ -798,6 +798,69 @@ namespace grzyClothTool.Models
             return null;
         }
 
+        /// <summary>
+        /// Repairs duplicate drawable names inside each addon. Numbering is scoped to
+        /// addon + gender + drawable/prop type because separate addons are separate DLCs.
+        /// The first drawable keeps its number; later collisions receive the next free slot.
+        /// </summary>
+        public int FixDuplicateDrawableNames()
+        {
+            lock (AddonsLock)
+            {
+                int renamedCount = 0;
+
+                foreach (var addon in Addons)
+                {
+                    var drawableGroups = addon.Drawables
+                        .Where(drawable => drawable != null)
+                        .GroupBy(drawable => (drawable.Sex, drawable.IsProp, drawable.TypeNumeric));
+
+                    foreach (var group in drawableGroups)
+                    {
+                        var ordered = group.ToList();
+                        var usedNumbers = ordered
+                            .Select(drawable => ((drawable.Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON) + GlobalConstants.MAX_DRAWABLES_IN_ADDON) % GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                            .ToHashSet();
+                        var seenNumbers = new HashSet<int>();
+
+                        foreach (var drawable in ordered)
+                        {
+                            int currentNumber = ((drawable.Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON) + GlobalConstants.MAX_DRAWABLES_IN_ADDON) % GlobalConstants.MAX_DRAWABLES_IN_ADDON;
+                            if (seenNumbers.Add(currentNumber))
+                            {
+                                continue;
+                            }
+
+                            int nextNumber = Enumerable.Range(0, GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                                .FirstOrDefault(number => !usedNumbers.Contains(number), -1);
+
+                            if (nextNumber < 0)
+                            {
+                                LogHelper.Log($"Could not repair duplicate name for '{drawable.Name}' in addon '{addon.Name}': all drawable slots are occupied.", Views.LogType.Warning);
+                                continue;
+                            }
+
+                            drawable.Number = nextNumber;
+                            drawable.SetDrawableName();
+
+                            usedNumbers.Add(nextNumber);
+                            seenNumbers.Add(nextNumber);
+                            renamedCount++;
+
+                            LogHelper.Log($"Renamed duplicate drawable in '{addon.Name}': assigned {drawable.Name}.", Views.LogType.Info);
+                        }
+                    }
+                }
+
+                if (renamedCount > 0)
+                {
+                    SaveHelper.SetUnsavedChanges(true);
+                }
+
+                return renamedCount;
+            }
+        }
+
         public void AddDrawable(GDrawable drawable)
         {
             lock (AddonsLock)
@@ -833,24 +896,31 @@ namespace grzyClothTool.Models
         {
             lock (AddonsLock)
             {
-                int nextNumber = 0;
+                int nextNumber = -1;
                 int currentAddonIndex = 0;
                 Addon currentAddon;
 
-                // find to which addon we should add the drawable
+                // Find the first free drawable slot in an addon. Counting drawables is
+                // not sufficient because deleted/reordered slots can leave gaps.
                 while (currentAddonIndex < Addons.Count)
                 {
                     currentAddon = Addons[currentAddonIndex];
-                    int countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex);
+                    var usedNumbers = currentAddon.Drawables
+                        .Where(x => x.TypeNumeric == drawable.TypeNumeric &&
+                                    x.IsProp == drawable.IsProp &&
+                                    x.Sex == drawable.Sex)
+                        .Select(x => ((x.Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON) + GlobalConstants.MAX_DRAWABLES_IN_ADDON) % GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                        .ToHashSet();
 
-                    // If the number of drawables of this type has reached 128, move to the next addon
-                    if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                    nextNumber = Enumerable.Range(0, GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                        .FirstOrDefault(number => !usedNumbers.Contains(number), -1);
+
+                    if (nextNumber < 0)
                     {
                         currentAddonIndex++;
                         continue;
                     }
 
-                    nextNumber = countOfType;
                     break;
                 }
 

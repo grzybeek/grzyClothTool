@@ -503,6 +503,39 @@ namespace grzyClothTool.Views
             }
         }
 
+        private void FixDuplicateNames_Btn(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int renamedCount = MainWindow.AddonManager.FixDuplicateDrawableNames();
+
+                if (renamedCount == 0)
+                {
+                    CustomMessageBox.Show(
+                        "No duplicate drawable names were found. Each addon is already using unique drawable numbers.",
+                        "Duplicate Names",
+                        CustomMessageBox.CustomMessageBoxButtons.OKOnly);
+                    return;
+                }
+
+                CustomMessageBox.Show(
+                    $"Fixed {renamedCount} duplicate drawable name(s). Associated texture build names were updated automatically.",
+                    "Duplicate Names Fixed",
+                    CustomMessageBox.CustomMessageBoxButtons.OKOnly);
+
+                LogHelper.Log($"Duplicate-name repair completed: {renamedCount} drawable(s) renamed.", LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Log($"Failed to repair duplicate drawable names: {ex.Message}", LogType.Error);
+                CustomMessageBox.Show(
+                    $"Could not repair duplicate drawable names:\n\n{ex.Message}",
+                    "Duplicate Name Repair Failed",
+                    CustomMessageBox.CustomMessageBoxButtons.OKOnly,
+                    CustomMessageBox.CustomMessageBoxIcon.Error);
+            }
+        }
+
         private void BuildResource_Btn(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(MainWindow.AddonManager.ProjectName))

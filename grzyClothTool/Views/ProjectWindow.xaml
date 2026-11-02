@@ -312,6 +312,12 @@ mc:Ignorable="d">
                BorderThickness="0,1,0,0"
                Padding="2,2">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <c:CustomButton Label="FIX DUPLICATE NAMES"
+                               Width="180"
+                               MyBtnClickEvent="FixDuplicateNames_Btn"
+                               Padding="2,8"
+                               Margin="0,0,8,0"
+                               CornerRadius="5" />
                 <c:CustomButton x:Name="PreviewButton"
                                Label="3D PREVIEW" 
                                Width="150" 
