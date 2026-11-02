@@ -896,24 +896,31 @@ namespace grzyClothTool.Models
         {
             lock (AddonsLock)
             {
-                int nextNumber = 0;
+                int nextNumber = -1;
                 int currentAddonIndex = 0;
                 Addon currentAddon;
 
-                // find to which addon we should add the drawable
+                // Find the first free drawable slot in an addon. Counting drawables is
+                // not sufficient because deleted/reordered slots can leave gaps.
                 while (currentAddonIndex < Addons.Count)
                 {
                     currentAddon = Addons[currentAddonIndex];
-                    int countOfType = currentAddon.Drawables.Count(x => x.TypeNumeric == drawable.TypeNumeric && x.IsProp == drawable.IsProp && x.Sex == drawable.Sex);
+                    var usedNumbers = currentAddon.Drawables
+                        .Where(x => x.TypeNumeric == drawable.TypeNumeric &&
+                                    x.IsProp == drawable.IsProp &&
+                                    x.Sex == drawable.Sex)
+                        .Select(x => ((x.Number % GlobalConstants.MAX_DRAWABLES_IN_ADDON) + GlobalConstants.MAX_DRAWABLES_IN_ADDON) % GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                        .ToHashSet();
 
-                    // If the number of drawables of this type has reached 128, move to the next addon
-                    if (countOfType >= GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                    nextNumber = Enumerable.Range(0, GlobalConstants.MAX_DRAWABLES_IN_ADDON)
+                        .FirstOrDefault(number => !usedNumbers.Contains(number), -1);
+
+                    if (nextNumber < 0)
                     {
                         currentAddonIndex++;
                         continue;
                     }
 
-                    nextNumber = countOfType;
                     break;
                 }
 
